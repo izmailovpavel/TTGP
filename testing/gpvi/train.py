@@ -5,7 +5,7 @@ from sklearn.cluster import KMeans
 from tensorflow.contrib.opt.python.training.external_optimizer import ScipyOptimizerInterface
 
 from input import NUM_FEATURES, get_batch, prepare_data
-from linreg import squared_dists, SE, GP, mse, r2
+from gp import squared_dists, SE, GP, mse, r2
 #from evaluate import evaluate
 
 flags = tf.app.flags
