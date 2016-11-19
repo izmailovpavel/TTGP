@@ -27,12 +27,15 @@ with tf.Graph().as_default():
     means = KMeans(n_clusters=FLAGS.n_inputs, random_state=241)
     means.fit(x_tr)
     inputs = means.cluster_centers_ 
-    w = np.array([1, 5, 1])
+    w = np.array([1., 10., .5])
+    #w = np.array([1, 5, 1])
     gp = GP(SE(), w, inputs) 
     
     init = tf.initialize_all_variables()
     print('starting session')
-    with tf.Session() as sess:
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
+    with tf.Session(config=config) as sess:
         sess.run(init)
         summary_writer = tf.train.SummaryWriter(TRAIN_DIR, sess.graph)
         print(FLAGS.n_iter)

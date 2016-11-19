@@ -1,9 +1,10 @@
 import tensorflow as tf
 import numpy as np
-
-from scipy import optimize as opt 
+import time
 from copy import deepcopy
+from scipy import optimize as opt 
 from tensorflow.contrib.opt.python.training.external_optimizer import ScipyOptimizerInterface
+
 from input import NUM_FEATURES
 
 
@@ -114,6 +115,7 @@ class GP:
             self.mu_sigma_upd = self.mu_sigma(X, y)
 
     def fit(self, X, y, maxiter, sess):
+        start = time.time()
         def _fun(w):
             feed_dict = {self.x_tr_ph: X, self.y_tr_ph: y, self.w_ph: w}
             fun, grad = sess.run([self.elbo_op, self.grad_op], feed_dict)
@@ -124,6 +126,7 @@ class GP:
             sess.run(tf.assign(self.w, res['x']))
         print(self.w.eval())
         sess.run(self.mu_sigma_upd, {self.x_tr_ph: X, self.y_tr_ph: y})
+        print('Fit time:', time.time() - start)
 
     def predict(self, X, sess):
         feed_dict = {self.x_te_ph: X}
