@@ -43,12 +43,13 @@ def prepare_data(mode='svmlight'):
         y_te = np.load(path+'y_te.npy')
     else:
         raise ValueError("unknown mode: " + str(mode))
-    scaler_x = StandardScaler()
-    scaler_y = StandardScaler()
-    x_tr = scaler_x.fit_transform(x_tr)
-    x_te = scaler_x.transform(x_te)
-    y_tr = scaler_y.fit_transform(y_tr)
-    y_te = scaler_y.transform(y_te)
+    # TODO: project to a unit cube
+    # scaler_x = StandardScaler()
+    # scaler_y = StandardScaler()
+    # x_tr = scaler_x.fit_transform(x_tr)
+    # x_te = scaler_x.transform(x_te)
+    # y_tr = scaler_y.fit_transform(y_tr)
+    # y_te = scaler_y.transform(y_te)
     return x_tr, y_tr, x_te, y_te
 
 def make_tensor(array, name):

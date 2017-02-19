@@ -5,6 +5,10 @@ from sklearn.cluster import KMeans
 
 from input import NUM_FEATURES, get_batch, prepare_data, make_tensor
 from gp import squared_dists, SE, GP, mse, r2
+import grid
+import t3f
+import t3f.kronecker as kron
+from t3f import TensorTrain
 #from evaluate import evaluate
 
 flags = tf.app.flags
@@ -28,10 +32,13 @@ if FLAGS.refresh_stats:
 
 with tf.Graph().as_default():
     x_tr, y_tr, x_te, y_te = prepare_data(mode="numpy")
-    print(x_tr.shape)
-    means = KMeans(n_clusters=FLAGS.n_inputs, random_state=241)
-    means.fit(x_tr)
-    inputs = means.cluster_centers_ 
+    
+    #means = KMeans(n_clusters=FLAGS.n_inputs, random_state=241)
+    #means.fit(x_tr)
+    #inputs = means.cluster_centers_ 
+   
+    inputs = grid.InputsGrid(x_tr.shape[1], npoints=FLAGS.n_inputs).full()
+
     iter_per_epoch = int(y_tr.shape[0] / FLAGS.batch_size)
     inputs = make_tensor(inputs, 'inputs')
     x_tr = make_tensor(x_tr, 'x_tr')
