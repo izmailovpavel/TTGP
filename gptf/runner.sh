@@ -9,5 +9,5 @@
 
 # I fixed the noise factor at a low value, it is now untrainable
 # Also, now interpolation is used to compute K_nm
-python3 train.py --lr=0.05 --batch_size=20 --n_inputs=7 --n_epoch=50 
-# This method reaches approx 0.90 r2-score
+python3 train.py --lr=0.05 --batch_size=20 --n_inputs=10 --n_epoch=50 
+# This method reaches approx 0.88 r2-score

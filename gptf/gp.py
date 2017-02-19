@@ -29,6 +29,7 @@ class SE:
 
         with tf.name_scope(name, 'SEcov', [kron_dists]):
             res_cores = []
+            print(kron_dists.tt_cores[0].get_shape())
             for core_idx in range(kron_dists.ndims()):
                 core = kron_dists.tt_cores[core_idx]
                 cov_core = (self.sigma_f**(2./ kron_dists.ndims())* 
@@ -69,35 +70,60 @@ class GP:
         self.inputs_dists = inputs.kron_dists()
         self.inputs_full = make_tensor(inputs.full(), 'inputs')
         self.m = inputs.size
-        self.mu = tf.get_variable('mu', [self.m, 1], 
-                                  initializer=tf.constant_initializer(0.), 
-                                  dtype=tf.float64, trainable=True)
-        self.sigma_l = tf.get_variable('Sigma_L', [self.m, self.m], 
-                                        initializer=tf.constant_initializer(np.eye(self.m)), 
-                                        dtype=tf.float64, trainable=True)
+        
+        tt_mu_init = t3f.random_matrix((self.inputs.npoints, None), tt_rank=2)
+        tt_mu = t3f.cast(t3f.get_variable('tt_mu', initializer=tt_mu_init), 
+                          tf.float64)
+
+        self.mu = tt_mu
+       # self.mu = tf.get_variable('mu', [self.m, 1], 
+       #                           initializer=tf.constant_initializer(0.), 
+       #                           dtype=tf.float64, trainable=True)
+        
+        tt_sigma_l_init = t3f.random_matrix((self.inputs.npoints, 
+                                                self.inputs.npoints), tt_rank=1)
+
+        tt_sigma_l = t3f.cast(t3f.get_variable('tt_sigma_l', 
+                                    initializer=tt_sigma_l_init), tf.float64)
+
+        self.sigma_l = tt_sigma_l 
+       # self.sigma_l = tf.get_variable('Sigma_L', [self.m, self.m], 
+       #                                 initializer=tf.constant_initializer(np.eye(self.m)), 
+       #                                 dtype=tf.float64, trainable=True)
         self.N = 0 # Size of the training set
 
-    def predict(self, x_test, name=None):
-       # sigma = tf.matmul(self.sigma_l, tf.transpose(self.sigma_l))
-        inputs = self.inputs.full()
+    def predict(self, w_test, name=None):
         inputs_dists = self.inputs_dists
         expectation = self.mu
-        with tf.name_scope(name, 'Predict', [x_test]):
-            K_xm = self.cov(x_test, inputs)
-            K_mm = ops.full(self.cov.kron_cov(inputs_dists))
-            K_mm = self.cov(inputs, inputs)
-            K_mm_inv = tf.matrix_inverse(K_mm)
-            y = tf.matmul(K_xm, tf.matmul(K_mm_inv, expectation))
+        with tf.name_scope(name, 'Predict', [w_test]):
+            K_mm = self.cov.kron_cov(inputs_dists)
+            K_xm = batch_tt_tt_matmul(K_mm, w_test)
+            K_mm_inv = kron.inv(K_mm)
+            print(K_xm.get_raw_shape())
+            print(t3f.tt_tt_matmul(K_mm_inv, expectation).get_raw_shape())
+            print('((')
+            #y = batch_tt_tt_matmul(K_xm, t3f.tt_tt_matmul(K_mm_inv, expectation))
+            y = batch_tt_tt_flat_inner(K_xm, t3f.tt_tt_matmul(K_mm_inv, expectation))
+            print('y', y.get_shape())
             return y
 
     def elbo(self, W, y, name=None):
         with tf.name_scope(name, 'ELBO', [W, y]):
             W_full = W #batch_full(W)
-            sigma_l = tf.matrix_band_part(self.sigma_l, -1, 0)
+
+            # Computing band part
+            sigma_l_cores = []
+            for core_idx in range(self.sigma_l.ndims()):
+                core = self.sigma_l.tt_cores[core_idx] 
+                sigma_l_cores.append(tf.matrix_band_part(core,-1, 0))
+            sigma_l_shape = self.sigma_l.get_raw_shape()
+            sigma_l_ranks = self.sigma_l.get_tt_ranks()
+            sigma_l = TensorTrain(sigma_l_cores, sigma_l_shape, sigma_l_ranks)
+
             l = tf.cast(tf.shape(y)[0], tf.float64) # batch size
             y = tf.reshape(y, [-1, 1])
             cov = self.cov
-            inputs = self.inputs.full()
+            #inputs = self.inputs.full()
             inputs_dists = self.inputs_dists
             #N = tf.cast(self.N
             N = tf.cast(self.N, dtype=tf.float64)
@@ -105,18 +131,16 @@ class GP:
             sigma = tf.matmul(sigma_l, tf.transpose(sigma_l))
             mu = self.mu
             #K_mm = cov(inputs, inputs)
-            K_mm = ops.full(cov.kron_cov(inputs_dists))
-            K_mm_no_noise = ops.full(cov.kron_cov(inputs_dists, with_noise=False))
+            K_mm = cov.kron_cov(inputs_dists)
+            K_mm_no_noise = cov.kron_cov(inputs_dists, with_noise=False)
             
-            K_mm_cho = tf.cholesky(K_mm)
-            K_mm_inv = tf.matrix_inverse(K_mm)
-            K_mm_logdet = 2 * tf.reduce_sum(tf.log(tf.diag_part(K_mm_cho))) 
-            K_mm_inv__mu = tf.matmul(K_mm_inv, mu)
-            #k_i = cov(inputs, X)
-            k_i = tf.matmul(K_mm_no_noise, tf.transpose(W))
-            #print(W.get_shape())
-            #return tf.reduce_sum(tf.square(k_i - tf.matmul(K_mm, tf.transpose(W))))
-            #k_i = tf.matmul(K_mm, tf.transpose(W))
+            K_mm_cho = kron.cholesky(K_mm)
+            K_mm_inv = kron.inv(K_mm)
+            K_mm_logdet = kron.slog_determinant(K_mm)[1]
+            #K_mm_logdet = 2 * tf.reduce_sum(tf.log(tf.diag_part(K_mm_cho))) 
+            K_mm_inv__mu = ops.tt_tt_matmul(K_mm_inv, mu)
+            k_i = batch_tt_tt_matmul(K_mm_no_noise, W)
+            print(k_i.get_shape(), 'k_i')
             zeros = tf.zeros((1,1), dtype=tf.float64) 
             tilde_K_ii = l * cov(zeros, zeros) - tf.reduce_sum(tf.einsum('ij,ji->i', tf.transpose(k_i), tf.matmul(K_mm_inv, k_i)))
             Lambda_i = tf.matmul(K_mm_inv, tf.matmul(k_i, tf.matmul(tf.transpose(k_i), K_mm_inv))) / cov.sigma_n**2
@@ -137,12 +161,13 @@ class GP:
     
     def check_interpolation(self, W, X):
         inputs = self.inputs.full()
-        K_mm = ops.full(self.cov.kron_cov(self.inputs_dists))
+        K_mm = self.cov.kron_cov(self.inputs_dists)
         K_mm_2 = self.cov(inputs, inputs)
+        K_mm_nonoise = self.cov.kron_cov(self.inputs_dists, with_noise=False)
         
         k_i = self.cov(inputs, X)
-        k_i_2 = tf.matmul(K_mm_2, tf.transpose(W))
-        return tf.reduce_sum(tf.square(k_i - k_i_2))
+        k_i_2 = batch_tt_tt_matmul(K_mm_nonoise, W)
+        return tf.reduce_sum(tf.square(tf.transpose(k_i) - batch_full(k_i_2)[:, :, 0]))
         #k_i = cov(inputs, X)
         #k_i = tf.matmul(K_mm, tf.transpose(W))
 

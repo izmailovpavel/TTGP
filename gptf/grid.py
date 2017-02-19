@@ -58,7 +58,7 @@ class InputsGrid:
             dists = ((self.inputs[dim]**2)[:, None] + 
                     (self.inputs[dim]**2)[None, :] -
                     2*self.inputs[dim][:, None]* self.inputs[dim][None, :])
-            dist_dims.append(dists[None, :, :, None])
+            dist_dims.append(dists[None, :, :])#, None])
         res_ranks = [1] * (self.ndims + 1)
         res_shape_i = tuple(self.npoints)
         res_shape = (res_shape_i, res_shape_i)
