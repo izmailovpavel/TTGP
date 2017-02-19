@@ -4,6 +4,7 @@ import numpy as np
 import t3f
 import t3f.kronecker as kron
 from t3f import ops, TensorTrain
+from tt_batch import *
 from input import NUM_FEATURES, make_tensor
 
 class SE:
@@ -15,21 +16,26 @@ class SE:
 
         self.sigma_f = tf.get_variable('Process_variance', [1], initializer=tf.constant_initializer(sigma_f), dtype=tf.float64)
         self.l = tf.get_variable('Process_lengthscale', [1], initializer=tf.constant_initializer(l), dtype=tf.float64)
-        self.sigma_n = tf.get_variable('Noise_variance', [1], initializer=tf.constant_initializer(sigma_n), dtype=tf.float64)
+        self.sigma_n = tf.get_variable('Noise_variance', [1], 
+                                       initializer=tf.constant_initializer(sigma_n), 
+                                       dtype=tf.float64)#, trainable=False)
 
-    def kron_cov(self, kron_dists, name=None):
+    def kron_cov(self, kron_dists, with_noise=True, name=None):
         """
         Computes the covariance matrix, given a kronecker product representation
         of distances.
         """
+        # TODO: this is wrong.
+
         with tf.name_scope(name, 'SEcov', [kron_dists]):
             res_cores = []
             for core_idx in range(kron_dists.ndims()):
                 core = kron_dists.tt_cores[core_idx]
                 cov_core = (self.sigma_f**(2./ kron_dists.ndims())* 
-                            tf.exp(-core/(2. * (self.l**2.)))
-                            + tf.cast(tf.equal(core, 0.0), tf.float64) * 
-                            self.sigma_n**2.)
+                            tf.exp(-core/(2. * (self.l**2.))))
+                if with_noise:
+                    cov_core += (tf.cast(tf.equal(core, 0.0), tf.float64) *
+                                 self.sigma_n**2.)
                 res_cores.append(cov_core)
             res_shape = kron_dists.get_raw_shape()
             res_ranks = kron_dists.get_tt_ranks()
@@ -59,6 +65,7 @@ class GP:
     def __init__(self, cov, inputs):
         self.cov = cov
         self.inputs = inputs
+        self.W_tr = None
         self.inputs_dists = inputs.kron_dists()
         self.inputs_full = make_tensor(inputs.full(), 'inputs')
         self.m = inputs.size
@@ -83,8 +90,9 @@ class GP:
             y = tf.matmul(K_xm, tf.matmul(K_mm_inv, expectation))
             return y
 
-    def elbo(self, X, y, name=None):
-        with tf.name_scope(name, 'ELBO', [X, y]):
+    def elbo(self, W, y, name=None):
+        with tf.name_scope(name, 'ELBO', [W, y]):
+            W_full = W #batch_full(W)
             sigma_l = tf.matrix_band_part(self.sigma_l, -1, 0)
             l = tf.cast(tf.shape(y)[0], tf.float64) # batch size
             y = tf.reshape(y, [-1, 1])
@@ -98,11 +106,17 @@ class GP:
             mu = self.mu
             #K_mm = cov(inputs, inputs)
             K_mm = ops.full(cov.kron_cov(inputs_dists))
+            K_mm_no_noise = ops.full(cov.kron_cov(inputs_dists, with_noise=False))
+            
             K_mm_cho = tf.cholesky(K_mm)
             K_mm_inv = tf.matrix_inverse(K_mm)
             K_mm_logdet = 2 * tf.reduce_sum(tf.log(tf.diag_part(K_mm_cho))) 
             K_mm_inv__mu = tf.matmul(K_mm_inv, mu)
-            k_i = cov(inputs, X)
+            #k_i = cov(inputs, X)
+            k_i = tf.matmul(K_mm_no_noise, tf.transpose(W))
+            #print(W.get_shape())
+            #return tf.reduce_sum(tf.square(k_i - tf.matmul(K_mm, tf.transpose(W))))
+            #k_i = tf.matmul(K_mm, tf.transpose(W))
             zeros = tf.zeros((1,1), dtype=tf.float64) 
             tilde_K_ii = l * cov(zeros, zeros) - tf.reduce_sum(tf.einsum('ij,ji->i', tf.transpose(k_i), tf.matmul(K_mm_inv, k_i)))
             Lambda_i = tf.matmul(K_mm_inv, tf.matmul(k_i, tf.matmul(tf.transpose(k_i), K_mm_inv))) / cov.sigma_n**2
@@ -118,13 +132,25 @@ class GP:
             elbo += - K_mm_logdet / (2 * N)
             elbo += tf.reduce_sum(tf.log(tf.abs(tf.diag_part(sigma_l)))) / N
             elbo += -tf.reduce_sum(tf.einsum('ij,ji->i', sigma, K_mm_inv)) / (2 * N)
-            elbo += - tf.matmul(tf.transpose(mu), tf.matmul(K_mm_inv, mu)) / (2 * N)
-            
+            elbo += - tf.matmul(tf.transpose(mu), tf.matmul(K_mm_inv, mu)) / (2 * N)    
             return -elbo
-    def fit(self, X, y, N, lr=0.5, name=None):
+    
+    def check_interpolation(self, W, X):
+        inputs = self.inputs.full()
+        K_mm = ops.full(self.cov.kron_cov(self.inputs_dists))
+        K_mm_2 = self.cov(inputs, inputs)
+        
+        k_i = self.cov(inputs, X)
+        k_i_2 = tf.matmul(K_mm_2, tf.transpose(W))
+        return tf.reduce_sum(tf.square(k_i - k_i_2))
+        #k_i = cov(inputs, X)
+        #k_i = tf.matmul(K_mm, tf.transpose(W))
+
+    def fit(self, W, y, N, lr=0.5, name=None):
         self.N = N
-        with tf.name_scope(name, 'fit', [X, y]):
-            fun = self.elbo(X, y)
+        self.W_tr = W
+        with tf.name_scope(name, 'fit', [W, y]):
+            fun = self.elbo(W, y)
             print('Adadelta, lr=', lr)
 #            return fun, tf.train.GradientDescentOptimizer(learning_rate=lr).minimize(fun)
 #            return fun, tf.train.AdadeltaOptimizer(learning_rate=lr, rho=0.9).minimize(fun)

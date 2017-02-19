@@ -4,5 +4,10 @@
 # Default method reaches 0.93 r2-score
 
 # Now we use inputs on a grid
+# python3 train.py --lr=0.05 --batch_size=20 --n_inputs=7 --n_epoch=50 
+# This method reaches 0.93 r2-score
+
+# I fixed the noise factor at a low value, it is now untrainable
+# Also, now interpolation is used to compute K_nm
 python3 train.py --lr=0.05 --batch_size=20 --n_inputs=7 --n_epoch=50 
-# Default method reaches 0.93 r2-score
+# This method reaches approx 0.90 r2-score

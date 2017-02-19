@@ -9,6 +9,7 @@ import grid
 import t3f
 import t3f.kronecker as kron
 from t3f import TensorTrain
+from tt_batch import *
 #from evaluate import evaluate
 
 flags = tf.app.flags
@@ -34,7 +35,11 @@ with tf.Graph().as_default():
     x_tr, y_tr, x_te, y_te = prepare_data(mode="numpy")
    
     inputs = grid.InputsGrid(x_tr.shape[1], npoints=FLAGS.n_inputs)#.full()
-    W = inputs.interpolate_kernel(x_te)
+    W = inputs.interpolate_kernel(x_tr)
+    W = BatchTTMatrices([tf.reshape(core, [core.get_shape()[0].value, 1, 
+                                           core.get_shape()[1].value, 1, 1])
+                                           for core in W])
+    W = batch_full(W)[:, :, 0]
 
     iter_per_epoch = int(y_tr.shape[0] / FLAGS.batch_size)
     x_tr = make_tensor(x_tr, 'x_tr')
@@ -42,9 +47,10 @@ with tf.Graph().as_default():
     x_te = make_tensor(x_te, 'x_te')
     y_te = make_tensor(y_te, 'y_te')
     maxiter = iter_per_epoch * FLAGS.n_epoch
-    x_batch, y_batch = get_batch(x_tr, y_tr, FLAGS.batch_size) 
+    w_batch, y_batch = get_batch(W, y_tr, FLAGS.batch_size) 
     gp = GP(SE(1., 1., 1.), inputs) 
-    elbo, train_op = gp.fit(x_batch, y_batch, x_tr.get_shape()[0], lr=LR)
+    elbo, train_op = gp.fit(w_batch,  y_batch, x_tr.get_shape()[0], lr=LR)
+    check = gp.check_interpolation(W, x_tr)
     pred = gp.predict(x_te)
     r2 = r2(pred, y_te)
     mse = mse(pred, y_te)
@@ -56,6 +62,8 @@ with tf.Graph().as_default():
     print('starting session')
     with tf.Session() as sess:
         sess.run(init)
+        #print(sess.run(check))
+        #exit(0)
         threads = tf.train.start_queue_runners(sess=sess, coord=coord)
         #summary_writer = tf.train.SummaryWriter(TRAIN_DIR, sess.graph)
 

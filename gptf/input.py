@@ -56,14 +56,14 @@ def make_tensor(array, name):
     init = tf.constant(array)
     return tf.Variable(init, name=name, trainable=False)
 
-def get_batch(x_tr, y_tr, batch_size):
+def get_batch(W_tr, y_tr, batch_size):
     """
     Iterator, returning bathces
     """
     print('\tIn get_batch...')
-    x_example, y_example = tf.train.slice_input_producer([x_tr, y_tr])
+    W_example, y_example = tf.train.slice_input_producer([W_tr, y_tr])
     capacity = 32#3 * batch_size#min_after_dequeue  + 3 * batch_size
     print('\tMaking the batch')
-    x_batch, y_batch = tf.train.batch([x_example, y_example], 
+    W_batch, y_batch = tf.train.batch([W_example, y_example], 
                                        batch_size=batch_size, capacity=capacity)
-    return x_batch, y_batch
+    return W_batch, y_batch
