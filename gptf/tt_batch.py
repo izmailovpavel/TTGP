@@ -35,6 +35,30 @@ class BatchTTMatrices():
         return (tf.TensorShape([core.get_shape()[2] for core in self.tt_cores]),
                tf.TensorShape([core.get_shape()[3] for core in self.tt_cores]))
 
+
+def batch_subsample(tt_batch, batch_size, targets=None):
+    """
+    Generates a subsample of the batch.
+
+    Creates the queue with tf.train.slice_input_producer and then batches the 
+    output.
+    Args:
+        tt_batch: BatchTTMatrices object.
+        batch_size: size of the subsample.
+        targets: a tensor of target values. Use this argument to generate
+            batches of both features and targets.
+    """
+    if targets is not None:
+        tensors = tt_batch.tt_cores + [targets]
+        sample = tf.train.slice_input_producer(tensors)
+        batch = tf.train.batch(sample, batch_size)
+        return BatchTTMatrices(batch[:-1]), batch[-1]
+    else:
+        sample = tf.train.slice_input_producer(tt_batch.tt_cores)
+        batch = tf.train.batch(sample, batch_size)
+        return BatchTTMatrices(batch)
+
+
 def batch_tt_tt_flat_inner(tt_a, tt_b):
     """
     Inner product of the given tt-matrices.
