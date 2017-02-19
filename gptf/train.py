@@ -53,18 +53,18 @@ with tf.Graph().as_default():
     pred = gp.predict(x_te)
     r2 = r2(pred, y_te)
     mse = mse(pred, y_te)
-    elbo = gp.elbo(x_tr, y_tr)
+#    elbo = gp.elbo(x_tr, y_tr)
     dists = gp.cov(x_tr, x_tr)
     init_ms = gp.initialize_mu_sigma(x_tr, y_tr)
 
     coord = tf.train.Coordinator()
-    init = tf.initialize_all_variables()
+    init = tf.global_variables_initializer()
     feed_dict = {}
     print('starting session')
     with tf.Session() as sess:
         sess.run(init)
         threads = tf.train.start_queue_runners(sess=sess, coord=coord)
-        summary_writer = tf.train.SummaryWriter(TRAIN_DIR, sess.graph)
+        #summary_writer = tf.train.SummaryWriter(TRAIN_DIR, sess.graph)
 
 #        elbo_val = sess.run(elbo)
 #        print(elbo_val)
@@ -72,7 +72,8 @@ with tf.Graph().as_default():
         for i in range(maxiter):
             if not (i % iter_per_epoch):
                 print('Epoch', i/iter_per_epoch, ':')
-                print('\tw:', gp.cov.sigma_f.eval(), gp.cov.l.eval(), gp.cov.sigma_n.eval())
+                print('\tw:', gp.cov.sigma_f.eval(), gp.cov.l.eval(), 
+                        gp.cov.sigma_n.eval())
                 r2_val = sess.run(r2)
                 print('r_2 on test set:', r2_val)       
             elbo_val, _ = sess.run([elbo, train_op])

@@ -80,18 +80,19 @@ class GP:
             Lambda_i = tf.matmul(K_mm_inv, tf.matmul(k_i, tf.matmul(tf.transpose(k_i), K_mm_inv))) / cov.sigma_n**2
             
             elbo = 0
-
-            elbo += - tf.log(tf.abs(cov.sigma_n)) * l - tf.reduce_sum(tf.square(y - tf.matmul(tf.transpose(k_i), K_mm_inv__mu)))/(2 * cov.sigma_n**2)
+            
+            elbo += - tf.log(tf.abs(cov.sigma_n)) * l 
+            elbo -= tf.reduce_sum(tf.square(y - tf.matmul(tf.transpose(k_i), 
+                                            K_mm_inv__mu)))/(2 * cov.sigma_n**2)
             elbo += - tilde_K_ii/(2 * cov.sigma_n**2)
             elbo += - tf.reduce_sum(tf.einsum('ij,ji->i', sigma, Lambda_i)) / 2
             elbo /= l
             elbo += - K_mm_logdet / (2 * N)
-            elbo += tf.reduce_sum(tf.log(tf.diag_part(sigma_l))) / N
+            elbo += tf.reduce_sum(tf.log(tf.abs(tf.diag_part(sigma_l)))) / N
             elbo += -tf.reduce_sum(tf.einsum('ij,ji->i', sigma, K_mm_inv)) / (2 * N)
             elbo += - tf.matmul(tf.transpose(mu), tf.matmul(K_mm_inv, mu)) / (2 * N)
             
             return -elbo
-
     def fit(self, X, y, N, lr=0.5, name=None):
         self.N = N
         with tf.name_scope(name, 'fit', [X, y]):
