@@ -114,3 +114,11 @@ class InputsGrid:
         for dim in range(self.ndims):
             W.append(tf.convert_to_tensor(w[dim])) 
         return W
+
+    def full(self):
+        """Returns the full np.array of point coordinates.
+        
+        Note: the array might be extremely large.
+        """
+        return np.hstack([coord.reshape(-1)[:, None] for coord 
+                          in np.meshgrid(*self.inputs, indexing='ij')])

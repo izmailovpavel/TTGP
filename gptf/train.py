@@ -27,7 +27,7 @@ if FLAGS.refresh_stats:
     os.system('rm -rf '+TRAIN_DIR)
 
 with tf.Graph().as_default():
-    x_tr, y_tr, x_te, y_te = prepare_data()
+    x_tr, y_tr, x_te, y_te = prepare_data(mode="numpy")
     print(x_tr.shape)
     means = KMeans(n_clusters=FLAGS.n_inputs, random_state=241)
     means.fit(x_tr)
@@ -40,7 +40,7 @@ with tf.Graph().as_default():
     y_te = make_tensor(y_te, 'y_te')
     maxiter = iter_per_epoch * FLAGS.n_epoch
     x_batch, y_batch = get_batch(x_tr, y_tr, FLAGS.batch_size) 
-    gp = GP(SE(1., 5., 1.), inputs) 
+    gp = GP(SE(1., 1., 1.), inputs) 
     elbo, train_op = gp.fit(x_batch, y_batch, x_tr.get_shape()[0], lr=LR)
 #    ms_upd  = gp.mu_sigma(x_tr, y_tr)
     pred = gp.predict(x_te)
