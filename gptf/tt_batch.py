@@ -13,13 +13,7 @@ class BatchTTMatrices():
     def __init__(self, cores):
         
         batch_cores = cores
-       # batch_cores = []
-       # ndims = tt_matrix_list[0].ndims()
-       # for core_idx in range(ndims):
-       #     batch_cores.append(tf.stack([tt_mat[core_idx] for tt_mat 
-       #                                  in tt_matrix_list]))
         self.tt_cores = batch_cores
-       # self.ndims = ndims
     
     def ndims(self):
         return len(self.tt_cores)
@@ -34,6 +28,39 @@ class BatchTTMatrices():
     def get_raw_shape(self):
         return (tf.TensorShape([core.get_shape()[2] for core in self.tt_cores]),
                tf.TensorShape([core.get_shape()[3] for core in self.tt_cores]))
+
+   # def __getitem__(self, i):
+   #     if i >= self.get_nelems() or i < 0:
+   #         raise ValueError('Index is out of bounds')
+        
+
+def batch_full(tt):
+    """Computes the full matrix of the given batch.
+    """
+    num_dims = tt.ndims()
+    ranks = tt.get_tt_ranks()    
+    res = tt.tt_cores[0]
+    n_elems = tt.get_nelems().value
+    for i in range(1, num_dims):
+        res = tf.reshape(res, (n_elems, -1, ranks[i].value))
+        curr_core = tf.reshape(tt.tt_cores[i], (n_elems, ranks[i].value, -1))
+        res = tf.matmul(res, curr_core)
+    raw_shape = tt.get_raw_shape()
+    intermediate_shape = [n_elems]
+    for i in range(num_dims):
+        intermediate_shape.append(raw_shape[0][i])
+        intermediate_shape.append(raw_shape[1][i])
+    res = tf.reshape(res, tf.TensorShape(intermediate_shape))
+    transpose = []
+    for i in range(0, 2 * num_dims, 2):
+        transpose.append(i)
+    for i in range(1, 2 * num_dims, 2):
+        transpose.append(i)
+    transpose = [0] + [elem + 1 for elem in transpose]
+    res = tf.transpose(res, transpose)
+    tt_shape = (n_elems, np.prod(tt.get_raw_shape()[0]).value, 
+                np.prod(tt.get_raw_shape()[1]).value)
+    return tf.reshape(res, tt_shape)
 
 
 def batch_subsample(tt_batch, batch_size, targets=None):

@@ -46,11 +46,11 @@ class InputsGrid:
                                       + [right+h])[:, None]
 
     def kron_dists(self):
-        """Computes the pairwise distances in a form of kronecker-product matrix.
+        """Computes pairwise squared distances as kronecker-product matrix.
         
         This function returns a tt-tensor with tt-ranks 1 (a Kronecker product),
-        with tt-cores, equal to the pairwise distances between the grid points
-        in each dimension. This matrix can then be used to compute the 
+        with tt-cores, equal to squared pairwise distances between the grid 
+        points in each dimension. This matrix can then be used to compute the 
         covariance matrix.
         """
         dist_dims = []
@@ -62,8 +62,6 @@ class InputsGrid:
         res_ranks = [1] * (self.ndims + 1)
         res_shape_i = tuple(self.npoints)
         res_shape = (res_shape_i, res_shape_i)
-        print(res_shape)
-        print(res_ranks)
         return TensorTrain(dist_dims, res_shape, res_ranks)
 
     def interpolate_kernel(self, points):

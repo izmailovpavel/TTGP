@@ -32,15 +32,11 @@ if FLAGS.refresh_stats:
 
 with tf.Graph().as_default():
     x_tr, y_tr, x_te, y_te = prepare_data(mode="numpy")
-    
-    #means = KMeans(n_clusters=FLAGS.n_inputs, random_state=241)
-    #means.fit(x_tr)
-    #inputs = means.cluster_centers_ 
    
-    inputs = grid.InputsGrid(x_tr.shape[1], npoints=FLAGS.n_inputs).full()
+    inputs = grid.InputsGrid(x_tr.shape[1], npoints=FLAGS.n_inputs)#.full()
+    W = inputs.interpolate_kernel(x_te)
 
     iter_per_epoch = int(y_tr.shape[0] / FLAGS.batch_size)
-    inputs = make_tensor(inputs, 'inputs')
     x_tr = make_tensor(x_tr, 'x_tr')
     y_tr = make_tensor(y_tr, 'y_tr')
     x_te = make_tensor(x_te, 'x_te')
@@ -49,13 +45,10 @@ with tf.Graph().as_default():
     x_batch, y_batch = get_batch(x_tr, y_tr, FLAGS.batch_size) 
     gp = GP(SE(1., 1., 1.), inputs) 
     elbo, train_op = gp.fit(x_batch, y_batch, x_tr.get_shape()[0], lr=LR)
-#    ms_upd  = gp.mu_sigma(x_tr, y_tr)
     pred = gp.predict(x_te)
     r2 = r2(pred, y_te)
     mse = mse(pred, y_te)
-#    elbo = gp.elbo(x_tr, y_tr)
     dists = gp.cov(x_tr, x_tr)
-    init_ms = gp.initialize_mu_sigma(x_tr, y_tr)
 
     coord = tf.train.Coordinator()
     init = tf.global_variables_initializer()
@@ -68,7 +61,7 @@ with tf.Graph().as_default():
 
 #        elbo_val = sess.run(elbo)
 #        print(elbo_val)
-        sess.run(init_ms) 
+#        sess.run(init_ms) 
         for i in range(maxiter):
             if not (i % iter_per_epoch):
                 print('Epoch', i/iter_per_epoch, ':')

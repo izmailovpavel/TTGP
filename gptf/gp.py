@@ -1,8 +1,10 @@
 import tensorflow as tf
 import numpy as np
 
-from input import NUM_FEATURES
-
+import t3f
+import t3f.kronecker as kron
+from t3f import ops, TensorTrain
+from input import NUM_FEATURES, make_tensor
 
 class SE:
 
@@ -15,6 +17,23 @@ class SE:
         self.l = tf.get_variable('Process_lengthscale', [1], initializer=tf.constant_initializer(l), dtype=tf.float64)
         self.sigma_n = tf.get_variable('Noise_variance', [1], initializer=tf.constant_initializer(sigma_n), dtype=tf.float64)
 
+    def kron_cov(self, kron_dists, name=None):
+        """
+        Computes the covariance matrix, given a kronecker product representation
+        of distances.
+        """
+        with tf.name_scope(name, 'SEcov', [kron_dists]):
+            res_cores = []
+            for core_idx in range(kron_dists.ndims()):
+                core = kron_dists.tt_cores[core_idx]
+                cov_core = (self.sigma_f**(2./ kron_dists.ndims())* 
+                            tf.exp(-core/(2. * (self.l**2.)))
+                            + tf.cast(tf.equal(core, 0.0), tf.float64) * 
+                            self.sigma_n**2.)
+                res_cores.append(cov_core)
+            res_shape = kron_dists.get_raw_shape()
+            res_ranks = kron_dists.get_tt_ranks()
+            return TensorTrain(res_cores, res_shape, res_ranks)
 
     def cov(self, x1, x2, name=None):
         """
@@ -40,18 +59,25 @@ class GP:
     def __init__(self, cov, inputs):
         self.cov = cov
         self.inputs = inputs
-        self.m = inputs.get_shape()[0].value
-        self.mu = tf.get_variable('mu', [self.m, 1], initializer=tf.constant_initializer(0.), dtype=tf.float64, trainable=True)
-        #self.Sigma = tf.get_variable('Sigma', [self.m, self.m], initializer=tf.constant_initializer(0.), dtype=tf.float64, trainable=False)
-        self.sigma_l = tf.get_variable('Sigma_L', [self.m, self.m], initializer=tf.constant_initializer(np.eye(self.m)), dtype=tf.float64, trainable=True)
+        self.inputs_dists = inputs.kron_dists()
+        self.inputs_full = make_tensor(inputs.full(), 'inputs')
+        self.m = inputs.size
+        self.mu = tf.get_variable('mu', [self.m, 1], 
+                                  initializer=tf.constant_initializer(0.), 
+                                  dtype=tf.float64, trainable=True)
+        self.sigma_l = tf.get_variable('Sigma_L', [self.m, self.m], 
+                                        initializer=tf.constant_initializer(np.eye(self.m)), 
+                                        dtype=tf.float64, trainable=True)
         self.N = 0 # Size of the training set
 
     def predict(self, x_test, name=None):
        # sigma = tf.matmul(self.sigma_l, tf.transpose(self.sigma_l))
-        inputs = self.inputs
+        inputs = self.inputs.full()
+        inputs_dists = self.inputs_dists
         expectation = self.mu
         with tf.name_scope(name, 'Predict', [x_test]):
             K_xm = self.cov(x_test, inputs)
+            K_mm = ops.full(self.cov.kron_cov(inputs_dists))
             K_mm = self.cov(inputs, inputs)
             K_mm_inv = tf.matrix_inverse(K_mm)
             y = tf.matmul(K_xm, tf.matmul(K_mm_inv, expectation))
@@ -63,13 +89,15 @@ class GP:
             l = tf.cast(tf.shape(y)[0], tf.float64) # batch size
             y = tf.reshape(y, [-1, 1])
             cov = self.cov
-            inputs = self.inputs
+            inputs = self.inputs.full()
+            inputs_dists = self.inputs_dists
             #N = tf.cast(self.N
             N = tf.cast(self.N, dtype=tf.float64)
             
             sigma = tf.matmul(sigma_l, tf.transpose(sigma_l))
             mu = self.mu
-            K_mm = cov(inputs, inputs)
+            #K_mm = cov(inputs, inputs)
+            K_mm = ops.full(cov.kron_cov(inputs_dists))
             K_mm_cho = tf.cholesky(K_mm)
             K_mm_inv = tf.matrix_inverse(K_mm)
             K_mm_logdet = 2 * tf.reduce_sum(tf.log(tf.diag_part(K_mm_cho))) 
@@ -103,10 +131,11 @@ class GP:
             return fun, tf.train.AdamOptimizer(learning_rate=lr).minimize(fun)
 
     def initialize_mu_sigma(self, X, y, name=None):
+        # TODO: think of a clever initialization
         with tf.name_scope(name, 'MuSigma', [X, y]):
             y = tf.reshape(y, [-1, 1])
             cov = self.cov
-            inputs = self.inputs
+            inputs = self.inputs.full()
             K_nm = cov(X, inputs)
             K_mn = tf.transpose(K_nm)
             K_mnK_nm = tf.matmul(K_mn, K_nm)
