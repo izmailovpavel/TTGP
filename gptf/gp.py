@@ -20,7 +20,7 @@ class SE:
                                        initializer=tf.constant_initializer(sigma_n), 
                                        dtype=tf.float64)#, trainable=False)
 
-    def kron_cov(self, kron_dists, name=None, eig_correction=1e-4):
+    def kron_cov(self, kron_dists, name=None, eig_correction=1e-2):
         """
         Computes the covariance matrix, given a kronecker product representation
         of distances.
@@ -90,7 +90,8 @@ class GP:
         expectation = self.mu
         with tf.name_scope(name, 'Predict', [w_test]):
             K_mm = self.cov.kron_cov(inputs_dists)
-            K_xm = batch_tt_tt_matmul(K_mm, w_test)
+            K_mm_noeig = self.cov.kron_cov(inputs_dists, eig_correction=0.)
+            K_xm = batch_tt_tt_matmul(K_mm_noeig, w_test)
             K_mm_inv = kron.inv(K_mm)
             y = batch_tt_tt_flat_inner(K_xm, t3f.tt_tt_matmul(K_mm_inv, expectation))
             return y
@@ -123,7 +124,9 @@ class GP:
             K_mm_inv = kron.inv(K_mm)
             K_mm_logdet = kron.slog_determinant(K_mm)[1]
             K_mm_inv__mu = ops.tt_tt_matmul(K_mm_inv, mu)
-            k_i = batch_tt_tt_matmul(K_mm, W)
+
+            K_mm_noeig = cov.kron_cov(inputs_dists, eig_correction=0.)
+            k_i = batch_tt_tt_matmul(K_mm_noeig, W)
 
             Lambda_i = batch_tt_tt_matmul(K_mm_inv, batch_tt_tt_matmul(k_i, batch_tt_tt_matmul(batch_transpose(k_i), K_mm_inv)))
 

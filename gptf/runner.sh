@@ -14,4 +14,4 @@
 
 # Now I set variational parameters to be tt / kron.
 python3 train.py --lr=0.01 --batch_size=20 --n_inputs=10 --n_epoch=100
-# This method reaches approx 0.88 r2-score
+# This method reaches approx 0.5 r2-score
