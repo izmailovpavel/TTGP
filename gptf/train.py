@@ -55,9 +55,11 @@ with tf.Graph().as_default():
     maxiter = iter_per_epoch * FLAGS.n_epoch
     #w_batch, y_batch = get_batch(W, y_tr, FLAGS.batch_size) 
     w_batch, y_batch = batch_subsample(W, FLAGS.batch_size, targets=y_tr)
-    gp = GP(SE(1., 1., 1.), inputs) 
+    gp = GP(SE(1., 1., .01), inputs) 
     elbo, train_op = gp.fit(w_batch,  y_batch, x_tr.get_shape()[0], lr=LR)
     check = gp.check_interpolation(W, x_tr)
+    check_2 = gp.check_K_ii()
+#    check_3 = gp.check_elbo(w_batch, y_batch)
     pred = gp.predict(W_te)
     r2 = r2(pred, y_te)
     mse = mse(pred, y_te)
@@ -69,9 +71,11 @@ with tf.Graph().as_default():
     print('starting session')
     with tf.Session() as sess:
         sess.run(init)
-        print(sess.run(check))
-        exit(0)
         threads = tf.train.start_queue_runners(sess=sess, coord=coord)
+#        print(sess.run(check))
+#        print(sess.run(check_2))
+
+#        exit(0)
         #summary_writer = tf.train.SummaryWriter(TRAIN_DIR, sess.graph)
 
 #        elbo_val = sess.run(elbo)

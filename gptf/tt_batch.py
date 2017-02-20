@@ -201,6 +201,12 @@ def batch_tt_tt_matmul(tt_matrix_a, tt_matrix_b):
 
 
 def batch_quadratic_form(A, b, c):
-  """Computes the quadratic form b^t A c where A is a TT-matrix.
-  """
-  return batch_tt_tt_flat_inner(A, batch_tt_tt_matmul(b, batch_transpose(c)))
+    """Computes the quadratic form b^t A c where A is a TT-matrix.
+    """
+    b_is_batch = isinstance(b, BatchTTMatrices)
+    c_is_batch = isinstance(c, BatchTTMatrices)
+    if c_is_batch:
+        return batch_tt_tt_flat_inner(A, batch_tt_tt_matmul(b, batch_transpose(c)))
+    else:
+        return batch_tt_tt_flat_inner(A, batch_tt_tt_matmul(b, t3f.ops.transpose(c)))
+
