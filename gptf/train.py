@@ -10,7 +10,6 @@ import t3f
 import t3f.kronecker as kron
 from t3f import TensorTrain
 from tt_batch import *
-#from evaluate import evaluate
 
 flags = tf.app.flags
 FLAGS = flags.FLAGS
@@ -39,13 +38,10 @@ with tf.Graph().as_default():
     W = BatchTTMatrices([tf.reshape(core, [core.get_shape()[0].value, 1, 
                                            core.get_shape()[1].value, 1, 1])
                                            for core in W])
-    #W = batch_full(W)[:, :, 0]
-
     W_te = inputs.interpolate_kernel(x_te)
     W_te = BatchTTMatrices([tf.reshape(core, [core.get_shape()[0].value, 1, 
                                            core.get_shape()[1].value, 1, 1])
                                            for core in W_te])
-    #W_te = batch_full(W_te)[:, :, 0]
 
     iter_per_epoch = int(y_tr.shape[0] / FLAGS.batch_size)
     x_tr = make_tensor(x_tr, 'x_tr')
@@ -53,9 +49,8 @@ with tf.Graph().as_default():
     x_te = make_tensor(x_te, 'x_te')
     y_te = make_tensor(y_te, 'y_te')
     maxiter = iter_per_epoch * FLAGS.n_epoch
-    #w_batch, y_batch = get_batch(W, y_tr, FLAGS.batch_size) 
     w_batch, y_batch = batch_subsample(W, FLAGS.batch_size, targets=y_tr)
-    gp = GP(SE(1., 1., .01), inputs) 
+    gp = GP(SE(1., 1., .05), inputs) 
     elbo, train_op = gp.fit(w_batch,  y_batch, x_tr.get_shape()[0], lr=LR)
     elbo_summary = tf.summary.scalar('elbo_batch', elbo[0, 0])
     check = gp.check_interpolation(W, x_tr)
@@ -65,12 +60,10 @@ with tf.Graph().as_default():
     r2 = r2(pred, y_te)
     r2_summary = tf.summary.scalar('r2_test', r2)
     mse = mse(pred, y_te)
-    #dists = gp.cov(x_tr, x_tr)
     writer = tf.summary.FileWriter(FLAGS.logdir)
 
     coord = tf.train.Coordinator()
     init = tf.global_variables_initializer()
-    feed_dict = {}
     print('starting session')
     with tf.Session() as sess:
         sess.run(init)
@@ -94,6 +87,7 @@ with tf.Graph().as_default():
                 print('r_2 on test set:', r2_val)       
             elbo_summary_val, elbo_val, _ = sess.run([elbo_summary, elbo, train_op])
             writer.add_summary(elbo_summary_val, i)
-            print('Batch elbo', elbo_val)
-        r2_val = sess.run(r2, feed_dict=feed_dict)
+            writer.flush()
+            # print('Batch elbo', elbo_val)
+        r2_val = sess.run(r2)
         print('Final r2:', r2_val)

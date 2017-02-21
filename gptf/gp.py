@@ -29,7 +29,6 @@ class SE:
 
         with tf.name_scope(name, 'SEcov', [kron_dists]):
             res_cores = []
-            print(kron_dists.tt_cores[0].get_shape())
             for core_idx in range(kron_dists.ndims()):
                 core = kron_dists.tt_cores[core_idx]
                 cov_core = (self.sigma_f**(2./ kron_dists.ndims())* 
@@ -70,15 +69,31 @@ class GP:
         self.inputs_full = make_tensor(inputs.full(), 'inputs')
         self.m = inputs.size
         
-        tt_mu_init = t3f.random_matrix((self.inputs.npoints, None), tt_rank=5)
+
+        #tt_mu_init = t3f.random_matrix((self.inputs.npoints, None), tt_rank=5)
+        # Initializing mu with small random noise 
+        mu_r = 3
+        shapes = self.inputs.npoints
+        mu_cores = [np.random.randn(mu_r, shape_i, 1, mu_r) for shape_i in 
+                    shapes[1:-1]]
+        mu_cores = [np.random.randn(1, shapes[0], 1, mu_r)] + mu_cores
+        mu_cores = mu_cores + [np.random.randn(mu_r, shapes[-1], 1, 1)]
+        mu_shape = (tuple(shapes), tuple([1] * len(shapes)))
+        mu_ranks = [1] + [mu_r] * (len(shapes) - 1) + [1]
+        tt_mu_init = TensorTrain(mu_cores, mu_shape, mu_ranks)
         tt_mu = t3f.cast(t3f.get_variable('tt_mu', initializer=tt_mu_init), 
                           tf.float64)
 
         self.mu = tt_mu
         
-        tt_sigma_l_init = t3f.random_matrix((self.inputs.npoints, 
-                                                self.inputs.npoints), tt_rank=1)
+        #tt_sigma_l_init = t3f.random_matrix((self.inputs.npoints, 
+        #                                        self.inputs.npoints), tt_rank=1)
 
+        # Initializing sigma_l with identity matrix 
+        sigma_cores = [np.eye(shape_i)[None, :, :, None] for shape_i in shapes]
+        sigma_shape = (tuple(shapes), tuple(shapes))
+        sigma_ranks = [1] * (len(shapes) + 1)
+        tt_sigma_l_init = TensorTrain(sigma_cores, sigma_shape, sigma_ranks)
         tt_sigma_l = t3f.cast(t3f.get_variable('tt_sigma_l', 
                                     initializer=tt_sigma_l_init), tf.float64)
 
@@ -115,6 +130,7 @@ class GP:
             inputs_dists = self.inputs_dists
             N = tf.cast(self.N, dtype=tf.float64)
             
+
             sigma = ops.tt_tt_matmul(sigma_l, ops.transpose(sigma_l))
             sigma_logdet = 2 * kron.slog_determinant(sigma_l)[1]
             mu = self.mu
@@ -154,7 +170,6 @@ class GP:
         self.N = 100
         elbo_old = self.elbo_old(W, y)
         elbo_new = self.elbo(W, y)
-        print('ELBO_CHECK', elbo_old.get_shape(), elbo_new.get_shape())
         return tf.reduce_sum(tf.square(elbo_old - elbo_new)), elbo_new, elbo_old
 
     def check_K_ii(self):
@@ -172,8 +187,6 @@ class GP:
         k_i = self.cov(inputs, X)
         k_i_2 = batch_tt_tt_matmul(K_mm, W)
         return tf.reduce_sum(tf.square(tf.transpose(k_i) - batch_full(k_i_2)[:, :, 0]))
-        #k_i = cov(inputs, X)
-        #k_i = tf.matmul(K_mm, tf.transpose(W))
 
     def fit(self, W, y, N, lr=0.5, name=None):
         self.N = N
@@ -184,26 +197,6 @@ class GP:
 #            return fun, tf.train.GradientDescentOptimizer(learning_rate=lr).minimize(fun)
 #            return fun, tf.train.AdadeltaOptimizer(learning_rate=lr, rho=0.9).minimize(fun)
             return fun, tf.train.AdamOptimizer(learning_rate=lr).minimize(fun)
-
-    def initialize_mu_sigma(self, X, y, name=None):
-        # TODO: think of a clever initialization
-        with tf.name_scope(name, 'MuSigma', [X, y]):
-            y = tf.reshape(y, [-1, 1])
-            cov = self.cov
-            inputs = self.inputs.full()
-            K_nm = cov(X, inputs)
-            K_mn = tf.transpose(K_nm)
-            K_mnK_nm = tf.matmul(K_mn, K_nm)
-            K_mm = cov(inputs, inputs)
-            K_mm_inv = tf.matrix_inverse(K_mm)
-            
-            Sigma = tf.matrix_inverse(K_mm + K_mnK_nm / cov.sigma_n**2)
-            mu = tf.matmul(K_mm, tf.matmul(Sigma, tf.matmul(K_mn, y))) / cov.sigma_n**2
-            A = tf.matmul(K_mm, tf.matmul(Sigma, K_mm))
-            sigma_l = tf.cholesky(A)
-            mu_assign = tf.assign(self.mu, mu)
-            Sigma_assign = tf.assign(self.sigma_l, A)
-            return tf.group(mu_assign, Sigma_assign)
 
 def squared_dists(x1, x2, name=None):
     """
