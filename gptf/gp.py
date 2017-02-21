@@ -70,7 +70,7 @@ class GP:
         self.inputs_full = make_tensor(inputs.full(), 'inputs')
         self.m = inputs.size
         
-        tt_mu_init = t3f.random_matrix((self.inputs.npoints, None), tt_rank=2)
+        tt_mu_init = t3f.random_matrix((self.inputs.npoints, None), tt_rank=5)
         tt_mu = t3f.cast(t3f.get_variable('tt_mu', initializer=tt_mu_init), 
                           tf.float64)
 
