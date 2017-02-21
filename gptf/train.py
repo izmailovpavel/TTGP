@@ -50,17 +50,17 @@ with tf.Graph().as_default():
     y_te = make_tensor(y_te, 'y_te')
     maxiter = iter_per_epoch * FLAGS.n_epoch
     w_batch, y_batch = batch_subsample(W, FLAGS.batch_size, targets=y_tr)
-    gp = GP(SE(1., 1., .05), inputs) 
+    gp = GP(SE(1., 1., .01), inputs) 
     elbo, train_op = gp.fit(w_batch,  y_batch, x_tr.get_shape()[0], lr=LR)
     elbo_summary = tf.summary.scalar('elbo_batch', elbo[0, 0])
     check = gp.check_interpolation(W, x_tr)
     check_2 = gp.check_K_ii()
-#    check_3 = gp.check_elbo(w_batch, y_batch)
+    #check_3 = gp.check_elbo(w_batch, y_batch)
     pred = gp.predict(W_te)
     r2 = r2(pred, y_te)
     r2_summary = tf.summary.scalar('r2_test', r2)
     mse = mse(pred, y_te)
-    writer = tf.summary.FileWriter(FLAGS.logdir)
+    writer = tf.summary.FileWriter(FLAGS.logdir, sess.graph)
 
     coord = tf.train.Coordinator()
     init = tf.global_variables_initializer()
@@ -68,15 +68,12 @@ with tf.Graph().as_default():
     with tf.Session() as sess:
         sess.run(init)
         threads = tf.train.start_queue_runners(sess=sess, coord=coord)
+        
 #        print(sess.run(check))
 #        print(sess.run(check_2))
-
+#        print(sess.run(check_3))
 #        exit(0)
-        #summary_writer = tf.train.SummaryWriter(TRAIN_DIR, sess.graph)
 
-#        elbo_val = sess.run(elbo)
-#        print(elbo_val)
-#        sess.run(init_ms) 
         for i in range(maxiter):
             if not (i % iter_per_epoch):
                 print('Epoch', i/iter_per_epoch, ':')

@@ -72,7 +72,7 @@ class GP:
 
         #tt_mu_init = t3f.random_matrix((self.inputs.npoints, None), tt_rank=5)
         # Initializing mu with small random noise 
-        mu_r = 3
+        mu_r = 5 
         shapes = self.inputs.npoints
         mu_cores = [np.random.randn(mu_r, shape_i, 1, mu_r) for shape_i in 
                     shapes[1:-1]]
@@ -110,7 +110,7 @@ class GP:
             K_mm_inv = kron.inv(K_mm)
             y = batch_tt_tt_flat_inner(K_xm, t3f.tt_tt_matmul(K_mm_inv, expectation))
             return y
-
+        
     def elbo(self, W, y, name=None):
         with tf.name_scope(name, 'ELBO', [W, y]):
             W_full = W #batch_full(W)
@@ -142,17 +142,16 @@ class GP:
             K_mm_inv__mu = ops.tt_tt_matmul(K_mm_inv, mu)
 
             K_mm_noeig = cov.kron_cov(inputs_dists, eig_correction=0.)
-            k_i = batch_tt_tt_matmul(K_mm_noeig, W)
 
-            Lambda_i = batch_tt_tt_matmul(K_mm_inv, batch_tt_tt_matmul(k_i, batch_tt_tt_matmul(batch_transpose(k_i), K_mm_inv)))
+            Lambda_i = batch_tt_tt_matmul(W, batch_transpose(W))
 
             tilde_K_ii = l * (self.cov.sigma_n**2 + self.cov.sigma_f**2)
-            tilde_K_ii -= tf.reduce_sum(batch_quadratic_form(K_mm_inv, k_i, k_i))
+            tilde_K_ii -= tf.reduce_sum(batch_quadratic_form(K_mm, W, W))
             
             elbo = 0
             
             elbo += - tf.log(tf.abs(cov.sigma_n)) * l 
-            elbo -= (tf.reduce_sum(tf.square(y - batch_quadratic_form(K_mm_inv, k_i, mu)[:, :, 0]))
+            elbo -= (tf.reduce_sum(tf.square(y - batch_tt_tt_flat_inner(W, mu)[:, :, 0]))
                     /(2 * cov.sigma_n**2))
 
             elbo += - tilde_K_ii/(2 * cov.sigma_n**2)
