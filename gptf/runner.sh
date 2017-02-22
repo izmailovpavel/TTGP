@@ -17,9 +17,11 @@
 # This method reaches approx 0.83 r2-score
 
 # More Iterations
-# python3 train.py --lr=0.005 --batch_size=20 --n_inputs=10 --n_epoch=1000 --refresh_stats=True
+# python3 train.py --lr=0.005 --batch_size=20 --n_inputs=10 --n_epoch=1000 \
+#                   --refresh_stats=True
 # This method reaches approx 0.94 r2-score
 
 # Initialization for mu and Sigma
-python3 train.py --lr=0.05 --batch_size=20 --n_inputs=10 --n_epoch=500 --refresh_stats=True
+python3 train.py --lr=0.05 --batch_size=20 --n_inputs=10 --n_epoch=500 \
+                 --refresh_stats=True --mu_ranks=5
 # This method reaches approx 0.94 r2-score
