@@ -7,17 +7,26 @@ from sklearn.datasets import load_svmlight_file
 #data_name = 'cpu_small'
 #path = ('/Users/IzmailovPavel/Documents/Education/Programming/DataSets/' +
 #         'Regression/cpusmall(8192, 12).txt')
-#data_name = 'mg'
-#path = ('/Users/IzmailovPavel/Documents/Education/Programming/DataSets/' +
-#        'Regression/mg(1385, 6).txt')
+data_name = 'mg'
+path = ('/Users/IzmailovPavel/Documents/Education/Programming/DataSets/' +
+        'Regression/mg(1385, 6).txt')
 #data_name = 'abalone'
 #path = ('/Users/IzmailovPavel/Documents/Education/Programming/DataSets/' +
 #        'Regression/abalone(4177, 8).txt')
-data_name = 'Synthetic'
-path = ('/Users/IzmailovPavel/Documents/Education/Projects/GPtf/data/'+
-        'synthetic(300,2)/')
+#data_name = 'Synthetic'
+#path = ('/Users/IzmailovPavel/Documents/Education/Projects/GPtf/data/'+
+#        'synthetic(300,2)/')
+#data_name = 'mg_pca'
+#path = ('/Users/IzmailovPavel/Documents/Education/Projects/GPtf/data/'+
+#        'mg_pca(1108, 4)/')
+#data_name = 'Synthetic'
+#path = ('/Users/IzmailovPavel/Documents/Education/Projects/GPtf/data/'+
+#        'synthetic(1000,3)/')
+#data_name = 'Synthetic'
+#path = ('/Users/IzmailovPavel/Documents/Education/Projects/GPtf/data/'+
+#        'synthetic4d(5000,4)/')
 
-NUM_FEATURES = 12
+NUM_FEATURES = 6 
 
 def prepare_data(mode='svmlight'):
     """
@@ -44,12 +53,24 @@ def prepare_data(mode='svmlight'):
     else:
         raise ValueError("unknown mode: " + str(mode))
     # TODO: project to a unit cube
-    # scaler_x = StandardScaler()
-    # scaler_y = StandardScaler()
-    # x_tr = scaler_x.fit_transform(x_tr)
-    # x_te = scaler_x.transform(x_te)
-    # y_tr = scaler_y.fit_transform(y_tr)
-    # y_te = scaler_y.transform(y_te)
+    scaler_x = StandardScaler()
+    scaler_y = StandardScaler()
+    x_tr = scaler_x.fit_transform(x_tr)
+    x_te = scaler_x.transform(x_te)
+    y_tr = scaler_y.fit_transform(y_tr)
+    y_te = scaler_y.transform(y_te)
+    x_max = np.max(x_tr, axis=0)
+    x_min = np.min(x_tr, axis=0)
+    x_tr = (x_tr - x_min[None, :]) / (x_max - x_min)[None, :]
+    x_te = (x_te - x_min[None, :]) / (x_max - x_min)[None, :]
+    
+    #y_tr = 1. + y_tr * 0.1
+    #y_te = 1. + y_te * 0.1
+
+    print(np.max(x_te), np.min(x_te), 'prepare_data')
+    print(np.max(y_tr), np.min(y_tr))
+    x_te[x_te < 0] = 0.
+    x_te[x_te > 1] = 1.
     return x_tr, y_tr, x_te, y_te
 
 def make_tensor(array, name):

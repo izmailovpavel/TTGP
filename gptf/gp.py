@@ -9,18 +9,18 @@ from input import NUM_FEATURES, make_tensor
 
 class SE:
 
-    def __init__(self, sigma_f, l, sigma_n):
+    def __init__(self, sigma_f, l, sigma_n, trainable):
         """Squared Exponentia kernel.
         """
         self.sigma_f = tf.get_variable('Process_variance', [1], 
                                 initializer=tf.constant_initializer(sigma_f), 
-                                dtype=tf.float64)
+                                dtype=tf.float64, trainable=trainable)
         self.l = tf.get_variable('Process_lengthscale', [1], 
                                 initializer=tf.constant_initializer(l), 
-                                dtype=tf.float64)
+                                dtype=tf.float64, trainable=trainable)
         self.sigma_n = tf.get_variable('Noise_variance', [1], 
                                 initializer=tf.constant_initializer(sigma_n), 
-                                dtype=tf.float64)
+                                dtype=tf.float64, trainable=trainable)
         
     def kron_cov(self, kron_dists, eig_correction=1e-2, name=None):
         """Computes the covariance matrix, given a kronecker product 
@@ -55,7 +55,7 @@ class SE:
 
 class GP:
 
-    def __init__(self, cov, inputs, mu_ranks=5):
+    def __init__(self, cov, inputs, mu_ranks=5, load_mu_sigma=False):
         '''Gaussian Process model.
         
         Args:
@@ -63,16 +63,19 @@ class GP:
             inputs: inducing inputs — InputsGrid object.
             mu_ranks: TT-ranks of mu — expectations of the process at
                 inducing inputs.
+            load_mu_sigma: wether or not to load pretrained values for mu and 
+                sigma.
         '''
         self.cov = cov
         self.inputs = inputs
         self.inputs_dists = inputs.kron_dists()
         self.m = inputs.size
-        self.mu = self._get_mu(mu_ranks)
-        self.sigma_l = self._get_sigma_l() 
+        self.mu = self._get_mu(mu_ranks, load=load_mu_sigma)
+        #self.sigma_l = self._get_sigma_l(load=load_mu_sigma) 
+        self.sigma_l = self._get_sigma_l_alt(load=load_mu_sigma) 
         self.N = 0 # Size of the training set
 
-    def _get_mu(self, ranks):
+    def _get_mu(self, ranks, load=False):
         '''Returns a variable representing mu.
 
         TT-cores of mu are initialized with gaussian random vectors.
@@ -81,10 +84,21 @@ class GP:
         '''
         mu_r = ranks
         shapes = self.inputs.npoints
-        mu_cores = [np.random.randn(mu_r, shape_i, 1, mu_r) for shape_i in 
-                    shapes[1:-1]]
-        mu_cores = [np.random.randn(1, shapes[0], 1, mu_r)] + mu_cores
-        mu_cores = mu_cores + [np.random.randn(mu_r, shapes[-1], 1, 1)]
+        if load:
+            mu_cores = []
+            for i in range(len(shapes)):
+                mu_cores.append(np.load('mu_core'+str(i)+'.npy'))
+        else:
+             #mu_cores = [np.ones((mu_r, shape_i, 1, mu_r)) 
+             #           for shape_i in shapes[1:-1]]
+
+             #mu_cores = [np.ones((1, shapes[0], 1, mu_r))] + mu_cores
+             #mu_cores = mu_cores + [np.ones((mu_r, shapes[-1], 1, 1))]
+
+            mu_cores = [1. + np.random.randn(mu_r, shape_i, 1, mu_r) * 0.1 
+                         for shape_i in shapes[1:-1]]
+            mu_cores = [np.random.randn(1, shapes[0], 1, mu_r) * 0.1] + mu_cores
+            mu_cores = mu_cores + [np.random.randn(mu_r, shapes[-1], 1, 1) * 0.1]
         mu_shape = (tuple(shapes), tuple([1] * len(shapes)))
         mu_ranks = [1] + [mu_r] * (len(shapes) - 1) + [1]
         tt_mu_init = TensorTrain(mu_cores, mu_shape, mu_ranks)
@@ -92,13 +106,38 @@ class GP:
                           tf.float64)
         return tt_mu
 
-    def _get_sigma_l(self):
+    def _get_sigma_l_alt(self, load=False, name=None):
+        shapes = self.inputs.npoints
+        if load:
+            sigma_cores = []
+            for i in range(len(shapes)):
+                sigma_cores.append(np.load('sigma_l_core'+str(i)+'.npy'))
+            sigma_shape = (tuple(shapes), tuple(shapes))
+            sigma_ranks = [1] * (len(shapes) + 1)
+            tt_sigma_l_init = TensorTrain(sigma_cores, sigma_shape, sigma_ranks)
+            tt_sigma_l = t3f.cast(t3f.get_variable('tt_sigma_l', 
+                                    initializer=tt_sigma_l_init), tf.float64)
+            return tt_sigma_l
+        else:
+            with tf.name_scope(name, 'Init_Sigma_l', []):
+                cov = self.cov
+                inputs_dists = self.inputs_dists
+                K_mm = cov.kron_cov(inputs_dists)    
+                return t3f.get_variable('sigma_l', 
+                                        initializer=kron.cholesky(K_mm))
+
+    def _get_sigma_l(self, load=False):
         '''Reterns a variable, represrnting sigma_l.
 
         TT-cores of sigma_l are initialized with identity matrices.
         '''
         shapes = self.inputs.npoints
-        sigma_cores = [np.eye(shape_i)[None, :, :, None] for shape_i in shapes]
+        if load:
+            sigma_cores = []
+            for i in range(len(shapes)):
+                sigma_cores.append(np.load('sigma_l_core'+str(i)+'.npy'))
+        else:
+            sigma_cores = [np.eye(shape_i)[None, :, :, None] for shape_i in shapes]
         sigma_shape = (tuple(shapes), tuple(shapes))
         sigma_ranks = [1] * (len(shapes) + 1)
         tt_sigma_l_init = TensorTrain(sigma_cores, sigma_shape, sigma_ranks)
@@ -132,7 +171,7 @@ class GP:
         of the elements of the product, which is not exactly the lower 
         triangular part.
         '''
-        with tf.name_scope(name, 'Kron_band_part', [kron_mat]):
+        with tf.name_scope(name, 'Kron_tril', [kron_mat]):
             mat_l_cores = []
             for core_idx in range(kron_mat.ndims()):
                 core = kron_mat.tt_cores[core_idx][0, :, :, 0]
@@ -142,6 +181,22 @@ class GP:
             mat_l_ranks = kron_mat.get_tt_ranks()
             mat_l = TensorTrain(mat_l_cores, mat_l_shape, mat_l_ranks)
             return mat_l
+    
+    @staticmethod
+    def _kron_logdet(kron_mat, name=None):
+        '''Computes the logdet of a kronecker-factorized matrix.
+        '''
+        with tf.name_scope(name, 'Kron_logdet', [kron_mat]):
+            i_shapes = kron_mat.get_raw_shape()[0]
+            pows = tf.cast(tf.reduce_prod(i_shapes), kron_mat.dtype)
+            logdet = 0.
+            for core_idx in range(kron_mat.ndims()):
+                core = kron_mat.tt_cores[core_idx][0, :, :, 0]
+                core_pow = pows / i_shapes[core_idx].value
+                logdet += (core_pow * 
+                    tf.reduce_sum(tf.log(tf.abs(tf.diag_part(core)))))
+            logdet *= 2
+            return logdet
 
     def elbo(self, w, y, name=None):
         '''Evidence lower bound.
@@ -161,7 +216,8 @@ class GP:
             mu = self.mu
             sigma_l = self._kron_tril(self.sigma_l)
             sigma = ops.tt_tt_matmul(sigma_l, ops.transpose(sigma_l))
-            sigma_logdet = 2 * kron.slog_determinant(sigma_l)[1]
+            #sigma_logdet = 2 * kron.slog_determinant(sigma_l)[1]
+            sigma_logdet = self._kron_logdet(sigma_l)
 
             cov = self.cov
             inputs_dists = self.inputs_dists
@@ -174,7 +230,8 @@ class GP:
             Lambda_i = batch_tt_tt_matmul(w, batch_transpose(w))
 
             tilde_K_ii = l * (self.cov.sigma_n**2 + self.cov.sigma_f**2)
-            tilde_K_ii -= tf.reduce_sum(batch_quadratic_form(K_mm, w, w))
+            tilde_K_ii -= tf.reduce_sum(batch_tt_tt_flat_inner(w, 
+                                                 batch_tt_tt_matmul(K_mm, w)))
             
             elbo = 0
             elbo += - tf.log(tf.abs(cov.sigma_n)) * l 
@@ -188,9 +245,10 @@ class GP:
             elbo += - K_mm_logdet / (2 * N)
             elbo += sigma_logdet / (2 * N)
             elbo += - ops.tt_tt_flat_inner(sigma, K_mm_inv) / (2 * N)
-            elbo += - ops.quadratic_form(K_mm_inv, mu, mu) / (2 * N)    
+            elbo += - ops.tt_tt_flat_inner(mu, 
+                                   ops.tt_tt_matmul(K_mm_inv, mu)) / (2 * N)
             return -elbo[0, 0]
-
+    
     def fit(self, w, y, N, lr=0.5, name=None):
         """Fit the GP to the data.
 
@@ -206,6 +264,9 @@ class GP:
             fun = self.elbo(w, y)
             print('Adadelta, lr=', lr)
             return fun, tf.train.AdamOptimizer(learning_rate=lr).minimize(fun)
+
+    def get_mu_sigma_cores(self):
+        return self.mu.tt_cores, self.sigma_l.tt_cores
 
 
 def r2(y_pred, y_true, name=None):

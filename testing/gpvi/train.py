@@ -15,7 +15,7 @@ flags.DEFINE_integer('n_epoch', 10, 'Number of training epochs')
 flags.DEFINE_integer('batch_size', 128, 'Batch size')
 flags.DEFINE_string('logdir', 'data', 'Directory for progress logging')
 flags.DEFINE_bool('refresh_stats', False, 'Deletes old events from logdir if True')
-flags.DEFINE_bool('stoch', False, 'Wether or not to use stochastic optimization')
+#flags.DEFINE_bool('stoch', False, 'Wether or not to use stochastic optimization')
 flags.DEFINE_integer('n_inputs', 50, 'Number of inducing inputs')
 
 MAXEPOCH = FLAGS.n_epoch
@@ -40,7 +40,8 @@ with tf.Graph().as_default():
     y_te_ph = tf.placeholder(tf.float64, shape=y_te.shape, name='y_te')
     inputs_ph = tf.placeholder(tf.float64, shape=inputs.shape, name='inputs')
     gp = GP(SE(1., 5., 1.), inputs_ph) 
-    train_op = gp.fit(x_tr_ph, y_tr_ph, lr=LR)
+    #train_op = gp.fit(x_tr_ph, y_tr_ph, lr=LR)
+    gp.fit(x_tr_ph, y_tr_ph, maxiter=MAXEPOCH)
     ms_upd  = gp.mu_sigma(x_tr_ph, y_tr_ph)
     pred = gp.predict(x_te_ph)
     r2 = r2(pred, y_te_ph)
@@ -56,12 +57,14 @@ with tf.Graph().as_default():
         summary_writer = tf.train.SummaryWriter(TRAIN_DIR, sess.graph)
 
         elbo_val = sess.run(elbo, feed_dict)
-        for i in range(MAXEPOCH):
-            print('Iteration', i, ':')
-            print('\tw:', gp.cov.sigma_f.eval(), gp.cov.l.eval(), gp.cov.sigma_n.eval())
-            print('\tELBO:', elbo_val)
-            sess.run(train_op, feed_dict=feed_dict)
-            elbo_val = sess.run(elbo, feed_dict=feed_dict)
+        
+        gp.run_fit(sess, feed_dict)
+        #for i in range(MAXEPOCH):
+        #    print('Iteration', i, ':')
+        #    print('\tw:', gp.cov.sigma_f.eval(), gp.cov.l.eval(), gp.cov.sigma_n.eval())
+        #    print('\tELBO:', elbo_val)
+        #    sess.run(train_op, feed_dict=feed_dict)
+        #    elbo_val = sess.run(elbo, feed_dict=feed_dict)
         sess.run(ms_upd, feed_dict)
         r2_val = sess.run(r2, feed_dict=feed_dict)
         print('Final r2:', r2_val)

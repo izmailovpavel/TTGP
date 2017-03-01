@@ -82,42 +82,31 @@ class GP:
             
             return -elbo
 
-    def fit(self, X, y, lr=0.5, name=None):
-        with tf.name_scope(name, 'fit', [X, y]):
-            fun = self.elbo(X, y)
-            return tf.train.GradientDescentOptimizer(lr).minimize(fun)
-
-#    def fit(self, X, y, maxiter, name=None):
-#        maxiter = maxiter or 10
-#        print('maxiter:', maxiter)
+#    def fit(self, X, y, lr=0.5, name=None):
 #        with tf.name_scope(name, 'fit', [X, y]):
 #            fun = self.elbo(X, y)
-##            bounds = self.cov.bounds()
-##            inequalities = [self.cov.sigma_f - 1e-2]
-##            inequalities += [self.cov.l - 1e-2]
-##            inequalities += [self.cov.sigma_n - 1e-2]
-##            inequalities += [1e3 - self.cov.sigma_f]
-##            inequalities += [1e3 - self.cov.l]
-##            inequalities += [1e3 - self.cov.sigma_n]
-##            equalities = [tf.convert_to_tensor(0., dtype=tf.float32)]
-#            self.optimizer = ScipyOptimizerInterface(fun, method='L-BFGS-B', options={'maxiter': maxiter, 'factr': 10})#, inequalities=inequalities)#, equalities=equalities)
-#            #optimizer.minimize(session)ftol
-##            print(self.optimizer._packed_equality_grads)
-##            print(self.optimizer._packed_inequality_grads)
-##            self.optimizer._packed_equality_grads = 
-#    
-#    def run_fit(self, sess, feed_dict):
-#        def lcb():
-#            print(1)
-#        def cb(w):
-#            i = 0
-#            while True:
-#                i += 1
-#                print('Iteration', i, ':', w)
-#                yield None
-#        print('Minimizing...')
-#        print(self.optimizer._vars)
-#        return self.optimizer.minimize(session=sess, feed_dict=feed_dict, step_callback=cb, loss_callback=lcb)
+#            return tf.train.GradientDescentOptimizer(lr).minimize(fun)
+
+    def fit(self, X, y, maxiter, name=None):
+        maxiter = maxiter or 10
+        print('maxiter:', maxiter)
+        with tf.name_scope(name, 'fit', [X, y]):
+            fun = self.elbo(X, y)
+            self.optimizer = ScipyOptimizerInterface(fun, method='L-BFGS-B', 
+                    options={'maxiter': maxiter, 'disp': True})#, inequalities=inequalities)#, equalities=equalities)
+    
+    def run_fit(self, sess, feed_dict):
+        def lcb():
+            print(1)
+        def cb(w):
+            i = 0
+            while True:
+                i += 1
+                print('Iteration', i, ':', w)
+                yield None
+        print('Minimizing...')
+        print(sess.run(self.optimizer._vars))
+        return self.optimizer.minimize(session=sess, feed_dict=feed_dict, step_callback=cb, loss_callback=lcb)
 
 
     def mu_sigma(self, X, y, name=None):

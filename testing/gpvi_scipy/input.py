@@ -6,11 +6,11 @@ from sklearn.datasets import load_svmlight_file
 
 #data_name = 'cpu_small'
 #path = '/Users/IzmailovPavel/Documents/Education/Programming/DataSets/Regression/cpusmall(8192, 12).txt'
-#data_name = 'mg'
-#path = '/Users/IzmailovPavel/Documents/Education/Programming/DataSets/Regression/mg(1385, 6).txt'
-data_name = 'abalone'
-path = '/Users/IzmailovPavel/Documents/Education/Programming/DataSets/Regression/abalone(4177, 8).txt'
-NUM_FEATURES = 12
+data_name = 'mg'
+path = '/Users/IzmailovPavel/Documents/Education/Programming/DataSets/Regression/mg(1385, 6).txt'
+#data_name = 'abalone'
+#path = '/Users/IzmailovPavel/Documents/Education/Programming/DataSets/Regression/abalone(4177, 8).txt'
+NUM_FEATURES = 6
 
 def prepare_data():
     """

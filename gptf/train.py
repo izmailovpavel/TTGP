@@ -10,12 +10,12 @@ import t3f
 import t3f.kronecker as kron
 from t3f import TensorTrain
 from tt_batch import *
+import time
 
-
-def get_data():
+def get_data(mode):
     '''Data loading and preprocessing.
     '''
-    x_tr, y_tr, x_te, y_te = prepare_data(mode="numpy")
+    x_tr, y_tr, x_te, y_te = prepare_data(mode=mode)
  
     inputs = grid.InputsGrid(x_tr.shape[1], npoints=FLAGS.n_inputs)#.full()
     W = inputs.interpolate_kernel(x_tr)
@@ -44,6 +44,7 @@ def process_flags():
     flags.DEFINE_bool('refresh_stats', False, 'Deletes old events from logdir if True')
     flags.DEFINE_integer('n_inputs', 50, 'Number of inducing inputs')
     flags.DEFINE_integer('mu_ranks', 5, 'TT-ranks of mu')
+    flags.DEFINE_bool('load_mu_sigma', False, 'Loads mu and sigma if True')
     
     if FLAGS.refresh_stats:
         print('Deleting old stats')
@@ -54,13 +55,16 @@ def process_flags():
 with tf.Graph().as_default():
     
     FLAGS = process_flags()
-    x_tr, y_tr, x_te, y_te, W, W_te, inputs = get_data()
+    #x_tr, y_tr, x_te, y_te, W, W_te, inputs = get_data("numpy")
+    x_tr, y_tr, x_te, y_te, W, W_te, inputs = get_data("svmlight")
     iter_per_epoch = int(y_tr.get_shape()[0].value / FLAGS.batch_size)
     maxiter = iter_per_epoch * FLAGS.n_epoch
 
     # Batches
+    load_mu_sigma = FLAGS.load_mu_sigma
     w_batch, y_batch = batch_subsample(W, FLAGS.batch_size, targets=y_tr)
-    gp = GP(SE(1., 1., .01), inputs, FLAGS.mu_ranks) 
+    gp = GP(SE(.7, .5, .1, load_mu_sigma), inputs, FLAGS.mu_ranks, 
+            load_mu_sigma=load_mu_sigma) 
 
     # train_op and elbo
     elbo, train_op = gp.fit(w_batch,  y_batch, x_tr.get_shape()[0], lr=FLAGS.lr)
@@ -71,16 +75,22 @@ with tf.Graph().as_default():
     r2 = r2(pred, y_te)
     r2_summary = tf.summary.scalar('r2_test', r2)
 
+    # Saving results
+    mu, sigma_l = gp.get_mu_sigma_cores()
+
     coord = tf.train.Coordinator()
+    cov_initializer = tf.variables_initializer(gp.cov.get_params())
     init = tf.global_variables_initializer()
     
     # Main session
     with tf.Session() as sess:
         # Initialization
         writer = tf.summary.FileWriter(FLAGS.logdir, sess.graph)
+        sess.run(cov_initializer)
         sess.run(init)
         threads = tf.train.start_queue_runners(sess=sess, coord=coord) 
 
+        batch_elbo = 0
         for i in range(maxiter):
             if not (i % iter_per_epoch):
                 # At the end of every epoch evaluate method on test data
@@ -90,11 +100,23 @@ with tf.Graph().as_default():
                 r2_summary_val, r2_val = sess.run([r2_summary, r2])
                 writer.add_summary(r2_summary_val, i/iter_per_epoch)
                 print('\tr_2 on test set:', r2_val)       
+                print('\taverage elbo:', batch_elbo / iter_per_epoch)
+                batch_elbo = 0
 
             # Training operation
             elbo_summary_val, elbo_val, _ = sess.run([elbo_summary, elbo, train_op])
+            batch_elbo += elbo_val
             writer.add_summary(elbo_summary_val, i)
             writer.flush()
-
+        
         r2_val = sess.run(r2)
         print('Final r2:', r2_val)
+
+        mu_cores, sigma_l_cores = sess.run([mu, sigma_l])
+        
+        # Saving results
+        if not load_mu_sigma:
+            for i, core in enumerate(mu_cores):
+                np.save('mu_core'+str(i), core)
+            for i, core in enumerate(sigma_l_cores):
+                np.save('sigma_l_core'+str(i), core)
