@@ -5,7 +5,6 @@ import t3f
 import t3f.kronecker as kron
 from t3f import ops, TensorTrain
 from tt_batch import *
-from input import NUM_FEATURES, make_tensor
 
 class SE:
 

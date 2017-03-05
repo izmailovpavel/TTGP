@@ -3,7 +3,7 @@ import numpy as np
 import os
 from sklearn.cluster import KMeans
 
-from input import NUM_FEATURES, get_batch, prepare_data, make_tensor
+from input import get_batch, prepare_data, make_tensor
 from gp import SE, GP, r2
 import grid
 import t3f
@@ -12,12 +12,12 @@ from t3f import TensorTrain
 from tt_batch import *
 import time
 
-def get_data(mode):
+def get_data():
     '''Data loading and preprocessing.
     '''
-    x_tr, y_tr, x_te, y_te = prepare_data(mode=mode)
+    x_tr, y_tr, x_te, y_te = prepare_data(FLAGS.datadir, mode=FLAGS.datatype)
  
-    inputs = grid.InputsGrid(x_tr.shape[1], npoints=FLAGS.n_inputs)#.full()
+    inputs = grid.InputsGrid(x_tr.shape[1], npoints=FLAGS.n_inputs)
     W = inputs.interpolate_kernel(x_tr)
     W = BatchTTMatrices([tf.reshape(core, [core.get_shape()[0].value, 1, 
                                            core.get_shape()[1].value, 1, 1])
@@ -41,7 +41,10 @@ def process_flags():
     flags.DEFINE_integer('n_epoch', 10, 'Number of training epochs')
     flags.DEFINE_integer('batch_size', 128, 'Batch size')
     flags.DEFINE_string('logdir', 'data', 'Directory for progress logging')
-    flags.DEFINE_bool('refresh_stats', False, 'Deletes old events from logdir if True')
+    flags.DEFINE_string('datadir', '', 'Directory containing the data')
+    flags.DEFINE_string('datatype', 'numpy', 'Data type — numpy or svmlight')
+    flags.DEFINE_bool('refresh_stats', False, 
+                      'Deletes old events from logdir if True')
     flags.DEFINE_integer('n_inputs', 50, 'Number of inducing inputs')
     flags.DEFINE_integer('mu_ranks', 5, 'TT-ranks of mu')
     flags.DEFINE_bool('load_mu_sigma', False, 'Loads mu and sigma if True')
@@ -55,15 +58,15 @@ def process_flags():
 with tf.Graph().as_default():
     
     FLAGS = process_flags()
-    #x_tr, y_tr, x_te, y_te, W, W_te, inputs = get_data("numpy")
-    x_tr, y_tr, x_te, y_te, W, W_te, inputs = get_data("svmlight")
+    x_tr, y_tr, x_te, y_te, W, W_te, inputs = get_data()
+    #x_tr, y_tr, x_te, y_te, W, W_te, inputs = get_data("svmlight")
     iter_per_epoch = int(y_tr.get_shape()[0].value / FLAGS.batch_size)
     maxiter = iter_per_epoch * FLAGS.n_epoch
 
     # Batches
     load_mu_sigma = FLAGS.load_mu_sigma
     w_batch, y_batch = batch_subsample(W, FLAGS.batch_size, targets=y_tr)
-    gp = GP(SE(.7, .5, .1, load_mu_sigma), inputs, FLAGS.mu_ranks, 
+    gp = GP(SE(.7, .2, .2, load_mu_sigma), inputs, FLAGS.mu_ranks, 
             load_mu_sigma=load_mu_sigma) 
 
     # train_op and elbo

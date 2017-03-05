@@ -7,28 +7,35 @@ from sklearn.datasets import load_svmlight_file
 #data_name = 'cpu_small'
 #path = ('/Users/IzmailovPavel/Documents/Education/Programming/DataSets/' +
 #         'Regression/cpusmall(8192, 12).txt')
-data_name = 'mg'
-path = ('/Users/IzmailovPavel/Documents/Education/Programming/DataSets/' +
-        'Regression/mg(1385, 6).txt')
+
+#data_name = 'mg'
+#path = ('/Users/IzmailovPavel/Documents/Education/Programming/DataSets/' +
+#        'Regression/mg(1385, 6).txt')
+
 #data_name = 'abalone'
 #path = ('/Users/IzmailovPavel/Documents/Education/Programming/DataSets/' +
 #        'Regression/abalone(4177, 8).txt')
-#data_name = 'Synthetic'
-#path = ('/Users/IzmailovPavel/Documents/Education/Projects/GPtf/data/'+
-#        'synthetic(300,2)/')
+
+#data_name = 'abalone'
+#path = ('/Users/IzmailovPavel/Documents/Education/Programming/DataSets/' +
+#        'Regression/abalone(4177, 8).txt')
+
 #data_name = 'mg_pca'
 #path = ('/Users/IzmailovPavel/Documents/Education/Projects/GPtf/data/'+
 #        'mg_pca(1108, 4)/')
+
+
 #data_name = 'Synthetic'
 #path = ('/Users/IzmailovPavel/Documents/Education/Projects/GPtf/data/'+
-#        'synthetic(1000,3)/')
+#        'synthetic4d(10000,4)/')
+
 #data_name = 'Synthetic'
 #path = ('/Users/IzmailovPavel/Documents/Education/Projects/GPtf/data/'+
-#        'synthetic4d(5000,4)/')
+#        'synthetic_hard(3000,3)/')
 
-NUM_FEATURES = 6 
+#NUM_FEATURES = 3
 
-def prepare_data(mode='svmlight'):
+def prepare_data(path, mode='svmlight'):
     """
     Prepares the dataset
     """
@@ -39,7 +46,7 @@ def prepare_data(mode='svmlight'):
             x_ = x_.toarray()
         if not isinstance(y_, np.ndarray):
             y_ = y_.toarray()
-        x_, y_ = shuffle(x_, y_, random_state=241)
+#        x_, y_ = shuffle(x_, y_, random_state=241)
         train_num = int(x_.shape[0] * 0.8)
         x_tr = x_[:train_num, :]
         x_te = x_[train_num:, :]
