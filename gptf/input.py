@@ -4,21 +4,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.utils import shuffle
 from sklearn.datasets import load_svmlight_file
 
-#data_name = 'cpu_small'
-#path = ('/Users/IzmailovPavel/Documents/Education/Programming/DataSets/' +
-#         'Regression/cpusmall(8192, 12).txt')
-
-#data_name = 'mg'
-#path = ('/Users/IzmailovPavel/Documents/Education/Programming/DataSets/' +
-#        'Regression/mg(1385, 6).txt')
-
-#data_name = 'abalone'
-#path = ('/Users/IzmailovPavel/Documents/Education/Programming/DataSets/' +
-#        'Regression/abalone(4177, 8).txt')
-
-#data_name = 'abalone'
-#path = ('/Users/IzmailovPavel/Documents/Education/Programming/DataSets/' +
-#        'Regression/abalone(4177, 8).txt')
 
 #data_name = 'mg_pca'
 #path = ('/Users/IzmailovPavel/Documents/Education/Projects/GPtf/data/'+
@@ -32,8 +17,6 @@ from sklearn.datasets import load_svmlight_file
 #data_name = 'Synthetic'
 #path = ('/Users/IzmailovPavel/Documents/Education/Projects/GPtf/data/'+
 #        'synthetic_hard(3000,3)/')
-
-#NUM_FEATURES = 3
 
 def prepare_data(path, mode='svmlight'):
     """
@@ -71,11 +54,6 @@ def prepare_data(path, mode='svmlight'):
     x_tr = (x_tr - x_min[None, :]) / (x_max - x_min)[None, :]
     x_te = (x_te - x_min[None, :]) / (x_max - x_min)[None, :]
     
-    #y_tr = 1. + y_tr * 0.1
-    #y_te = 1. + y_te * 0.1
-
-    print(np.max(x_te), np.min(x_te), 'prepare_data')
-    print(np.max(y_tr), np.min(y_tr))
     x_te[x_te < 0] = 0.
     x_te[x_te > 1] = 1.
     return x_tr, y_tr, x_te, y_te

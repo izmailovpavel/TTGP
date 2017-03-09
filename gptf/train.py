@@ -28,9 +28,19 @@ def get_data():
                                            for core in W_te])
     x_tr = make_tensor(x_tr, 'x_tr')
     y_tr = make_tensor(y_tr, 'y_tr')
+    n_init = FLAGS.mu_ranks
+    W_init_cores = []
+    y_init_cores = [tf.reshape(y_tr[:n_init], (n_init, 1, 1, 1, 1))]
+    for core_idx in range(W.ndims()):
+        W_init_cores += [W.tt_cores[core_idx][:n_init]]
+        if core_idx > 0:
+            y_init_cores += [tf.ones((n_init, 1, 1, 1, 1), dtype=tf.float64)]
+    y_init = BatchTTMatrices(y_init_cores)
+    W_init = BatchTTMatrices(W_init_cores)
+
     x_te = make_tensor(x_te, 'x_te')
     y_te = make_tensor(y_te, 'y_te')
-    return x_tr, y_tr, x_te, y_te, W, W_te, inputs
+    return x_tr, y_tr, x_te, y_te, W, W_te, inputs, W_init, y_init
 
 
 def process_flags():
@@ -58,16 +68,16 @@ def process_flags():
 with tf.Graph().as_default():
     
     FLAGS = process_flags()
-    x_tr, y_tr, x_te, y_te, W, W_te, inputs = get_data()
-    #x_tr, y_tr, x_te, y_te, W, W_te, inputs = get_data("svmlight")
+    x_tr, y_tr, x_te, y_te, W, W_te, inputs, W_init, y_init = get_data()
     iter_per_epoch = int(y_tr.get_shape()[0].value / FLAGS.batch_size)
     maxiter = iter_per_epoch * FLAGS.n_epoch
 
     # Batches
     load_mu_sigma = FLAGS.load_mu_sigma
     w_batch, y_batch = batch_subsample(W, FLAGS.batch_size, targets=y_tr)
-    gp = GP(SE(.7, .2, .2, load_mu_sigma), inputs, FLAGS.mu_ranks, 
-            load_mu_sigma=load_mu_sigma) 
+    gp = GP(SE(.3, .8, .3, load_mu_sigma), inputs, W_init, y_init,
+            FLAGS.mu_ranks, load_mu_sigma=load_mu_sigma) 
+    sigma_initializer = tf.variables_initializer(gp.sigma_l.tt_cores)
 
     # train_op and elbo
     elbo, train_op = gp.fit(w_batch,  y_batch, x_tr.get_shape()[0], lr=FLAGS.lr)
@@ -80,20 +90,24 @@ with tf.Graph().as_default():
 
     # Saving results
     mu, sigma_l = gp.get_mu_sigma_cores()
-
     coord = tf.train.Coordinator()
     cov_initializer = tf.variables_initializer(gp.cov.get_params())
+    data_initializer = tf.variables_initializer([x_tr, y_tr, x_te, y_te])
+
     init = tf.global_variables_initializer()
     
     # Main session
     with tf.Session() as sess:
         # Initialization
         writer = tf.summary.FileWriter(FLAGS.logdir, sess.graph)
+        sess.run(data_initializer)
         sess.run(cov_initializer)
+        sess.run(sigma_initializer)
+        #sess.run(mu_initializer)
         sess.run(init)
         threads = tf.train.start_queue_runners(sess=sess, coord=coord) 
-
         batch_elbo = 0
+
         for i in range(maxiter):
             if not (i % iter_per_epoch):
                 # At the end of every epoch evaluate method on test data

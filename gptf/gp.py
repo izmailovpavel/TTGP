@@ -4,6 +4,7 @@ import numpy as np
 import t3f
 import t3f.kronecker as kron
 from t3f import ops, TensorTrain
+from t3f.decompositions import round
 from tt_batch import *
 
 class SE:
@@ -54,7 +55,7 @@ class SE:
 
 class GP:
 
-    def __init__(self, cov, inputs, mu_ranks=5, load_mu_sigma=False):
+    def __init__(self, cov, inputs, W_init, y_init, mu_ranks=5, load_mu_sigma=False):
         '''Gaussian Process model.
         
         Args:
@@ -69,10 +70,45 @@ class GP:
         self.inputs = inputs
         self.inputs_dists = inputs.kron_dists()
         self.m = inputs.size
-        self.mu = self._get_mu(mu_ranks, load=load_mu_sigma)
-        #self.sigma_l = self._get_sigma_l(load=load_mu_sigma) 
+        #self.mu = self._get_mu(mu_ranks, load=load_mu_sigma)
         self.sigma_l = self._get_sigma_l_alt(load=load_mu_sigma) 
+        self.mu = self._get_mu_alt(mu_ranks, W_init, y_init, load=load_mu_sigma)
+        #self.sigma_l = self._get_sigma_l(load=load_mu_sigma) 
         self.N = 0 # Size of the training set
+
+    def _get_mu_alt(self, ranks, w, y, load=False):
+        """
+        Computes optimal mu.
+        """
+        if load:
+            mu_r = ranks
+            shapes = self.inputs.npoints
+            mu_cores = []
+            for i in range(len(shapes)):
+                mu_cores.append(np.load('mu_core'+str(i)+'.npy'))
+            mu_shape = (tuple(shapes), tuple([1] * len(shapes)))
+            mu_ranks = [1] + [mu_r] * (len(shapes) - 1) + [1]
+            tt_mu_init = TensorTrain(mu_cores, mu_shape, mu_ranks)
+            tt_mu = t3f.cast(t3f.get_variable('tt_mu', initializer=tt_mu_init), 
+                              tf.float64)
+            return tt_mu
+        
+        else:
+            Sigma = ops.tt_tt_matmul(self.sigma_l, ops.transpose(self.sigma_l))
+            print('RECOMPUTE')
+            #max_rank = np.max(ranks)
+            temp = batch_tt_tt_matmul(w, y)        
+            anc = batch_tt_tt_matmul(Sigma, temp) 
+            res = TensorTrain([core[0, :, :, :, :] for core in anc.tt_cores], 
+                    tt_ranks=[1]*(anc.ndims()+1))
+            res = res
+            for i in range(1, anc.get_nelems()):
+                elem = TensorTrain([core[i, :, :, :, :] for core in anc.tt_cores],
+                        tt_ranks=[1]*(anc.ndims()+1))
+                res = ops.add(res, elem)
+            mu_ranks = [1] + [ranks] * (res.ndims() - 1) + [1]
+            return t3f.get_variable('tt_mu', initializer=TensorTrain(res.tt_cores, 
+                                        res.get_raw_shape(), mu_ranks))
 
     def _get_mu(self, ranks, load=False):
         '''Returns a variable representing mu.
@@ -88,12 +124,6 @@ class GP:
             for i in range(len(shapes)):
                 mu_cores.append(np.load('mu_core'+str(i)+'.npy'))
         else:
-             #mu_cores = [np.ones((mu_r, shape_i, 1, mu_r)) 
-             #           for shape_i in shapes[1:-1]]
-
-             #mu_cores = [np.ones((1, shapes[0], 1, mu_r))] + mu_cores
-             #mu_cores = mu_cores + [np.ones((mu_r, shapes[-1], 1, 1))]
-
             mu_cores = [1. + np.random.randn(mu_r, shape_i, 1, mu_r) * 0.1 
                          for shape_i in shapes[1:-1]]
             mu_cores = [np.random.randn(1, shapes[0], 1, mu_r) * 0.1] + mu_cores
@@ -113,9 +143,10 @@ class GP:
                 sigma_cores.append(np.load('sigma_l_core'+str(i)+'.npy'))
             sigma_shape = (tuple(shapes), tuple(shapes))
             sigma_ranks = [1] * (len(shapes) + 1)
-            tt_sigma_l_init = TensorTrain(sigma_cores, sigma_shape, sigma_ranks)
-            tt_sigma_l = t3f.cast(t3f.get_variable('tt_sigma_l', 
-                                    initializer=tt_sigma_l_init), tf.float64)
+            tt_sigma_l_init = t3f.cast(TensorTrain(sigma_cores, sigma_shape, 
+                                        sigma_ranks), tf.float64)
+            tt_sigma_l = t3f.get_variable('tt_sigma_l', 
+                                    initializer=tt_sigma_l_init)   
             return tt_sigma_l
         else:
             with tf.name_scope(name, 'Init_Sigma_l', []):
@@ -214,6 +245,7 @@ class GP:
            
             mu = self.mu
             sigma_l = self._kron_tril(self.sigma_l)
+            ops.transpose(sigma_l)
             sigma = ops.tt_tt_matmul(sigma_l, ops.transpose(sigma_l))
             #sigma_logdet = 2 * kron.slog_determinant(sigma_l)[1]
             sigma_logdet = self._kron_logdet(sigma_l)

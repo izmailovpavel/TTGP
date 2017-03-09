@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 import t3f 
 import t3f.kronecker as kr
-from t3f.tensor_train import TensorTrain
+from t3f import TensorTrain
 
 # This is a trmporary module implementing a batch of TT-matrices and
 # some operations, required by this project. It should be replaced when
@@ -28,11 +28,6 @@ class BatchTTMatrices():
     def get_raw_shape(self):
         return (tf.TensorShape([core.get_shape()[2] for core in self.tt_cores]),
                tf.TensorShape([core.get_shape()[3] for core in self.tt_cores]))
-
-   # def __getitem__(self, i):
-   #     if i >= self.get_nelems() or i < 0:
-   #         raise ValueError('Index is out of bounds')
-        
 
 def batch_full(tt):
     """Computes the full matrix of the given batch.

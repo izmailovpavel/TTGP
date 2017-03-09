@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 import t3f 
 import t3f.kronecker as kr
-from t3f.tensor_train import TensorTrain
+from t3f import TensorTrain
 
 class InputsGrid:
     """A class representing inducing inputs placed on a grid.
