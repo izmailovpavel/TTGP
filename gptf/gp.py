@@ -3,9 +3,10 @@ import numpy as np
 
 import t3f
 import t3f.kronecker as kron
-from t3f import ops, TensorTrain
+from t3f import ops, TensorTrain, TensorTrainBatch
 from t3f.decompositions import round
-from tt_batch import *
+#from tt_batch import *
+#from t3f.tensor_train_batch import TensorTrainBatch
 
 class SE:
 
@@ -70,13 +71,11 @@ class GP:
         self.inputs = inputs
         self.inputs_dists = inputs.kron_dists()
         self.m = inputs.size
-        #self.mu = self._get_mu(mu_ranks, load=load_mu_sigma)
-        self.sigma_l = self._get_sigma_l_alt(load=load_mu_sigma) 
-        self.mu = self._get_mu_alt(mu_ranks, W_init, y_init, load=load_mu_sigma)
-        #self.sigma_l = self._get_sigma_l(load=load_mu_sigma) 
+        self.sigma_l = self._get_sigma_l(load=load_mu_sigma) 
+        self.mu = self._get_mu(mu_ranks, W_init, y_init, load=load_mu_sigma)
         self.N = 0 # Size of the training set
 
-    def _get_mu_alt(self, ranks, w, y, load=False):
+    def _get_mu(self, ranks, w, y, load=False):
         """
         Computes optimal mu.
         """
@@ -95,14 +94,12 @@ class GP:
         
         else:
             Sigma = ops.tt_tt_matmul(self.sigma_l, ops.transpose(self.sigma_l))
-            print('RECOMPUTE')
-            #max_rank = np.max(ranks)
-            temp = batch_tt_tt_matmul(w, y)        
-            anc = batch_tt_tt_matmul(Sigma, temp) 
+            temp = ops.tt_tt_matmul(w, y)        
+            anc = ops.tt_tt_matmul(Sigma, temp) 
             res = TensorTrain([core[0, :, :, :, :] for core in anc.tt_cores], 
                     tt_ranks=[1]*(anc.ndims()+1))
             res = res
-            for i in range(1, anc.get_nelems()):
+            for i in range(1, anc.get_shape()[0]):
                 elem = TensorTrain([core[i, :, :, :, :] for core in anc.tt_cores],
                         tt_ranks=[1]*(anc.ndims()+1))
                 res = ops.add(res, elem)
@@ -110,32 +107,7 @@ class GP:
             return t3f.get_variable('tt_mu', initializer=TensorTrain(res.tt_cores, 
                                         res.get_raw_shape(), mu_ranks))
 
-    def _get_mu(self, ranks, load=False):
-        '''Returns a variable representing mu.
-
-        TT-cores of mu are initialized with gaussian random vectors.
-        Args:
-            ranks: TT-ranks of mu.
-        '''
-        mu_r = ranks
-        shapes = self.inputs.npoints
-        if load:
-            mu_cores = []
-            for i in range(len(shapes)):
-                mu_cores.append(np.load('mu_core'+str(i)+'.npy'))
-        else:
-            mu_cores = [1. + np.random.randn(mu_r, shape_i, 1, mu_r) * 0.1 
-                         for shape_i in shapes[1:-1]]
-            mu_cores = [np.random.randn(1, shapes[0], 1, mu_r) * 0.1] + mu_cores
-            mu_cores = mu_cores + [np.random.randn(mu_r, shapes[-1], 1, 1) * 0.1]
-        mu_shape = (tuple(shapes), tuple([1] * len(shapes)))
-        mu_ranks = [1] + [mu_r] * (len(shapes) - 1) + [1]
-        tt_mu_init = TensorTrain(mu_cores, mu_shape, mu_ranks)
-        tt_mu = t3f.cast(t3f.get_variable('tt_mu', initializer=tt_mu_init), 
-                          tf.float64)
-        return tt_mu
-
-    def _get_sigma_l_alt(self, load=False, name=None):
+    def _get_sigma_l(self, load=False, name=None):
         shapes = self.inputs.npoints
         if load:
             sigma_cores = []
@@ -149,31 +121,11 @@ class GP:
                                     initializer=tt_sigma_l_init)   
             return tt_sigma_l
         else:
-            with tf.name_scope(name, 'Init_Sigma_l', []):
-                cov = self.cov
-                inputs_dists = self.inputs_dists
-                K_mm = cov.kron_cov(inputs_dists)    
-                return t3f.get_variable('sigma_l', 
-                                        initializer=kron.cholesky(K_mm))
-
-    def _get_sigma_l(self, load=False):
-        '''Reterns a variable, represrnting sigma_l.
-
-        TT-cores of sigma_l are initialized with identity matrices.
-        '''
-        shapes = self.inputs.npoints
-        if load:
-            sigma_cores = []
-            for i in range(len(shapes)):
-                sigma_cores.append(np.load('sigma_l_core'+str(i)+'.npy'))
-        else:
-            sigma_cores = [np.eye(shape_i)[None, :, :, None] for shape_i in shapes]
-        sigma_shape = (tuple(shapes), tuple(shapes))
-        sigma_ranks = [1] * (len(shapes) + 1)
-        tt_sigma_l_init = TensorTrain(sigma_cores, sigma_shape, sigma_ranks)
-        tt_sigma_l = t3f.cast(t3f.get_variable('tt_sigma_l', 
-                                    initializer=tt_sigma_l_init), tf.float64)
-        return tt_sigma_l
+            cov = self.cov
+            inputs_dists = self.inputs_dists
+            K_mm = cov.kron_cov(inputs_dists)    
+            return t3f.get_variable('sigma_l', 
+                                    initializer=kron.cholesky(K_mm))
 
     def predict(self, w_test, name=None):
         '''Predicts the value of the process at new points.
@@ -187,9 +139,9 @@ class GP:
         with tf.name_scope(name, 'Predict', [w_test]):
             K_mm = self.cov.kron_cov(inputs_dists)
             K_mm_noeig = self.cov.kron_cov(inputs_dists, eig_correction=0.)
-            K_xm = batch_tt_tt_matmul(K_mm_noeig, w_test)
+            K_xm = ops.tt_tt_matmul(K_mm_noeig, w_test)
             K_mm_inv = kron.inv(K_mm)
-            y = batch_tt_tt_flat_inner(K_xm, 
+            y = ops.tt_tt_flat_inner(K_xm, 
                                        t3f.tt_tt_matmul(K_mm_inv, expectation))
             return y
         
@@ -258,19 +210,21 @@ class GP:
             K_mm_logdet = kron.slog_determinant(K_mm)[1]
             K_mm_noeig = cov.kron_cov(inputs_dists, eig_correction=0.)
 
-            Lambda_i = batch_tt_tt_matmul(w, batch_transpose(w))
-
+            Lambda_i = ops.tt_tt_matmul(w, ops.transpose(w))
             tilde_K_ii = l * (self.cov.sigma_n**2 + self.cov.sigma_f**2)
-            tilde_K_ii -= tf.reduce_sum(batch_tt_tt_flat_inner(w, 
-                                                 batch_tt_tt_matmul(K_mm, w)))
+            tilde_K_ii -= tf.reduce_sum(ops.tt_tt_flat_inner(w, 
+                                                 ops.tt_tt_matmul(K_mm, w)))
             
             elbo = 0
             elbo += - tf.log(tf.abs(cov.sigma_n)) * l 
+            print('ELBO')
+            print(ops.tt_tt_flat_inner(w, mu).get_shape())
+            print(y.get_shape())
             elbo -= (tf.reduce_sum(
-                        tf.square(y - batch_tt_tt_flat_inner(w, mu)[:, :, 0]))
+                tf.square(y[:,0] - ops.tt_tt_flat_inner(w, mu)))
                     / (2 * cov.sigma_n**2))
             elbo += - tilde_K_ii/(2 * cov.sigma_n**2)
-            elbo += - (tf.reduce_sum(batch_tt_tt_flat_inner(sigma, Lambda_i))
+            elbo += - (tf.reduce_sum(ops.tt_tt_flat_inner(sigma, Lambda_i))
                     / (2 * cov.sigma_n**2))
             elbo /= l
             elbo += - K_mm_logdet / (2 * N)
@@ -278,7 +232,7 @@ class GP:
             elbo += - ops.tt_tt_flat_inner(sigma, K_mm_inv) / (2 * N)
             elbo += - ops.tt_tt_flat_inner(mu, 
                                    ops.tt_tt_matmul(K_mm_inv, mu)) / (2 * N)
-            return -elbo[0, 0]
+            return -elbo[0]
     
     def fit(self, w, y, N, lr=0.5, name=None):
         """Fit the GP to the data.

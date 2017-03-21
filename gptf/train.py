@@ -3,13 +3,13 @@ import numpy as np
 import os
 from sklearn.cluster import KMeans
 
-from input import get_batch, prepare_data, make_tensor
+from input import prepare_data, make_tensor, batch_subsample
 from gp import SE, GP, r2
 import grid
 import t3f
 import t3f.kronecker as kron
-from t3f import TensorTrain
-from tt_batch import *
+from t3f import TensorTrain, TensorTrainBatch
+#from tt_batch import *
 import time
 
 def get_data():
@@ -19,11 +19,11 @@ def get_data():
  
     inputs = grid.InputsGrid(x_tr.shape[1], npoints=FLAGS.n_inputs)
     W = inputs.interpolate_kernel(x_tr)
-    W = BatchTTMatrices([tf.reshape(core, [core.get_shape()[0].value, 1, 
+    W = TensorTrainBatch([tf.reshape(core, [core.get_shape()[0].value, 1, 
                                            core.get_shape()[1].value, 1, 1])
                                            for core in W])
     W_te = inputs.interpolate_kernel(x_te)
-    W_te = BatchTTMatrices([tf.reshape(core, [core.get_shape()[0].value, 1, 
+    W_te = TensorTrainBatch([tf.reshape(core, [core.get_shape()[0].value, 1, 
                                            core.get_shape()[1].value, 1, 1])
                                            for core in W_te])
     x_tr = make_tensor(x_tr, 'x_tr')
@@ -35,8 +35,8 @@ def get_data():
         W_init_cores += [W.tt_cores[core_idx][:n_init]]
         if core_idx > 0:
             y_init_cores += [tf.ones((n_init, 1, 1, 1, 1), dtype=tf.float64)]
-    y_init = BatchTTMatrices(y_init_cores)
-    W_init = BatchTTMatrices(W_init_cores)
+    y_init = TensorTrainBatch(y_init_cores)
+    W_init = TensorTrainBatch(W_init_cores)
 
     x_te = make_tensor(x_te, 'x_te')
     y_te = make_tensor(y_te, 'y_te')
@@ -75,7 +75,7 @@ with tf.Graph().as_default():
     # Batches
     load_mu_sigma = FLAGS.load_mu_sigma
     w_batch, y_batch = batch_subsample(W, FLAGS.batch_size, targets=y_tr)
-    gp = GP(SE(.3, .8, .3, load_mu_sigma), inputs, W_init, y_init,
+    gp = GP(SE(.7, .2, .1, load_mu_sigma), inputs, W_init, y_init,
             FLAGS.mu_ranks, load_mu_sigma=load_mu_sigma) 
     sigma_initializer = tf.variables_initializer(gp.sigma_l.tt_cores)
 

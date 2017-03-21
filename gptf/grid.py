@@ -83,7 +83,6 @@ class InputsGrid:
         for dim in range(self.ndims):
             w.append(np.zeros((n_test, n_inputs_dims[dim])))
 
-            W = np.zeros((n_test, n_inputs))
             hs = self.steps
 
         for dim in range(self.ndims):

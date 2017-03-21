@@ -36,31 +36,26 @@ with tf.Graph().as_default():
             predictions = linreg.inference(x_batch)
             scope.reuse_variables()
             eval_op = evaluate(x_te, y_te)
-            tf.scalar_summary('val_loss', eval_op)
+            test_err = tf.summary.scalar('val_loss', eval_op)
         loss = linreg.loss(predictions, y_batch)
         train_op = linreg.train(loss, lr=LR)
-        init = tf.initialize_all_variables()    
-        #summary = tf.merge_all_summaries()
+        init = tf.global_variables_initializer()
         saver = tf.train.Saver()
-        merged = tf.merge_all_summaries()
+        coord = tf.train.Coordinator()
         with tf.Session() as sess:
-            train_writer = tf.train.SummaryWriter(TRAIN_DIR+'/train',
-                                                      sess.graph)
-            test_writer = tf.train.SummaryWriter(TRAIN_DIR+'/test')
+            writer = tf.summary.FileWriter(FLAGS.logdir, sess.graph)
             sess.run(init) 
-            coord = tf.train.Coordinator()
-            threads = tf.train.start_queue_runners(sess=sess, coord=coord)
-            summary_writer = tf.train.SummaryWriter(TRAIN_DIR, sess.graph)
+            threads = tf.train.start_queue_runners(sess=sess, coord=coord) 
             print(x_tr.get_shape()) 
             print('Training...')
-            summary, mse =  sess.run([merged, eval_op])  
-            test_writer.add_summary(summary, 0)
+            summary, mse =  sess.run([test_err, eval_op])  
+            writer.add_summary(summary)
             print('iteration', 0, ':', mse)
             for i in range(maxiter):
                 sess.run(train_op)
                 if not (i % iter_per_epoch):
-                    summary, mse =  sess.run([merged, eval_op]) 
-                    test_writer.add_summary(summary, i+1)
+                    summary, mse =  sess.run([test_err, eval_op]) 
+                    writer.add_summary(summary)
                     print('iteration', i+1, ':', mse) 
     else:
         with tf.variable_scope("Weights") as scope:
@@ -72,6 +67,7 @@ with tf.Graph().as_default():
         init = tf.initialize_all_variables()
         merged = tf.merge_all_summaries()
         saver = tf.train.Saver()
+        coord = tf.train.Coordinator()
         
         optimizer = ScipyOptimizerInterface(loss, method='L-BFGS-B', options={'maxiter': MAXEPOCH})
 
