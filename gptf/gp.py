@@ -4,9 +4,7 @@ import numpy as np
 import t3f
 import t3f.kronecker as kron
 from t3f import ops, TensorTrain, TensorTrainBatch
-from t3f.decompositions import round
-#from tt_batch import *
-#from t3f.tensor_train_batch import TensorTrainBatch
+from tensorflow.contrib.opt import ScipyOptimizerInterface
 
 class SE:
 
@@ -56,7 +54,8 @@ class SE:
 
 class GP:
 
-    def __init__(self, cov, inputs, W_init, y_init, mu_ranks=5, load_mu_sigma=False):
+    def __init__(self, cov, inputs, W_init, y_init, mu_ranks=5, 
+            load_mu_sigma=False):
         '''Gaussian Process model.
         
         Args:
@@ -234,7 +233,7 @@ class GP:
                                    ops.tt_tt_matmul(K_mm_inv, mu)) / (2 * N)
             return -elbo[0]
     
-    def fit(self, w, y, N, lr=0.5, name=None):
+    def fit_stoch(self, w, y, N, lr=0.5, name=None):
         """Fit the GP to the data.
 
         Args:
@@ -249,6 +248,23 @@ class GP:
             fun = self.elbo(w, y)
             print('Adadelta, lr=', lr)
             return fun, tf.train.AdamOptimizer(learning_rate=lr).minimize(fun)
+    
+    def fit_scipy(self, w, y, niter, name=None):
+        """Fit the GP to the data.
+
+        Args:
+            w: interpolation vector.
+            y: target values.
+            N: number of training points.
+            name: name for the op.
+        """
+        self.N = y.get_shape()[0]
+        with tf.name_scope(name, 'fit', [w, y]):
+            fun = self.elbo(w, y)
+            print('SciPy')
+            optimizer = ScipyOptimizerInterface(fun, options={'maxiter': niter, 
+                'disp': True})
+            return fun, optimizer
 
     def get_mu_sigma_cores(self):
         return self.mu.tt_cores, self.sigma_l.tt_cores

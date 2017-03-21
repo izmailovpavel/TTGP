@@ -47,6 +47,8 @@ def process_flags():
     # Flags definitions
     flags = tf.app.flags
     FLAGS = flags.FLAGS
+    flags.DEFINE_bool('stoch', False, 
+                      'Wether or not to use stoch optimization')
     flags.DEFINE_float('lr', 0.01, 'Initial learning rate.')
     flags.DEFINE_integer('n_epoch', 10, 'Number of training epochs')
     flags.DEFINE_integer('batch_size', 128, 'Batch size')
@@ -73,14 +75,19 @@ with tf.Graph().as_default():
     maxiter = iter_per_epoch * FLAGS.n_epoch
 
     # Batches
+    cov_trainable = FLAGS.load_mu_sigma# or not FLAGS.stoch
     load_mu_sigma = FLAGS.load_mu_sigma
     w_batch, y_batch = batch_subsample(W, FLAGS.batch_size, targets=y_tr)
-    gp = GP(SE(.7, .2, .1, load_mu_sigma), inputs, W_init, y_init,
+    gp = GP(SE(.7, .2, .1, cov_trainable), inputs, W_init, y_init,
             FLAGS.mu_ranks, load_mu_sigma=load_mu_sigma) 
     sigma_initializer = tf.variables_initializer(gp.sigma_l.tt_cores)
 
     # train_op and elbo
-    elbo, train_op = gp.fit(w_batch,  y_batch, x_tr.get_shape()[0], lr=FLAGS.lr)
+    if FLAGS.stoch:
+        elbo, train_op = gp.fit_stoch(w_batch,  
+                                      y_batch, x_tr.get_shape()[0], lr=FLAGS.lr)
+    else:
+        elbo, optimizer = gp.fit_scipy(W,  y_tr, FLAGS.n_epoch)
     elbo_summary = tf.summary.scalar('elbo_batch', elbo)
 
     # prediction and r2_score on test data
@@ -108,23 +115,26 @@ with tf.Graph().as_default():
         threads = tf.train.start_queue_runners(sess=sess, coord=coord) 
         batch_elbo = 0
 
-        for i in range(maxiter):
-            if not (i % iter_per_epoch):
-                # At the end of every epoch evaluate method on test data
-                print('Epoch', i/iter_per_epoch, ':')
-                print('\tparams:', gp.cov.sigma_f.eval(), gp.cov.l.eval(), 
-                        gp.cov.sigma_n.eval())
-                r2_summary_val, r2_val = sess.run([r2_summary, r2])
-                writer.add_summary(r2_summary_val, i/iter_per_epoch)
-                print('\tr_2 on test set:', r2_val)       
-                print('\taverage elbo:', batch_elbo / iter_per_epoch)
-                batch_elbo = 0
+        if FLAGS.stoch:
+            for i in range(maxiter):
+                if not (i % iter_per_epoch):
+                    # At the end of every epoch evaluate method on test data
+                    print('Epoch', i/iter_per_epoch, ':')
+                    print('\tparams:', gp.cov.sigma_f.eval(), gp.cov.l.eval(), 
+                            gp.cov.sigma_n.eval())
+                    r2_summary_val, r2_val = sess.run([r2_summary, r2])
+                    writer.add_summary(r2_summary_val, i/iter_per_epoch)
+                    print('\tr_2 on test set:', r2_val)       
+                    print('\taverage elbo:', batch_elbo / iter_per_epoch)
+                    batch_elbo = 0
 
-            # Training operation
-            elbo_summary_val, elbo_val, _ = sess.run([elbo_summary, elbo, train_op])
-            batch_elbo += elbo_val
-            writer.add_summary(elbo_summary_val, i)
-            writer.flush()
+                # Training operation
+                elbo_summary_val, elbo_val, _ = sess.run([elbo_summary, elbo, train_op])
+                batch_elbo += elbo_val
+                writer.add_summary(elbo_summary_val, i)
+                writer.flush()
+        else:
+            optimizer.minimize(sess)
         
         r2_val = sess.run(r2)
         print('Final r2:', r2_val)
