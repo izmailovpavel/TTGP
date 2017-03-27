@@ -3,7 +3,7 @@ import numpy as np
 import os
 from sklearn.cluster import KMeans
 
-from input import prepare_data, make_tensor, batch_subsample
+from input import prepare_data, make_tensor#, batch_subsample
 from gp import SE, GP, r2
 import grid
 import t3f

@@ -69,7 +69,7 @@ class GP:
         self.cov = cov
         self.inputs = inputs
         self.inputs_dists = inputs.kron_dists()
-        self.m = inputs.size
+        #self.m = inputs.size
         self.sigma_l = self._get_sigma_l(load=load_mu_sigma) 
         self.mu = self._get_mu(mu_ranks, W_init, y_init, load=load_mu_sigma)
         self.N = 0 # Size of the training set

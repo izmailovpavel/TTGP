@@ -50,38 +50,3 @@ def make_tensor(array, name):
     init = tf.constant(array)
     return tf.Variable(init, name=name, trainable=False)
 
-
-def batch_subsample(tt_batch, batch_size, targets=None):
-    """
-    Generates a subsample of the batch.
-
-    Creates the queue with tf.train.slice_input_producer and then batches the 
-    output.
-    Args:
-        tt_batch: BatchTTMatrices object.
-        batch_size: size of the subsample.
-        targets: a tensor of target values. Use this argument to generate
-            batches of both features and targets.
-    """
-    if targets is not None:
-        tensors = list(tt_batch.tt_cores) + [targets]
-        sample = tf.train.slice_input_producer(tensors)
-        batch = tf.train.batch(sample, batch_size)
-        return TensorTrainBatch(batch[:-1]), batch[-1]
-    else:
-        sample = tf.train.slice_input_producer(list(tt_batch.tt_cores))
-        batch = tf.train.batch(sample, batch_size)
-        return TensorTrainBatch(batch)
-
-
-#def get_batch(W_tr, y_tr, batch_size):
-#    """
-#    Iterator, returning bathces
-#    """
-#    print('\tIn get_batch...')
-#    W_example, y_example = tf.train.slice_input_producer([W_tr, y_tr])
-#    capacity = 32#3 * batch_size#min_after_dequeue  + 3 * batch_size
-#    print('\tMaking the batch')
-#    W_batch, y_batch = tf.train.batch([W_example, y_example], 
-#                                       batch_size=batch_size, capacity=capacity)
-#    return W_batch, y_batch
