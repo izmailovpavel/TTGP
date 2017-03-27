@@ -12,6 +12,14 @@ DATASETS_DIR_2="/Users/IzmailovPavel/Documents/Education/Projects/GPtf/data/"
 #                 --datadir=$DATA_DIR --datatype="numpy" --stoch=True
 # Achieves 0.92.
 
+DATA_DIR=$DATASETS_DIR_2"simple_projection(300,3)/"
+#python3 train.py --lr=.1 --batch_size=100 --n_inputs=7 --n_epoch=15 \
+#                 --refresh_stats=True --mu_ranks=5 --load_mu_sigma=False \
+#                 --datadir=$DATA_DIR --datatype="numpy" --stoch=True
+python3 train.py --lr=.1 --batch_size=100 --n_inputs=7 --n_epoch=50 \
+                 --refresh_stats=True --mu_ranks=5 --load_mu_sigma=True \
+                 --datadir=$DATA_DIR --datatype="numpy" --stoch=True
+
 # Synthetic Data (1000, 3)
 # Initial Values [0.7, 0.2, 0.2]
 #DATA_DIR=$DATASETS_DIR_2"synthetic(1000,3)/"
@@ -25,10 +33,10 @@ DATASETS_DIR_2="/Users/IzmailovPavel/Documents/Education/Projects/GPtf/data/"
 
 # Synthetic Data (3000, 3). 
 # Initial Values [0.7, 0.2, 0.1]
-DATA_DIR=$DATASETS_DIR_2"synthetic_hard(3000,3)/"
-python3 train.py --lr=.01 --batch_size=100 --n_inputs=15 --n_epoch=30 \
-                 --refresh_stats=True --mu_ranks=7 --load_mu_sigma=False \
-                 --datadir=$DATA_DIR --datatype="numpy" --stoch=True
+#DATA_DIR=$DATASETS_DIR_2"synthetic_hard(3000,3)/"
+#python3 train.py --lr=.01 --batch_size=100 --n_inputs=15 --n_epoch=30 \
+#                 --refresh_stats=True --mu_ranks=7 --load_mu_sigma=False \
+#                 --datadir=$DATA_DIR --datatype="numpy" --stoch=True
 #python3 train.py --lr=.005 --batch_size=100 --n_inputs=15 --n_epoch=30 \
 #                 --refresh_stats=True --mu_ranks=7 --load_mu_sigma=True \
 #                 --datadir=$DATA_DIR --datatype="numpy" --stoch=True

@@ -16,35 +16,33 @@ def get_data():
     '''Data loading and preprocessing.
     '''
     x_tr, y_tr, x_te, y_te = prepare_data(FLAGS.datadir, mode=FLAGS.datatype)
- 
-    inputs = grid.InputsGrid(x_tr.shape[1], npoints=FLAGS.n_inputs)
-    #W = inputs.interpolate_kernel(x_tr)
-    #W = TensorTrainBatch([tf.reshape(core, [core.get_shape()[0].value, 1, 
-    #                                       core.get_shape()[1].value, 1, 1])
-    #                                       for core in W])
-    #W_te = inputs.interpolate_kernel(x_te)
-    #W_te = TensorTrainBatch([tf.reshape(core, [core.get_shape()[0].value, 1, 
-    #                                       core.get_shape()[1].value, 1, 1])
-    #                                       for core in W_te])
+    
+    d = 2
+    Q, S, V = np.linalg.svd(x_tr.T.dot(x_tr))
+    P_pca = Q[:, :d].T
+    print('get_data, P_pca.shape', P_pca.shape)
+
+    inputs = grid.InputsGrid(d, npoints=FLAGS.n_inputs)
     x_tr = make_tensor(x_tr, 'x_tr')
     y_tr = make_tensor(y_tr, 'y_tr')
     
     sample = tf.train.slice_input_producer([x_tr, y_tr])
     x_batch, y_batch = tf.train.batch(sample, FLAGS.batch_size)
-    W_batch = inputs.interpolate_on_batch(x_batch)
+    #W_batch = inputs.interpolate_on_batch(x_batch)
 
     n_init = FLAGS.mu_ranks
-    W_init = inputs.interpolate_on_batch(x_tr[:n_init])
+    #W_init = inputs.interpolate_on_batch(x_tr[:n_init])
+    x_init = x_tr[:n_init]
     y_init_cores = [tf.reshape(y_tr[:n_init], (n_init, 1, 1, 1, 1))]
-    for core_idx in range(x_tr.get_shape()[1].value):
+    for core_idx in range(d):
         if core_idx > 0:
             y_init_cores += [tf.ones((n_init, 1, 1, 1, 1), dtype=tf.float64)]
     y_init = TensorTrainBatch(y_init_cores)
 
     x_te = make_tensor(x_te, 'x_te')
-    W_te = inputs.interpolate_on_batch(x_te)
+    #W_te = inputs.interpolate_on_batch(x_te)
     y_te = make_tensor(y_te, 'y_te')
-    return W_batch, y_batch, W_te, y_te, W_init, y_init, x_tr, y_tr, inputs
+    return x_batch, y_batch, x_te, y_te, x_init, y_init, x_tr, y_tr, inputs, P_pca
 
 
 def process_flags():
@@ -72,7 +70,7 @@ def process_flags():
 with tf.Graph().as_default():
     
     FLAGS = process_flags()
-    W_batch, y_batch, W_te, y_te, W_init, y_init, x_tr, y_tr, inputs = get_data()
+    x_batch, y_batch, x_te, y_te, x_init, y_init, x_tr, y_tr, inputs, P = get_data()
     iter_per_epoch = int(y_tr.get_shape()[0].value / FLAGS.batch_size)
     maxiter = iter_per_epoch * FLAGS.n_epoch
 
@@ -80,16 +78,16 @@ with tf.Graph().as_default():
     cov_trainable = FLAGS.load_mu_sigma# or not FLAGS.stoch
     load_mu_sigma = FLAGS.load_mu_sigma
     #w_batch, y_batch = batch_subsample(W, FLAGS.batch_size, targets=y_tr)
-    gp = GP(SE(.7, .2, .1, cov_trainable), inputs, W_init, y_init,
+    gp = GP(SE(.7, .2, .1, P, cov_trainable), inputs, x_init, y_init,
             FLAGS.mu_ranks, load_mu_sigma=load_mu_sigma) 
     sigma_initializer = tf.variables_initializer(gp.sigma_l.tt_cores)
 
     # train_op and elbo
-    elbo, train_op = gp.fit_stoch(W_batch, y_batch, x_tr.get_shape()[0], lr=FLAGS.lr)
+    elbo, train_op = gp.fit_stoch(x_batch, y_batch, x_tr.get_shape()[0], lr=FLAGS.lr)
     elbo_summary = tf.summary.scalar('elbo_batch', elbo)
 
     # prediction and r2_score on test data
-    pred = gp.predict(W_te)
+    pred = gp.predict(x_te)
     r2 = r2(pred, y_te)
     r2_summary = tf.summary.scalar('r2_test', r2)
 
@@ -118,6 +116,7 @@ with tf.Graph().as_default():
                 print('Epoch', i/iter_per_epoch, ':')
                 print('\tparams:', gp.cov.sigma_f.eval(), gp.cov.l.eval(), 
                         gp.cov.sigma_n.eval())
+                print('\tP:', gp.cov.P.eval())
                 r2_summary_val, r2_val = sess.run([r2_summary, r2])
                 writer.add_summary(r2_summary_val, i/iter_per_epoch)
                 print('\tr_2 on test set:', r2_val)       
