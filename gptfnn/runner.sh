@@ -4,12 +4,12 @@ DATASETS_DIR_2="/Users/IzmailovPavel/Documents/Education/Projects/GPtf/data/"
 # Synthetic Data (300, 2)
 # Initial Values [0.3, 0.8, 0.3]
 DATA_DIR=$DATASETS_DIR_2"synthetic(300,2)/"
-python3 train.py --lr=.1 --batch_size=100 --n_inputs=7 --n_epoch=15 \
-                 --refresh_stats=True --mu_ranks=5 --load_mu_sigma=False \
-                 --datadir=$DATA_DIR --datatype="numpy" --stoch=True
-#python3 train.py --lr=.1 --batch_size=100 --n_inputs=7 --n_epoch=50 \
-#                 --refresh_stats=True --mu_ranks=5 --load_mu_sigma=True \
+#python3 train.py --lr=.1 --batch_size=100 --n_inputs=7 --n_epoch=15 \
+#                 --refresh_stats=True --mu_ranks=5 --load_mu_sigma=False \
 #                 --datadir=$DATA_DIR --datatype="numpy" --stoch=True
+python3 train.py --lr=.1 --batch_size=100 --n_inputs=7 --n_epoch=50 \
+                 --refresh_stats=True --mu_ranks=5 --load_mu_sigma=True \
+                 --datadir=$DATA_DIR --datatype="numpy" --stoch=True
 # Achieves 0.92.
 
 # Synthetic Data (1000, 3)
