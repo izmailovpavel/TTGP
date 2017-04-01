@@ -196,24 +196,29 @@ class GP:
            
             mu = self.mu
             sigma_l = self._kron_tril(self.sigma_l)
-            ops.transpose(sigma_l)
-            sigma = ops.tt_tt_matmul(sigma_l, ops.transpose(sigma_l))
-            #sigma_logdet = 2 * kron.slog_determinant(sigma_l)[1]
-            sigma_logdet = self._kron_logdet(sigma_l)
+            with tf.name_scope("elbo_1"):
+                ops.transpose(sigma_l)
+                sigma = ops.tt_tt_matmul(sigma_l, ops.transpose(sigma_l))
+                #sigma_logdet = 2 * kron.slog_determinant(sigma_l)[1]
+                sigma_logdet = self._kron_logdet(sigma_l)
 
-            cov = self.cov
-            inputs_dists = self.inputs_dists
-            K_mm = cov.kron_cov(inputs_dists)
-            
-            K_mm_inv = kron.inv(K_mm)
-            K_mm_logdet = kron.slog_determinant(K_mm)[1]
-            K_mm_noeig = cov.kron_cov(inputs_dists, eig_correction=0.)
+                cov = self.cov
+                inputs_dists = self.inputs_dists
+                K_mm = cov.kron_cov(inputs_dists)
 
-            Lambda_i = ops.tt_tt_matmul(w, ops.transpose(w))
-            tilde_K_ii = l * (self.cov.sigma_n**2 + self.cov.sigma_f**2)
-            tilde_K_ii -= tf.reduce_sum(ops.tt_tt_flat_inner(w, 
-                                                 ops.tt_tt_matmul(K_mm, w)))
-            
+            with tf.name_scope("elbo_K_mm"):
+                K_mm_inv = kron.inv(K_mm)
+                K_mm_logdet = kron.slog_determinant(K_mm)[1]
+                K_mm_noeig = cov.kron_cov(inputs_dists, eig_correction=0.)
+
+            #with tf.name_scope("elbo_Lambda_i"):
+            #    Lambda_i = ops.tt_tt_matmul(w, ops.transpose(w))
+            with tf.name_scope("elbo_tilde_K_ii"):
+                tilde_K_ii = l * (self.cov.sigma_n**2 + self.cov.sigma_f**2)
+            with tf.name_scope("elbo_tilde_K_ii_2"):
+                tilde_K_ii -= tf.reduce_sum(ops.tt_tt_flat_inner(w, 
+                                                     ops.tt_tt_matmul(K_mm, w)))
+                
             elbo = 0
             elbo += - tf.log(tf.abs(cov.sigma_n)) * l 
             print('ELBO')
@@ -223,7 +228,9 @@ class GP:
                 tf.square(y[:,0] - ops.tt_tt_flat_inner(w, mu)))
                     / (2 * cov.sigma_n**2))
             elbo += - tilde_K_ii/(2 * cov.sigma_n**2)
-            elbo += - (tf.reduce_sum(ops.tt_tt_flat_inner(sigma, Lambda_i))
+            #elbo += - (tf.reduce_sum(ops.tt_tt_flat_inner(sigma, Lambda_i))
+            #        / (2 * cov.sigma_n**2))
+            elbo += - (ops.tt_tt_flat_inner(w, ops.tt_tt_matmul(sigma, w))
                     / (2 * cov.sigma_n**2))
             elbo /= l
             elbo += - K_mm_logdet / (2 * N)

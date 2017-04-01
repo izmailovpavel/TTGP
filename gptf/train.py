@@ -60,10 +60,12 @@ def process_flags():
     flags.DEFINE_integer('n_inputs', 50, 'Number of inducing inputs')
     flags.DEFINE_integer('mu_ranks', 5, 'TT-ranks of mu')
     flags.DEFINE_bool('load_mu_sigma', False, 'Loads mu and sigma if True')
+    flags.DEFINE_bool('profile', False, 'Loads mu and sigma if True')
     
     if FLAGS.refresh_stats:
         print('Deleting old stats')
         os.system('rm -rf ' + FLAGS.logdir)
+    print(FLAGS.profile, 'PROFILE')
     return FLAGS
 
 
@@ -102,9 +104,17 @@ with tf.Graph().as_default():
     data_initializer = tf.variables_initializer([x_tr, y_tr, x_te, y_te])
 
     init = tf.global_variables_initializer()
-    
+   
+    # Profiling
+    if FLAGS.profile:
+        config = tf.ConfigProto(graph_options=
+                            tf.GraphOptions(build_cost_model=1))
+        run_metadata = tf.RunMetadata()
+    else:
+        config = None
+
     # Main session
-    with tf.Session() as sess:
+    with tf.Session(config=config) as sess:
         # Initialization
         writer = tf.summary.FileWriter(FLAGS.logdir, sess.graph)
         sess.run(data_initializer)
@@ -115,35 +125,47 @@ with tf.Graph().as_default():
         threads = tf.train.start_queue_runners(sess=sess, coord=coord) 
         batch_elbo = 0
 
-        if FLAGS.stoch:
-            for i in range(maxiter):
-                if not (i % iter_per_epoch):
-                    # At the end of every epoch evaluate method on test data
-                    print('Epoch', i/iter_per_epoch, ':')
-                    print('\tparams:', gp.cov.sigma_f.eval(), gp.cov.l.eval(), 
-                            gp.cov.sigma_n.eval())
-                    r2_summary_val, r2_val = sess.run([r2_summary, r2])
-                    writer.add_summary(r2_summary_val, i/iter_per_epoch)
-                    print('\tr_2 on test set:', r2_val)       
-                    print('\taverage elbo:', batch_elbo / iter_per_epoch)
-                    batch_elbo = 0
-
-                # Training operation
-                elbo_summary_val, elbo_val, _ = sess.run([elbo_summary, elbo, train_op])
-                batch_elbo += elbo_val
-                writer.add_summary(elbo_summary_val, i)
-                writer.flush()
+        # Code for profiling    
+        if FLAGS.profile:
+            _ = sess.run(train_op, #options=tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE),
+                    run_metadata=run_metadata)
+            prof_options = tf.contrib.tfprof.model_analyzer.PRINT_ALL_TIMING_MEMORY
+            prof_options.update({'order_by':'micros', 'min_micros':50})
+            tf.contrib.tfprof.model_analyzer.print_model_analysis(
+                        tf.get_default_graph(),
+                        run_meta=run_metadata,
+                        tfprof_options=prof_options)
+        # Main Code
         else:
-            optimizer.minimize(sess)
-        
-        r2_val = sess.run(r2)
-        print('Final r2:', r2_val)
+            if FLAGS.stoch:
+                for i in range(maxiter):
+                    if not (i % iter_per_epoch):
+                        # At the end of every epoch evaluate method on test data
+                        print('Epoch', i/iter_per_epoch, ':')
+                        print('\tparams:', gp.cov.sigma_f.eval(), gp.cov.l.eval(), 
+                                gp.cov.sigma_n.eval())
+                        r2_summary_val, r2_val = sess.run([r2_summary, r2])
+                        writer.add_summary(r2_summary_val, i/iter_per_epoch)
+                        print('\tr_2 on test set:', r2_val)       
+                        print('\taverage elbo:', batch_elbo / iter_per_epoch)
+                        batch_elbo = 0
 
-        mu_cores, sigma_l_cores = sess.run([mu, sigma_l])
-        
-        # Saving results
-        if not load_mu_sigma:
-            for i, core in enumerate(mu_cores):
-                np.save('mu_core'+str(i), core)
-            for i, core in enumerate(sigma_l_cores):
-                np.save('sigma_l_core'+str(i), core)
+                    # Training operation
+                    elbo_summary_val, elbo_val, _ = sess.run([elbo_summary, elbo, train_op])
+                    batch_elbo += elbo_val
+                    writer.add_summary(elbo_summary_val, i)
+                    writer.flush()
+            else:
+                optimizer.minimize(sess)
+            
+            r2_val = sess.run(r2)
+            print('Final r2:', r2_val)
+
+            mu_cores, sigma_l_cores = sess.run([mu, sigma_l])
+            
+            # Saving results
+            if not load_mu_sigma:
+                for i, core in enumerate(mu_cores):
+                    np.save('mu_core'+str(i), core)
+                for i, core in enumerate(sigma_l_cores):
+                    np.save('sigma_l_core'+str(i), core)
