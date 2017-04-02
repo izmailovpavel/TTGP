@@ -65,7 +65,7 @@ def process_flags():
     if FLAGS.refresh_stats:
         print('Deleting old stats')
         os.system('rm -rf ' + FLAGS.logdir)
-    print(FLAGS.profile, 'PROFILE')
+    #print(FLAGS.profile, 'PROFILE')
     return FLAGS
 
 
