@@ -45,6 +45,8 @@ class InputsGrid:
         #self.size = np.prod([dim.size for dim in self.inputs])
         #self.steps = [dim[1] - dim[0] for dim in self.inputs]
         self.steps_tf = tf.constant(self.steps_tf, dtype=tf.float64)
+        self.left = tf.constant(left, dtype=tf.float64)
+        self.right = tf.constant(right, dtype=tf.float64)
 
     def _add_padding(self):
         """Adds one point on each side of the grid for each dimension"""
@@ -85,11 +87,14 @@ class InputsGrid:
             A `TensorTrainBatch` object, representing the matrix W_i: 
             K_im = W_i K_mm.
         """
+
+        # TODO: this compiles SLOW
+
         n_test = x.get_shape()[0].value
         n_inputs_dims = self.npoints
         w_cores = []
         hs_tensor = self.steps_tf
-        closest_left = tf.cast(tf.floordiv(x, hs_tensor), tf.int64)
+        closest_left = tf.cast(tf.floordiv(x-self.left[None, :], hs_tensor), tf.int64)
 
         for dim in range(self.ndims):
             x_dim = x[:, dim]
@@ -102,7 +107,7 @@ class InputsGrid:
                         x_indices < n_inputs_dims[dim])
                 y_indices = tf.boolean_mask(y_indices, idx)
                 x_indices = tf.boolean_mask(x_indices, idx)
-                s = tf.abs(tf.boolean_mask(x_dim, idx) - 
+                s = tf.abs(tf.boolean_mask(x_dim, idx) -
                            tf.gather(inputs_dim, x_indices)) / hs_tensor[dim]
                 s_is_1 = tf.logical_and(s <= 2, s > 1)
                 s_is_0 = s <= 1
@@ -118,10 +123,12 @@ class InputsGrid:
                 values_1 = (- s_1**3 / 2 +  5 * s_1**2 /2 - 4 * s_1 + 2)
                 values_0 = (3 * s_0**3 / 2 - 5 * s_0**2 / 2 + 1)
                 values = tf.concat([values_1, values_0], axis=0)
-                core_j = tf.sparse_to_dense(sparse_indices=indices, 
-                            sparse_values=values, validate_indices=False,
-                            output_shape=(n_test, n_inputs_dims[dim]))
-                core = core + core_j
+                core = core + tf.scatter_nd(indices, values, 
+                                            (n_test, n_inputs_dims[dim]))
+                #core_j = tf.sparse_to_dense(sparse_indices=indices, 
+                #            sparse_values=values, validate_indices=False,
+                #            output_shape=(n_test, n_inputs_dims[dim]))
+                #core = core + core_j
             w_cores.append(core)
         W = TensorTrainBatch([tf.reshape(core, [core.get_shape()[0].value, 1, 
                                            core.get_shape()[1].value, 1, 1])

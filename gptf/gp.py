@@ -221,9 +221,6 @@ class GP:
                 
             elbo = 0
             elbo += - tf.log(tf.abs(cov.sigma_n)) * l 
-            print('ELBO')
-            print(ops.tt_tt_flat_inner(w, mu).get_shape())
-            print(y.get_shape())
             elbo -= (tf.reduce_sum(
                 tf.square(y[:,0] - ops.tt_tt_flat_inner(w, mu)))
                     / (2 * cov.sigma_n**2))

@@ -22,7 +22,10 @@ def get_data():
     P_pca = Q[:, :d].T
     print('get_data, P_pca.shape', P_pca.shape)
 
-    inputs = grid.InputsGrid(d, npoints=FLAGS.n_inputs)
+    #print(x_te)
+    #print(x_te.dot(P_pca.T))
+    #exit(0)
+    inputs = grid.InputsGrid(d, npoints=FLAGS.n_inputs, left=-1.)
     x_tr = make_tensor(x_tr, 'x_tr')
     y_tr = make_tensor(y_tr, 'y_tr')
     
@@ -91,6 +94,9 @@ with tf.Graph().as_default():
     r2 = r2(pred, y_te)
     r2_summary = tf.summary.scalar('r2_test', r2)
 
+    projected_x_test = gp.cov.project(x_te)
+    w_test = inputs.interpolate_on_batch(projected_x_test)
+
     # Saving results
     mu, sigma_l = gp.get_mu_sigma_cores()
     coord = tf.train.Coordinator()
@@ -109,6 +115,17 @@ with tf.Graph().as_default():
         #sess.run(mu_initializer)
         sess.run(init)
         threads = tf.train.start_queue_runners(sess=sess, coord=coord) 
+
+        #print(sess.run(tf.gradients(projected_x_test[0, :], gp.cov.P)))
+        #print(sess.run(tf.gradients(w_test.tt_cores[1][0, :], projected_x_test)))
+        #print(sess.run(tf.gradients(w_test, projected_x_test[0, :])))
+        #print(sess.run(tf.gradients(w_test.tt_cores[0][0, 0, :, 0, 0], projected_x_test[0, :])))
+        #print(sess.run(tf.gradients(w_test.tt_cores[0][0, 0, :, 0, 0], gp.cov.P)))
+        #exit(0)
+
+#        print(sess.run(projected_x_test))
+#        exit(0)
+
         batch_elbo = 0
         for i in range(maxiter):
             if not (i % iter_per_epoch):

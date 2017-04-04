@@ -26,8 +26,11 @@ class SE:
                                 dtype=tf.float64, trainable=trainable)
 
     def project(self, x):
-        return tf.sigmoid(tf.matmul(x, tf.transpose(self.P)))
-        
+        projected = tf.matmul(x, tf.transpose(self.P))
+        projected = tf.minimum(projected, 1)
+        projected = tf.maximum(projected, -1)
+        return projected
+
     def kron_cov(self, kron_dists, eig_correction=1e-2, name=None):
         """Computes the covariance matrix, given a kronecker product 
         representation of distances.
@@ -218,21 +221,20 @@ class GP:
             K_mm_logdet = kron.slog_determinant(K_mm)[1]
             K_mm_noeig = cov.kron_cov(inputs_dists, eig_correction=0.)
 
-            Lambda_i = ops.tt_tt_matmul(w, ops.transpose(w))
+            #Lambda_i = ops.tt_tt_matmul(w, ops.transpose(w))
             tilde_K_ii = l * (self.cov.sigma_n**2 + self.cov.sigma_f**2)
             tilde_K_ii -= tf.reduce_sum(ops.tt_tt_flat_inner(w, 
                                                  ops.tt_tt_matmul(K_mm, w)))
             
             elbo = 0
             elbo += - tf.log(tf.abs(cov.sigma_n)) * l 
-            print('ELBO')
-            print(ops.tt_tt_flat_inner(w, mu).get_shape())
-            print(y.get_shape())
             elbo -= (tf.reduce_sum(
                 tf.square(y[:,0] - ops.tt_tt_flat_inner(w, mu)))
                     / (2 * cov.sigma_n**2))
             elbo += - tilde_K_ii/(2 * cov.sigma_n**2)
-            elbo += - (tf.reduce_sum(ops.tt_tt_flat_inner(sigma, Lambda_i))
+            #elbo += - (tf.reduce_sum(ops.tt_tt_flat_inner(sigma, Lambda_i))
+            #        / (2 * cov.sigma_n**2))
+            elbo += - (ops.tt_tt_flat_inner(w, ops.tt_tt_matmul(sigma, w))
                     / (2 * cov.sigma_n**2))
             elbo /= l
             elbo += - K_mm_logdet / (2 * N)

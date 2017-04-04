@@ -1,6 +1,8 @@
 DATASETS_DIR_1="/Users/IzmailovPavel/Documents/Education/Programming/DataSets/"
 DATASETS_DIR_2="/Users/IzmailovPavel/Documents/Education/Projects/GPtf/data/"
 
+export CUDA_VISIBLE_DEVICES=""
+
 # Synthetic Data (300, 2)
 # Initial Values [0.3, 0.8, 0.3]
 #DATA_DIR=$DATASETS_DIR_2"synthetic(300,2)/"
