@@ -17,18 +17,25 @@ def get_data():
     '''
     x_tr, y_tr, x_te, y_te = prepare_data(FLAGS.datadir, mode=FLAGS.datatype)
     
-    d = 2
+    d = FLAGS.d
+    D = x_tr.shape[1]
     Q, S, V = np.linalg.svd(x_tr.T.dot(x_tr))
-    P_pca = Q[:, :d].T
-    print('get_data, P_pca.shape', P_pca.shape)
+    
+#    P_pca = Q[:, :d].T
+    # Making it harder
+    P_pca = np.zeros((d, D))
+    P_pca[:, :d] = np.eye(d)
 
-    #print(x_te)
-    #print(x_te.dot(P_pca.T))
-    #exit(0)
+#    np.save('../data/temp/x_tr.npy', x_tr.dot(P_pca.T))
+#    np.save('../data/temp/x_te.npy', x_te.dot(P_pca.T))
+#    np.save('../data/temp/y_tr.npy', y_tr)
+#    np.save('../data/temp/y_te.npy', y_te)
+#    exit(0)
+    
     inputs = grid.InputsGrid(d, npoints=FLAGS.n_inputs, left=-1.)
     x_tr = make_tensor(x_tr, 'x_tr')
     y_tr = make_tensor(y_tr, 'y_tr')
-    
+
     sample = tf.train.slice_input_producer([x_tr, y_tr])
     x_batch, y_batch = tf.train.batch(sample, FLAGS.batch_size)
     #W_batch = inputs.interpolate_on_batch(x_batch)
@@ -63,6 +70,7 @@ def process_flags():
     flags.DEFINE_integer('n_inputs', 50, 'Number of inducing inputs')
     flags.DEFINE_integer('mu_ranks', 5, 'TT-ranks of mu')
     flags.DEFINE_bool('load_mu_sigma', False, 'Loads mu and sigma if True')
+    flags.DEFINE_integer('d', 2, 'Projection dimensionality')
     
     if FLAGS.refresh_stats:
         print('Deleting old stats')
@@ -123,8 +131,6 @@ with tf.Graph().as_default():
         #print(sess.run(tf.gradients(w_test.tt_cores[0][0, 0, :, 0, 0], gp.cov.P)))
         #exit(0)
 
-#        print(sess.run(projected_x_test))
-#        exit(0)
 
         batch_elbo = 0
         for i in range(maxiter):
