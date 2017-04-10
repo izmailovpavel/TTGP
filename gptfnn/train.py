@@ -2,16 +2,18 @@ import tensorflow as tf
 import numpy as np
 import os
 import time
+import time
 from sklearn.cluster import KMeans
 
-from input import prepare_data, make_tensor#, batch_subsample
-from gp import SE, GP, r2
+from input import prepare_data, make_tensor
+from gp import GP
+from misc import r2
+from covariance import SE
+from projectors import LinearProjector
 import grid
 import t3f
-import t3f.kronecker as kron
+#import t3f.kronecker as kron
 from t3f import TensorTrain, TensorTrainBatch
-#from tt_batch import *
-import time
 
 def get_data():
     '''Data loading and preprocessing.
@@ -22,8 +24,6 @@ def get_data():
     D = x_tr.shape[1]
     Q, S, V = np.linalg.svd(x_tr.T.dot(x_tr))
     
-#    P_pca = Q[:, :d].T
-    # Initialization of projection matrix
     if FLAGS.load_mu_sigma:
         P = np.load('temp/P.npy')
         sigma_n = np.load('temp/sigma_n.npy')
@@ -36,6 +36,7 @@ def get_data():
         sigma_n = 0.1
         P = np.zeros((d, D))
         P[:, :d] = np.eye(d)
+        P = LinearProjector(P)
     cov_params = [sigma_f, l, sigma_n, P]
 
     inputs = grid.InputsGrid(d, npoints=FLAGS.n_inputs, left=-1.)
@@ -100,7 +101,7 @@ with tf.Graph().as_default():
     sigma_initializer = tf.variables_initializer(gp.sigma_l.tt_cores)
 
     # train_op and elbo
-    elbo, train_op = gp.fit_stoch(x_batch, y_batch, x_tr.get_shape()[0], lr=FLAGS.lr)
+    elbo, train_op = gp.fit(x_batch, y_batch, x_tr.get_shape()[0], lr=FLAGS.lr)
     elbo_summary = tf.summary.scalar('elbo_batch', elbo)
 
     # prediction and r2_score on test data
