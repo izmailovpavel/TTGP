@@ -6,6 +6,8 @@ import t3f.kronecker as kron
 from t3f import ops, TensorTrain, TensorTrainBatch
 from tensorflow.contrib.opt import ScipyOptimizerInterface
 
+from misc import _kron_tril, _kron_logdet
+
 class GP:
 
     def __init__(self, cov, inputs, x_init, y_init, mu_ranks=5, 
@@ -23,14 +25,21 @@ class GP:
         self.cov = cov
         self.inputs = inputs
         self.inputs_dists = inputs.kron_dists()
-        #self.m = inputs.size
         self.sigma_l = self._get_sigma_l(load=load_mu_sigma) 
         self.mu = self._get_mu(mu_ranks, x_init, y_init, load=load_mu_sigma)
         self.N = 0 # Size of the training set
 
     def _get_mu(self, ranks, x, y, load=False):
-        """
-        Computes optimal mu.
+        """Initializes latent inputs expectations mu.
+
+        Either loads pretrained values of tt-cores of mu, or initializes it
+        according to optimal formulas from the given data.
+
+        Args:
+            ranks: tt-ranks of mu
+            x: features of a batch of objects
+            y: targets of a batch of objects
+            load: bool, loads pretrained values if True
         """
         if load:
             mu_r = ranks
@@ -61,7 +70,15 @@ class GP:
             return t3f.get_variable('tt_mu', initializer=TensorTrain(res.tt_cores, 
                                         res.get_raw_shape(), mu_ranks))
 
-    def _get_sigma_l(self, load=False, name=None):
+    def _get_sigma_l(self, load=False):
+        """Initializes latent inputs covariance Sigma_l.
+
+        Either loads pretrained values of kronecker-cores of mu, or initializes 
+        it.
+
+        Args:
+            load: bool, loads pretrained values if True
+        """
         shapes = self.inputs.npoints
         if load:
             sigma_cores = []
@@ -90,7 +107,7 @@ class GP:
         '''
         inputs_dists = self.inputs_dists
         expectation = self.mu
-        with tf.name_scope(name, 'Predict', [x_test]):
+        with tf.name_scope(name, 'GP_Predict', [x_test]):
             w_test = self.inputs.interpolate_on_batch(self.cov.project(x_test))
             K_mm = self.cov.kron_cov(inputs_dists)
             K_mm_noeig = self.cov.kron_cov(inputs_dists, eig_correction=0.)
@@ -99,41 +116,6 @@ class GP:
             y = ops.tt_tt_flat_inner(K_xm, 
                                        t3f.tt_tt_matmul(K_mm_inv, expectation))
             return y
-        
-    @staticmethod
-    def _kron_tril(kron_mat, name=None):
-        '''Computes the lower triangular part of a kronecker-factorized matrix.
-
-        Note, that it computes it as a product of the lower triangular parts
-        of the elements of the product, which is not exactly the lower 
-        triangular part.
-        '''
-        with tf.name_scope(name, 'Kron_tril', [kron_mat]):
-            mat_l_cores = []
-            for core_idx in range(kron_mat.ndims()):
-                core = kron_mat.tt_cores[core_idx][0, :, :, 0]
-                mat_l_cores.append(tf.matrix_band_part(core,-1, 0)
-                                                    [None, :, :, None])
-            mat_l_shape = kron_mat.get_raw_shape()
-            mat_l_ranks = kron_mat.get_tt_ranks()
-            mat_l = TensorTrain(mat_l_cores, mat_l_shape, mat_l_ranks)
-            return mat_l
-    
-    @staticmethod
-    def _kron_logdet(kron_mat, name=None):
-        '''Computes the logdet of a kronecker-factorized matrix.
-        '''
-        with tf.name_scope(name, 'Kron_logdet', [kron_mat]):
-            i_shapes = kron_mat.get_raw_shape()[0]
-            pows = tf.cast(tf.reduce_prod(i_shapes), kron_mat.dtype)
-            logdet = 0.
-            for core_idx in range(kron_mat.ndims()):
-                core = kron_mat.tt_cores[core_idx][0, :, :, 0]
-                core_pow = pows / i_shapes[core_idx].value
-                logdet += (core_pow * 
-                    tf.reduce_sum(tf.log(tf.abs(tf.diag_part(core)))))
-            logdet *= 2
-            return logdet
 
     def elbo(self, w, y, name=None):
         '''Evidence lower bound.
@@ -154,7 +136,6 @@ class GP:
             sigma_l = self._kron_tril(self.sigma_l)
             ops.transpose(sigma_l)
             sigma = ops.tt_tt_matmul(sigma_l, ops.transpose(sigma_l))
-            #sigma_logdet = 2 * kron.slog_determinant(sigma_l)[1]
             sigma_logdet = self._kron_logdet(sigma_l)
 
             cov = self.cov
@@ -165,7 +146,6 @@ class GP:
             K_mm_logdet = kron.slog_determinant(K_mm)[1]
             K_mm_noeig = cov.kron_cov(inputs_dists, eig_correction=0.)
 
-            #Lambda_i = ops.tt_tt_matmul(w, ops.transpose(w))
             tilde_K_ii = l * (self.cov.sigma_n**2 + self.cov.sigma_f**2)
             tilde_K_ii -= tf.reduce_sum(ops.tt_tt_flat_inner(w, 
                                                  ops.tt_tt_matmul(K_mm, w)))
@@ -176,8 +156,6 @@ class GP:
                 tf.square(y[:,0] - ops.tt_tt_flat_inner(w, mu)))
                     / (2 * cov.sigma_n**2))
             elbo += - tilde_K_ii/(2 * cov.sigma_n**2)
-            #elbo += - (tf.reduce_sum(ops.tt_tt_flat_inner(sigma, Lambda_i))
-            #        / (2 * cov.sigma_n**2))
             elbo += - (ops.tt_tt_flat_inner(w, ops.tt_tt_matmul(sigma, w))
                     / (2 * cov.sigma_n**2))
             elbo /= l
@@ -188,7 +166,7 @@ class GP:
                                    ops.tt_tt_matmul(K_mm_inv, mu)) / (2 * N)
             return -elbo[0]
     
-    def fit_stoch(self, x, y, N, lr=0.5, name=None):
+    def fit(self, x, y, N, lr=0.5, name=None):
         """Fit the GP to the data.
 
         Args:
@@ -208,21 +186,4 @@ class GP:
     def get_mu_sigma_cores(self):
         return self.mu.tt_cores, self.sigma_l.tt_cores
 
-
-def r2(y_pred, y_true, name=None):
-    """r2 score.
-    """
-    with tf.name_scope(name, 'r2_score', [y_pred, y_true]):
-        mse_score = mse(y_pred, y_true)
-        return 1. - mse_score / mse(tf.ones_like(y_true) * 
-                    tf.reduce_mean(y_true), y_true)
-
-
-def mse(y_pred, y_true, name=None):
-    """MSE score.
-    """
-    with tf.name_scope(name, 'mse', [y_pred, y_true]):
-        mse = tf.reduce_mean(tf.squared_difference(tf.reshape(y_pred, [-1]), 
-                             tf.reshape(y_true, [-1])), name='MSE')
-        return mse
 
