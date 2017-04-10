@@ -9,7 +9,6 @@ import grid
 import t3f
 import t3f.kronecker as kron
 from t3f import TensorTrain, TensorTrainBatch
-#from tt_batch import *
 import time
 
 def get_data():
@@ -138,6 +137,7 @@ with tf.Graph().as_default():
         # Main Code
         else:
             if FLAGS.stoch:
+                start_epoch = time.time()
                 for i in range(maxiter):
                     if not (i % iter_per_epoch):
                         # At the end of every epoch evaluate method on test data
@@ -146,9 +146,12 @@ with tf.Graph().as_default():
                                 gp.cov.sigma_n.eval())
                         r2_summary_val, r2_val = sess.run([r2_summary, r2])
                         writer.add_summary(r2_summary_val, i/iter_per_epoch)
+                        if i != 0:
+                            print('\tEpoch took:', time.time() - start_epoch)
                         print('\tr_2 on test set:', r2_val)       
                         print('\taverage elbo:', batch_elbo / iter_per_epoch)
                         batch_elbo = 0
+                        start_epoch = time.time()
 
                     # Training operation
                     elbo_summary_val, elbo_val, _ = sess.run([elbo_summary, elbo, train_op])

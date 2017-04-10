@@ -6,62 +6,6 @@ import t3f.kronecker as kron
 from t3f import ops, TensorTrain, TensorTrainBatch
 from tensorflow.contrib.opt import ScipyOptimizerInterface
 
-class SE:
-
-    def __init__(self, sigma_f, l, sigma_n, P, trainable):
-        """Squared Exponentia kernel.
-        """
-        d, D = P.shape
-        self.P = tf.get_variable('Projection_matrix', [d, D],
-                                initializer=tf.constant_initializer(P), 
-                                dtype=tf.float64, trainable=trainable)
-        self.sigma_f = tf.get_variable('Process_variance', [1], 
-                                initializer=tf.constant_initializer(sigma_f), 
-                                dtype=tf.float64, trainable=trainable)
-        self.l = tf.get_variable('Process_lengthscale', [1], 
-                                initializer=tf.constant_initializer(l), 
-                                dtype=tf.float64, trainable=trainable)
-        self.sigma_n = tf.get_variable('Noise_variance', [1], 
-                                initializer=tf.constant_initializer(sigma_n), 
-                                dtype=tf.float64, trainable=trainable)
-
-    def project(self, x):
-        projected = tf.matmul(x, tf.transpose(self.P))
-        projected = tf.minimum(projected, 1)
-        projected = tf.maximum(projected, -1)
-        return projected
-
-    def kron_cov(self, kron_dists, eig_correction=1e-2, name=None):
-        """Computes the covariance matrix, given a kronecker product 
-        representation of distances.
-
-        Args:
-            kron_dists: kronecker product representation of pairwise i
-                distances.
-            eig_correction: eigenvalue correction for numerical stability.
-            name: name for the op.
-        """
-        with tf.name_scope(name, 'SEcov', [kron_dists]):
-            res_cores = []
-            for core_idx in range(kron_dists.ndims()):
-                core = kron_dists.tt_cores[core_idx]
-                cov_core = (self.sigma_f**(2./ kron_dists.ndims())* 
-                            tf.exp(-core/(2. * (self.l**2.))))
-                cov_core += tf.reshape(eig_correction *
-                            tf.eye(core.get_shape()[1].value, dtype=tf.float64),
-                            core.get_shape())
-                res_cores.append(cov_core)
-            res_shape = kron_dists.get_raw_shape()
-            res_ranks = kron_dists.get_tt_ranks()
-            return TensorTrain(res_cores, res_shape, res_ranks)
-
-    def __call__(self, x1, x2, name=None):
-        return self.cov(x1, x2, name)
-
-    def get_params(self):
-        return [self.sigma_f, self.l, self.sigma_n, self.P]
-
-
 class GP:
 
     def __init__(self, cov, inputs, x_init, y_init, mu_ranks=5, 
@@ -93,7 +37,7 @@ class GP:
             shapes = self.inputs.npoints
             mu_cores = []
             for i in range(len(shapes)):
-                mu_cores.append(np.load('mu_core'+str(i)+'.npy'))
+                mu_cores.append(np.load('temp/mu_core'+str(i)+'.npy'))
             mu_shape = (tuple(shapes), tuple([1] * len(shapes)))
             mu_ranks = [1] + [mu_r] * (len(shapes) - 1) + [1]
             tt_mu_init = TensorTrain(mu_cores, mu_shape, mu_ranks)
@@ -122,7 +66,7 @@ class GP:
         if load:
             sigma_cores = []
             for i in range(len(shapes)):
-                sigma_cores.append(np.load('sigma_l_core'+str(i)+'.npy'))
+                sigma_cores.append(np.load('temp/sigma_l_core'+str(i)+'.npy'))
             sigma_shape = (tuple(shapes), tuple(shapes))
             sigma_ranks = [1] * (len(shapes) + 1)
             tt_sigma_l_init = t3f.cast(TensorTrain(sigma_cores, sigma_shape, 

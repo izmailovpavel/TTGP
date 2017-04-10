@@ -108,10 +108,10 @@ PROFILE="False" # Profile code or run method
 #                 --datadir=$DATA_DIR --datatype="numpy" --stoch=True
 # Achieves .94 
 
-#DATA_DIR=$DATASETS_DIR_2"projection_redundant(500,3)/"
-#python3 train.py --lr=.01 --batch_size=50 --n_inputs=10 --n_epoch=100 \
-#                 --refresh_stats=True --mu_ranks=10 --load_mu_sigma=False \
+#DATA_DIR=$DATASETS_DIR_2"temp/"
+#python3 train.py --lr=.05 --batch_size=100 --n_inputs=25 --n_epoch=15 \
+#                 --refresh_stats=True --mu_ranks=20 --load_mu_sigma=False \
 #                 --datadir=$DATA_DIR --datatype="numpy" --stoch=True
-#python3 train.py --lr=.01 --batch_size=50 --n_inputs=10 --n_epoch=200 \
-#                 --refresh_stats=True --mu_ranks=10 --load_mu_sigma=True \
+#python3 train.py --lr=.005 --batch_size=100 --n_inputs=25 --n_epoch=20 \
+#                 --refresh_stats=True --mu_ranks=20 --load_mu_sigma=True \
 #                 --datadir=$DATA_DIR --datatype="numpy" --stoch=True

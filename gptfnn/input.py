@@ -37,13 +37,6 @@ def prepare_data(path, mode='svmlight'):
     x_te = scaler_x.transform(x_te) / 3
     y_tr = scaler_y.fit_transform(y_tr)
     y_te = scaler_y.transform(y_te)
-#    x_max = np.max(x_tr, axis=0)
-#    x_min = np.min(x_tr, axis=0)
-#    x_tr = (x_tr - x_min[None, :]) / (x_max - x_min)[None, :]
-#    x_te = (x_te - x_min[None, :]) / (x_max - x_min)[None, :]
-#    
-#    x_te[x_te < 0] = 0.
-#    x_te[x_te > 1] = 1.
     return x_tr, y_tr, x_te, y_te
 
 def make_tensor(array, name):

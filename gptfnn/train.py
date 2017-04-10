@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import os
+import time
 from sklearn.cluster import KMeans
 
 from input import prepare_data, make_tensor#, batch_subsample
@@ -22,16 +23,21 @@ def get_data():
     Q, S, V = np.linalg.svd(x_tr.T.dot(x_tr))
     
 #    P_pca = Q[:, :d].T
-    # Making it harder
-    P_pca = np.zeros((d, D))
-    P_pca[:, :d] = np.eye(d)
+    # Initialization of projection matrix
+    if FLAGS.load_mu_sigma:
+        P = np.load('temp/P.npy')
+        sigma_n = np.load('temp/sigma_n.npy')
+        sigma_f = np.load('temp/sigma_f.npy')
+        l = np.load('temp/l.npy')
+        print('Loaded cov params')
+    else:
+        sigma_f = 0.7
+        l = 0.2
+        sigma_n = 0.1
+        P = np.zeros((d, D))
+        P[:, :d] = np.eye(d)
+    cov_params = [sigma_f, l, sigma_n, P]
 
-#    np.save('../data/temp/x_tr.npy', x_tr.dot(P_pca.T))
-#    np.save('../data/temp/x_te.npy', x_te.dot(P_pca.T))
-#    np.save('../data/temp/y_tr.npy', y_tr)
-#    np.save('../data/temp/y_te.npy', y_te)
-#    exit(0)
-    
     inputs = grid.InputsGrid(d, npoints=FLAGS.n_inputs, left=-1.)
     x_tr = make_tensor(x_tr, 'x_tr')
     y_tr = make_tensor(y_tr, 'y_tr')
@@ -52,7 +58,7 @@ def get_data():
     x_te = make_tensor(x_te, 'x_te')
     #W_te = inputs.interpolate_on_batch(x_te)
     y_te = make_tensor(y_te, 'y_te')
-    return x_batch, y_batch, x_te, y_te, x_init, y_init, x_tr, y_tr, inputs, P_pca
+    return x_batch, y_batch, x_te, y_te, x_init, y_init, x_tr, y_tr, inputs, cov_params
 
 
 def process_flags():
@@ -81,15 +87,15 @@ def process_flags():
 with tf.Graph().as_default():
     
     FLAGS = process_flags()
-    x_batch, y_batch, x_te, y_te, x_init, y_init, x_tr, y_tr, inputs, P = get_data()
+    x_batch, y_batch, x_te, y_te, x_init, y_init, x_tr, y_tr, inputs, cov_params = get_data()
     iter_per_epoch = int(y_tr.get_shape()[0].value / FLAGS.batch_size)
     maxiter = iter_per_epoch * FLAGS.n_epoch
 
     # Batches
-    cov_trainable = FLAGS.load_mu_sigma# or not FLAGS.stoch
+    cov_trainable = True
     load_mu_sigma = FLAGS.load_mu_sigma
     #w_batch, y_batch = batch_subsample(W, FLAGS.batch_size, targets=y_tr)
-    gp = GP(SE(.7, .2, .1, P, cov_trainable), inputs, x_init, y_init,
+    gp = GP(SE(*(cov_params+[cov_trainable])), inputs, x_init, y_init,
             FLAGS.mu_ranks, load_mu_sigma=load_mu_sigma) 
     sigma_initializer = tf.variables_initializer(gp.sigma_l.tt_cores)
 
@@ -120,31 +126,26 @@ with tf.Graph().as_default():
         sess.run(data_initializer)
         sess.run(cov_initializer)
         sess.run(sigma_initializer)
-        #sess.run(mu_initializer)
         sess.run(init)
         threads = tf.train.start_queue_runners(sess=sess, coord=coord) 
 
-        #print(sess.run(tf.gradients(projected_x_test[0, :], gp.cov.P)))
-        #print(sess.run(tf.gradients(w_test.tt_cores[1][0, :], projected_x_test)))
-        #print(sess.run(tf.gradients(w_test, projected_x_test[0, :])))
-        #print(sess.run(tf.gradients(w_test.tt_cores[0][0, 0, :, 0, 0], projected_x_test[0, :])))
-        #print(sess.run(tf.gradients(w_test.tt_cores[0][0, 0, :, 0, 0], gp.cov.P)))
-        #exit(0)
-
-
         batch_elbo = 0
+        start_epoch = time.time()
         for i in range(maxiter):
             if not (i % iter_per_epoch):
                 # At the end of every epoch evaluate method on test data
                 print('Epoch', i/iter_per_epoch, ':')
                 print('\tparams:', gp.cov.sigma_f.eval(), gp.cov.l.eval(), 
                         gp.cov.sigma_n.eval())
-                print('\tP:', gp.cov.P.eval())
+#                print('\tP:', gp.cov.P.eval())
+                if i != 0:
+                    print('\tEpoch took:', time.time() - start_epoch)
                 r2_summary_val, r2_val = sess.run([r2_summary, r2])
                 writer.add_summary(r2_summary_val, i/iter_per_epoch)
                 print('\tr_2 on test set:', r2_val)       
                 print('\taverage elbo:', batch_elbo / iter_per_epoch)
                 batch_elbo = 0
+                start_epoch = time.time()
 
             # Training operation
             elbo_summary_val, elbo_val, _ = sess.run([elbo_summary, elbo, train_op])
@@ -160,6 +161,11 @@ with tf.Graph().as_default():
         # Saving results
         if not load_mu_sigma:
             for i, core in enumerate(mu_cores):
-                np.save('mu_core'+str(i), core)
+                np.save('temp/mu_core'+str(i), core)
             for i, core in enumerate(sigma_l_cores):
-                np.save('sigma_l_core'+str(i), core)
+                np.save('temp/sigma_l_core'+str(i), core)
+        
+        np.save('temp/sigma_f', gp.cov.sigma_f.eval())  
+        np.save('temp/sigma_n', gp.cov.sigma_n.eval())  
+        np.save('temp/l', gp.cov.l.eval())  
+        np.save('temp/P', gp.cov.P.eval())
