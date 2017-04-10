@@ -29,6 +29,17 @@ class GP:
         self.mu = self._get_mu(mu_ranks, x_init, y_init, load=load_mu_sigma)
         self.N = 0 # Size of the training set
 
+    def initialize(self, sess):
+        """Initializes the variational and covariance parameters.
+
+        Args:
+            sess: a `Session` instance
+        """
+        self.cov.initialize(sess)
+        sess.run(tf.variables_initializer(self.sigma_l.tt_cores))
+        sess.run(tf.variables_initializer(self.mu.tt_cores))
+
+
     def _get_mu(self, ranks, x, y, load=False):
         """Initializes latent inputs expectations mu.
 
@@ -133,10 +144,10 @@ class GP:
             y = tf.reshape(y, [-1, 1])
            
             mu = self.mu
-            sigma_l = self._kron_tril(self.sigma_l)
+            sigma_l = _kron_tril(self.sigma_l)
             ops.transpose(sigma_l)
             sigma = ops.tt_tt_matmul(sigma_l, ops.transpose(sigma_l))
-            sigma_logdet = self._kron_logdet(sigma_l)
+            sigma_logdet = _kron_logdet(sigma_l)
 
             cov = self.cov
             inputs_dists = self.inputs_dists

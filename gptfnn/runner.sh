@@ -3,7 +3,7 @@ DATASETS_DIR_2="/Users/IzmailovPavel/Documents/Education/Projects/GPtf/data/"
 
 export CUDA_VISIBLE_DEVICES=""
 
-DATA_DIR=$DATASETS_DIR_2"projection_simple(300,3)/"
+DATA_DIR=$DATASETS_DIR_2"projection_simple(300,3[2])/"
 python3 train.py --lr=.01 --batch_size=100 --n_inputs=10 --n_epoch=20 \
                  --refresh_stats=True --mu_ranks=10 --load_mu_sigma=False \
                  --datadir=$DATA_DIR --datatype="numpy" \

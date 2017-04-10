@@ -115,7 +115,7 @@ with tf.Graph().as_default():
     # Saving results
     mu, sigma_l = gp.get_mu_sigma_cores()
     coord = tf.train.Coordinator()
-    cov_initializer = tf.variables_initializer(gp.cov.get_params())
+ #   cov_initializer = tf.variables_initializer(gp.cov.get_params())
     data_initializer = tf.variables_initializer([x_tr, y_tr, y_te])
 
     init = tf.global_variables_initializer()
@@ -125,8 +125,7 @@ with tf.Graph().as_default():
         # Initialization
         writer = tf.summary.FileWriter(FLAGS.logdir, sess.graph)
         sess.run(data_initializer)
-        sess.run(cov_initializer)
-        sess.run(sigma_initializer)
+        gp.initialize(sess)
         sess.run(init)
         threads = tf.train.start_queue_runners(sess=sess, coord=coord) 
 
@@ -169,4 +168,4 @@ with tf.Graph().as_default():
         np.save('temp/sigma_f', gp.cov.sigma_f.eval())  
         np.save('temp/sigma_n', gp.cov.sigma_n.eval())  
         np.save('temp/l', gp.cov.l.eval())  
-        np.save('temp/P', gp.cov.P.eval())
+#        np.save('temp/P', gp.cov.P.eval())

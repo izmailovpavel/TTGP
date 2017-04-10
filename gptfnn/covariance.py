@@ -66,4 +66,11 @@ class SE:
 #    def get_params(self):
 #        return [self.sigma_f, self.l, self.sigma_n, self.P]
 
+    def initialize(self, sess):
+        """Runs the initializers for kernel parameters.
 
+        Args:
+            sess: `tf.Session` object
+        """
+        self.projector.initialize(sess)
+        sess.run(tf.variables_initializer([self.sigma_f, self.l, self.sigma_n]))
