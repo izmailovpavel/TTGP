@@ -29,6 +29,10 @@ class FeatureTransformer:
         """
         pass
 
+    @abstractmethod
+    def get_params(self):
+        """Returns a list of parameters of the model.
+        """
 #    @abstractmethod
 #    def save(self, path, sess):
 #        """Saves the model.
@@ -56,7 +60,8 @@ class LinearProjector:
             P = orth(np.random.normal(size=(d, D)))
         else:
             d, D = P.shape
-        self.P = tf.get_variable('Projection_matrix', [d, D],
+        with tf.name_scope('Transform_params'):
+            self.P = tf.get_variable('Projection_matrix', [d, D],
                                 initializer=tf.constant_initializer(P), 
                                 dtype=tf.float64, trainable=trainable)
 
@@ -68,3 +73,6 @@ class LinearProjector:
 
     def initialize(self, sess):
         sess.run(tf.variables_initializer([self.P]))
+
+    def get_params(self):
+        return [self.P]

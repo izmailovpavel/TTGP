@@ -4,12 +4,12 @@ DATASETS_DIR_2="/Users/IzmailovPavel/Documents/Education/Projects/GPtf/data/"
 export CUDA_VISIBLE_DEVICES=""
 
 DATA_DIR=$DATASETS_DIR_2"projection_simple(300,3[2])/"
-python3 train.py --lr=.01 --batch_size=100 --n_inputs=10 --n_epoch=20 \
-                 --refresh_stats=True --mu_ranks=10 --load_mu_sigma=False \
-                 --datadir=$DATA_DIR --datatype="numpy" \
-                 --d=2
-#python3 train.py --lr=.01 --batch_size=50 --n_inputs=10 --n_epoch=200 \
-#                 --refresh_stats=True --mu_ranks=10 --load_mu_sigma=True \
+#python3 train.py --lr=.01 --batch_size=100 --n_inputs=10 --n_epoch=20 \
+#                 --refresh_stats=True --mu_ranks=10 --load_model=False \
+#                 --datadir=$DATA_DIR --datatype="numpy" \
+#                 --d=2
+#python3 train.py --lr=.001 --batch_size=100 --n_inputs=10 --n_epoch=20 \
+#                 --refresh_stats=True --mu_ranks=10 --load_model=True \
 #                 --datadir=$DATA_DIR --datatype="numpy" --stoch=True \
 #                 --d=2
 # Achieves 0.91 if P starts from PCA. 0.84 if starts from eye.
@@ -64,13 +64,13 @@ python3 train.py --lr=.01 --batch_size=100 --n_inputs=10 --n_epoch=20 \
 
 # digits (1797, 64).
 # Initial Values [0.7, 0.2, 0.1]
-#DATA_DIR=$DATASETS_DIR_2"digits(1797,64)/"
+DATA_DIR=$DATASETS_DIR_2"digits(1797,64)/"
 #python3 train.py --lr=0.01 --batch_size=100 --n_inputs=15 --n_epoch=15 \
-#                 --refresh_stats=True --mu_ranks=10 --load_mu_sigma=False \
+#                 --refresh_stats=True --mu_ranks=10 --load_model=False \
 #                 --datadir="$DATA_DIR" --datatype="numpy" --stoch=True \
 #                 --d=3
-#python3 train.py --lr=.001 --batch_size=100 --n_inputs=15 --n_epoch=50 \
-#                 --refresh_stats=True --mu_ranks=10 --load_mu_sigma=True \
-#                 --datadir="$DATA_DIR" --datatype="numpy" --stoch=True \
-#                 --d=3
+python3 train.py --lr=.001 --batch_size=100 --n_inputs=15 --n_epoch=50 \
+                 --refresh_stats=True --mu_ranks=10 --load_model=True \
+                 --datadir="$DATA_DIR" --datatype="numpy" --stoch=True \
+                 --d=3
 # Achieves 0.7 for d=3.

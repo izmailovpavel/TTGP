@@ -25,8 +25,9 @@ class GP:
         self.cov = cov
         self.inputs = inputs
         self.inputs_dists = inputs.kron_dists()
-        self.sigma_l = self._get_sigma_l(load=load_mu_sigma) 
-        self.mu = self._get_mu(mu_ranks, x_init, y_init, load=load_mu_sigma)
+        with tf.variable_scope('gp_var_params'):
+            self.sigma_l = self._get_sigma_l(load=load_mu_sigma) 
+            self.mu = self._get_mu(mu_ranks, x_init, y_init, load=load_mu_sigma)
         self.N = 0 # Size of the training set
 
     def initialize(self, sess):
@@ -38,6 +39,14 @@ class GP:
         self.cov.initialize(sess)
         sess.run(tf.variables_initializer(self.sigma_l.tt_cores))
         sess.run(tf.variables_initializer(self.mu.tt_cores))
+
+    def get_params(self):
+        """Returns a list of all the parameters of the model.
+        """
+        
+        gp_var_params = list(self.mu.tt_cores + self.sigma_l.tt_cores)
+        cov_params = self.cov.get_params()
+        return cov_params + gp_var_params
 
 
     def _get_mu(self, ranks, x, y, load=False):
@@ -194,7 +203,5 @@ class GP:
             print('Adadelta, lr=', lr)
             return fun, tf.train.AdamOptimizer(learning_rate=lr).minimize(fun)
     
-    def get_mu_sigma_cores(self):
-        return self.mu.tt_cores, self.sigma_l.tt_cores
-
-
+#    def get_mu_sigma_cores(self):
+#        return self.mu.tt_cores, self.sigma_l.tt_cores

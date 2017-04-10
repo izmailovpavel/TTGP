@@ -24,19 +24,20 @@ def get_data():
     D = x_tr.shape[1]
     Q, S, V = np.linalg.svd(x_tr.T.dot(x_tr))
     
-    if FLAGS.load_mu_sigma:
-        P = np.load('temp/P.npy')
-        sigma_n = np.load('temp/sigma_n.npy')
-        sigma_f = np.load('temp/sigma_f.npy')
-        l = np.load('temp/l.npy')
-        print('Loaded cov params')
-    else:
-        sigma_f = 0.7
-        l = 0.2
-        sigma_n = 0.1
-        P = np.zeros((d, D))
-        P[:, :d] = np.eye(d)
-        P = LinearProjector(P)
+#    if FLAGS.load_model:
+##        P = np.load('temp/P.npy')
+#        sigma_n = np.load('temp/sigma_n.npy')
+#        sigma_f = np.load('temp/sigma_f.npy')
+#        l = np.load('temp/l.npy')
+#        print('Loaded cov params')
+#    else:
+    sigma_f = 0.7
+    l = 0.2
+    sigma_n = 0.1
+
+    P = np.zeros((d, D))
+    P[:, :d] = np.eye(d)
+    P = LinearProjector(P)
     cov_params = [sigma_f, l, sigma_n, P]
 
     inputs = grid.InputsGrid(d, npoints=FLAGS.n_inputs, left=-1.)
@@ -76,7 +77,7 @@ def process_flags():
                       'Deletes old events from logdir if True')
     flags.DEFINE_integer('n_inputs', 50, 'Number of inducing inputs')
     flags.DEFINE_integer('mu_ranks', 5, 'TT-ranks of mu')
-    flags.DEFINE_bool('load_mu_sigma', False, 'Loads mu and sigma if True')
+    flags.DEFINE_bool('load_model', False, 'Loads mu and sigma if True')
     flags.DEFINE_integer('d', 2, 'Projection dimensionality')
     
     if FLAGS.refresh_stats:
@@ -94,10 +95,10 @@ with tf.Graph().as_default():
 
     # Batches
     cov_trainable = True
-    load_mu_sigma = FLAGS.load_mu_sigma
+    load_model = FLAGS.load_model
     #w_batch, y_batch = batch_subsample(W, FLAGS.batch_size, targets=y_tr)
     gp = GP(SE(*(cov_params+[cov_trainable])), inputs, x_init, y_init,
-            FLAGS.mu_ranks, load_mu_sigma=load_mu_sigma) 
+            FLAGS.mu_ranks, load_mu_sigma=False)#load_model) 
     sigma_initializer = tf.variables_initializer(gp.sigma_l.tt_cores)
 
     # train_op and elbo
@@ -109,24 +110,26 @@ with tf.Graph().as_default():
     r2 = r2(pred, y_te)
     r2_summary = tf.summary.scalar('r2_test', r2)
 
-    projected_x_test = gp.cov.project(x_te)
-    w_test = inputs.interpolate_on_batch(projected_x_test)
-
     # Saving results
-    mu, sigma_l = gp.get_mu_sigma_cores()
+    model_params = gp.get_params()
     coord = tf.train.Coordinator()
- #   cov_initializer = tf.variables_initializer(gp.cov.get_params())
-    data_initializer = tf.variables_initializer([x_tr, y_tr, y_te])
-
+    data_initializer = tf.variables_initializer([x_tr, y_tr, x_te, y_te])
+    saver = tf.train.Saver(model_params)
     init = tf.global_variables_initializer()
     
     # Main session
     with tf.Session() as sess:
         # Initialization
         writer = tf.summary.FileWriter(FLAGS.logdir, sess.graph)
+         
         sess.run(data_initializer)
         gp.initialize(sess)
         sess.run(init)
+        if FLAGS.load_model:
+            print('Restoring the model...')
+            saver.restore(sess, 'temp/model.ckpt')
+            print('restored.')
+        print(sess.run(gp.cov.projector.P))
         threads = tf.train.start_queue_runners(sess=sess, coord=coord) 
 
         batch_elbo = 0
@@ -155,17 +158,18 @@ with tf.Graph().as_default():
         
         r2_val = sess.run(r2)
         print('Final r2:', r2_val)
-
-        mu_cores, sigma_l_cores = sess.run([mu, sigma_l])
-        
+        if not load_model:
+            model_path = saver.save(sess, 'temp/model.ckpt')
+            print("Model saved in file: %s" % model_path)
+#        mu_cores, sigma_l_cores = sess.run([mu, sigma_l])        
         # Saving results
-        if not load_mu_sigma:
-            for i, core in enumerate(mu_cores):
-                np.save('temp/mu_core'+str(i), core)
-            for i, core in enumerate(sigma_l_cores):
-                np.save('temp/sigma_l_core'+str(i), core)
-        
-        np.save('temp/sigma_f', gp.cov.sigma_f.eval())  
-        np.save('temp/sigma_n', gp.cov.sigma_n.eval())  
-        np.save('temp/l', gp.cov.l.eval())  
+#       if not load_mu_sigma:
+#            for i, core in enumerate(mu_cores):
+#                np.save('temp/mu_core'+str(i), core)
+#            for i, core in enumerate(sigma_l_cores):
+#                np.save('temp/sigma_l_core'+str(i), core)
+#        
+#        np.save('temp/sigma_f', gp.cov.sigma_f.eval())  
+#        np.save('temp/sigma_n', gp.cov.sigma_n.eval())  
+#        np.save('temp/l', gp.cov.l.eval())  
 #        np.save('temp/P', gp.cov.P.eval())

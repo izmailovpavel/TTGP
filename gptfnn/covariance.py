@@ -17,13 +17,14 @@ class SE:
             projector: `FeatureTransformer` object
             trainable: Bool, parameters are trainable iff True
         """
-        self.sigma_f = tf.get_variable('Process_variance', [1], 
+        with tf.name_scope('Cov_params'):
+            self.sigma_f = tf.get_variable('Process_variance', [1], 
                                 initializer=tf.constant_initializer(sigma_f), 
                                 dtype=tf.float64, trainable=trainable)
-        self.l = tf.get_variable('Process_lengthscale', [1], 
+            self.l = tf.get_variable('Process_lengthscale', [1], 
                                 initializer=tf.constant_initializer(l), 
                                 dtype=tf.float64, trainable=trainable)
-        self.sigma_n = tf.get_variable('Noise_variance', [1], 
+            self.sigma_n = tf.get_variable('Noise_variance', [1], 
                                 initializer=tf.constant_initializer(sigma_n), 
                                 dtype=tf.float64, trainable=trainable)
         self.projector = projector
@@ -63,8 +64,10 @@ class SE:
     def __call__(self, x1, x2, name=None):
         return self.cov(x1, x2, name)
 
-#    def get_params(self):
-#        return [self.sigma_f, self.l, self.sigma_n, self.P]
+    def get_params(self):
+        cov_params = [self.sigma_f, self.l, self.sigma_n]
+        projector_params = self.projector.get_params()
+        return cov_params + projector_params
 
     def initialize(self, sess):
         """Runs the initializers for kernel parameters.
