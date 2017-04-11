@@ -13,16 +13,16 @@ data_basedir2 = "/Users/IzmailovPavel/Documents/Education/Projects/GPtf/experime
 with tf.Graph().as_default():
     data_dir = data_basedir2 + "projection_simple_300_3__2/"
     n_inputs = 10
-    mu_ranks = 5
+    mu_ranks = 10
     D, d = 3, 2
     projector = LinearProjector(d=d, D=D)
     cov = SE(0.7, 0.2, 0.1, projector)
-    lr = 0.01
-    n_epoch = 15
+    lr = 0.005
+    n_epoch = 50
     batch_size = 50
     data_type = 'numpy'
     log_dir = 'log'
-    save_dir = 'models/proj_simple.ckpt'
+    save_dir = 'models/proj_linear.ckpt'
     model_dir = None
     load_model = None
     
