@@ -1,4 +1,4 @@
-# DIGITS dataset
+# projection_simple dataset
 
 Synthetic data — a two-dimensional process embedded in a 3d space.
 
