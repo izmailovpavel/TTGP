@@ -43,7 +43,7 @@ class LinearProjector:
     def __init__(self, P=None, d=None, D=None, trainable=True):
         # Projector matrix
         if P is None:
-            P = orth(np.random.normal(size=(d, D)))
+            P = orth(np.random.normal(size=(D, d))).T
         else:
             d, D = P.shape
         with tf.name_scope('Transform_params'):

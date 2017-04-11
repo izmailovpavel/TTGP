@@ -3,14 +3,14 @@ import numpy as np
 import os
 import time
 
-from input import prepare_data, make_tensor
-from gp import GP
-from misc import r2
-from covariance import SE
-import grid
+from gptt_embed.input import prepare_data, make_tensor
+from gptt_embed.gp import GP
+from gptt_embed.misc import r2
+from gptt_embed.covariance import SE
+from gptt_embed import grid
 import t3f
 from t3f import TensorTrain, TensorTrainBatch
-from misc import r2
+from gptt_embed.misc import r2
 
 class DataLoader:
     def __init__(self, data_dir, data_type):

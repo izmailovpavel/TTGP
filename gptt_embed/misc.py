@@ -4,8 +4,6 @@ import numpy as np
 import t3f
 import t3f.kronecker as kron
 from t3f import ops, TensorTrain, TensorTrainBatch
-from tensorflow.contrib.opt import ScipyOptimizerInterface
-
 
 def r2(y_pred, y_true, name=None):
     """r2 score.

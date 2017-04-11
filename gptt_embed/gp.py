@@ -5,7 +5,7 @@ import t3f
 import t3f.kronecker as kron
 from t3f import ops, TensorTrain, TensorTrainBatch
 
-from misc import _kron_tril, _kron_logdet
+from gptt_embed.misc import _kron_tril, _kron_logdet
 
 class GP:
 

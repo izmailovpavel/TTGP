@@ -2,19 +2,16 @@ import tensorflow as tf
 import numpy as np
 import os
 
-from gp import GP
-from covariance import SE
-from projectors import LinearProjector
-from gp_runner import GPRunner
-
-# TODO: this line doesn't work
-#os.system('export CUDA_VISIBLE_DEVICES=""')
+from gptt_embed.gp import GP
+from gptt_embed.covariance import SE
+from gptt_embed.projectors import LinearProjector
+from gptt_embed.gp_runner import GPRunner
 
 data_basedir1 = "/Users/IzmailovPavel/Documents/Education/Programming/DataSets/"
-data_basedir2 = "/Users/IzmailovPavel/Documents/Education/Projects/GPtf/data/"
+data_basedir2 = "/Users/IzmailovPavel/Documents/Education/Projects/GPtf/experiments/"
 
 with tf.Graph().as_default():
-    data_dir = data_basedir2 + "projection_simple(300,3[2])/"
+    data_dir = data_basedir2 + "projection_simple_300_3__2/"
     n_inputs = 10
     mu_ranks = 5
     D, d = 3, 2
