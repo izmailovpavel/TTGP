@@ -14,7 +14,7 @@ with tf.Graph().as_default():
     data_dir = data_basedir2 + "digits_1797_64/"
     n_inputs = 10
     mu_ranks = 10
-    D, d = 64, 2
+    D, d = 64, 4
     projector = LinearProjector(d=d, D=D)
     cov = SE(0.7, 0.2, 0.1, projector)
     lr = 0.005
