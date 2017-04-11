@@ -4,14 +4,12 @@ import numpy as np
 import t3f
 import t3f.kronecker as kron
 from t3f import ops, TensorTrain, TensorTrainBatch
-from tensorflow.contrib.opt import ScipyOptimizerInterface
 
 from misc import _kron_tril, _kron_logdet
 
 class GP:
 
-    def __init__(self, cov, inputs, x_init, y_init, mu_ranks)#=5, 
-#            load_mu_sigma=False):
+    def __init__(self, cov, inputs, x_init, y_init, mu_ranks): 
         '''Gaussian Process model.
         
         Args:
@@ -19,8 +17,6 @@ class GP:
             inputs: inducing inputs — InputsGrid object.
             mu_ranks: TT-ranks of mu — expectations of the process at
                 inducing inputs.
-#            load_mu_sigma: wether or not to load pretrained values for mu and 
-#                sigma.
         '''
         self.cov = cov
         self.inputs = inputs
@@ -49,7 +45,7 @@ class GP:
         return cov_params + gp_var_params
 
 
-    def _get_mu(self, ranks, x, y)#, load=False):
+    def _get_mu(self, ranks, x, y):
         """Initializes latent inputs expectations mu.
 
         Either loads pretrained values of tt-cores of mu, or initializes it
@@ -59,22 +55,7 @@ class GP:
             ranks: tt-ranks of mu
             x: features of a batch of objects
             y: targets of a batch of objects
-#            load: bool, loads pretrained values if True
         """
-#        if load:
-#            mu_r = ranks
-#            shapes = self.inputs.npoints
-#            mu_cores = []
-#            for i in range(len(shapes)):
-#                mu_cores.append(np.load('temp/mu_core'+str(i)+'.npy'))
-#            mu_shape = (tuple(shapes), tuple([1] * len(shapes)))
-#            mu_ranks = [1] + [mu_r] * (len(shapes) - 1) + [1]
-#            tt_mu_init = TensorTrain(mu_cores, mu_shape, mu_ranks)
-#            tt_mu = t3f.cast(t3f.get_variable('tt_mu', initializer=tt_mu_init), 
-#                              tf.float64)
-#            return tt_mu
-#        
-#        else:
         w = self.inputs.interpolate_on_batch(self.cov.project(x))
         Sigma = ops.tt_tt_matmul(self.sigma_l, ops.transpose(self.sigma_l))
         temp = ops.tt_tt_matmul(w, y)        
@@ -90,33 +71,15 @@ class GP:
         return t3f.get_variable('tt_mu', initializer=TensorTrain(res.tt_cores, 
                                     res.get_raw_shape(), mu_ranks))
 
-    def _get_sigma_l(self, load=False):
+    def _get_sigma_l(self):
         """Initializes latent inputs covariance Sigma_l.
-
-#        Either loads pretrained values of kronecker-cores of mu, or initializes 
-#        it.
-
-#        Args:
-#            load: bool, loads pretrained values if True
         """
         shapes = self.inputs.npoints
-#        if load:
-#            sigma_cores = []
-#            for i in range(len(shapes)):
-#                sigma_cores.append(np.load('temp/sigma_l_core'+str(i)+'.npy'))
-#            sigma_shape = (tuple(shapes), tuple(shapes))
-#            sigma_ranks = [1] * (len(shapes) + 1)
-#            tt_sigma_l_init = t3f.cast(TensorTrain(sigma_cores, sigma_shape, 
-#                                        sigma_ranks), tf.float64)
-#            tt_sigma_l = t3f.get_variable('tt_sigma_l', 
-#                                    initializer=tt_sigma_l_init)   
-#            return tt_sigma_l
-#        else:
-       cov = self.cov
-       inputs_dists = self.inputs_dists
-       K_mm = cov.kron_cov(inputs_dists)    
-       return t3f.get_variable('sigma_l', 
-                               initializer=kron.cholesky(K_mm))
+        cov = self.cov
+        inputs_dists = self.inputs_dists
+        K_mm = cov.kron_cov(inputs_dists)    
+        return t3f.get_variable('sigma_l', 
+                                initializer=kron.cholesky(K_mm))
 
     def predict(self, x_test, name=None):
         '''Predicts the value of the process at new points.

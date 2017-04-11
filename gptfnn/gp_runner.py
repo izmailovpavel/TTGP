@@ -2,17 +2,15 @@ import tensorflow as tf
 import numpy as np
 import os
 import time
-from sklearn.cluster import KMeans
 
 from input import prepare_data, make_tensor
 from gp import GP
 from misc import r2
 from covariance import SE
-from projectors import LinearProjector
 import grid
 import t3f
-#import t3f.kronecker as kron
 from t3f import TensorTrain, TensorTrainBatch
+from misc import r2
 
 class DataLoader:
     def __init__(self, data_dir, data_type):
@@ -74,13 +72,13 @@ class GPRunner:
         return x_tr, y_tr, x_te, y_te
        
     @staticmethod
-    def _make_batches(x_tr, y_tr, batch_size)
+    def _make_batches(x_tr, y_tr, batch_size):
         sample = tf.train.slice_input_producer([x_tr, y_tr])
-        x_batch, y_batch = tf.train.batch(sample, FLAGS.batch_size)
+        x_batch, y_batch = tf.train.batch(sample, batch_size)
         return x_batch, y_batch
 
     @staticmethod
-    def _make_mu_initializers(n_init, x_tr, y_tr, n_init)
+    def _make_mu_initializers(x_tr, y_tr, n_init, d):
         x_init = x_tr[:n_init]
         y_init_cores = [tf.reshape(y_tr[:n_init], (n_init, 1, 1, 1, 1))]
         for core_idx in range(d):
@@ -91,23 +89,22 @@ class GPRunner:
 
     def run_experiment(self):
          
-        with tf.Graph().as_default():
-            x_tr, y_tr, x_te, y_te = self.get_data(data_dir, data_type)
+            d = self.cov.feature_dim()
+            x_tr, y_tr, x_te, y_te = self._get_data(self.data_dir, self.data_type)
             x_batch, y_batch = self._make_batches(x_tr, y_tr, self.batch_size)
-            x_init, y_init = self._make_mu_initializers(x_tr, y_tr, self.mu_ranks)
+            x_init, y_init = self._make_mu_initializers(x_tr, y_tr, self.mu_ranks, d)
             N = y_tr.get_shape()[0].value #number of data
-            d = ?
-            inputs = self.initialize_inputs(d, self.n_inputs)
+            inputs = self._init_inputs(d, self.n_inputs)
             
             iter_per_epoch = int(N / self.batch_size)
-            maxiter = iter_per_epoch * FLAGS.n_epoch
+            maxiter = iter_per_epoch * self.n_epoch
 
-            if not self.logdir is None:
+            if not self.log_dir is None:
                 print('Deleting old stats')
-                os.system('rm -rf ' + FLAGS.logdir)
+                os.system('rm -rf ' + self.log_dir)
     
 
-            gp = GP(self.cov, inputs, x_init, y_init, mu_ranks) 
+            gp = GP(self.cov, inputs, x_init, y_init, self.mu_ranks) 
             
             #TODO: do we need this?
             sigma_initializer = tf.variables_initializer(gp.sigma_l.tt_cores)
@@ -118,8 +115,8 @@ class GPRunner:
 
             # prediction and r2_score on test data
             pred = gp.predict(x_te)
-            r2 = r2(pred, y_te)
-            r2_summary = tf.summary.scalar('r2_test', r2)
+            r2_te = r2(pred, y_te)
+            r2_summary = tf.summary.scalar('r2_test', r2_te)
 
             # Saving results
             model_params = gp.get_params()
@@ -131,7 +128,7 @@ class GPRunner:
             # Main session
             with tf.Session() as sess:
                 # Initialization
-                writer = tf.summary.FileWriter(self.logdir, sess.graph) 
+                writer = tf.summary.FileWriter(self.log_dir, sess.graph) 
                 sess.run(data_initializer)
                 gp.initialize(sess)
                 sess.run(init)
@@ -152,7 +149,7 @@ class GPRunner:
                                 gp.cov.sigma_n.eval())
                         if i != 0:
                             print('\tEpoch took:', time.time() - start_epoch)
-                        r2_summary_val, r2_val = sess.run([r2_summary, r2])
+                        r2_summary_val, r2_val = sess.run([r2_summary, r2_te])
                         writer.add_summary(r2_summary_val, i/iter_per_epoch)
                         writer.flush()
                         print('\tr_2 on test set:', r2_val)       
@@ -166,8 +163,8 @@ class GPRunner:
                     batch_elbo += elbo_val
                     writer.add_summary(elbo_summary_val, i)
                 
-                r2_val = sess.run(r2)
+                r2_val = sess.run(r2_te)
                 print('Final r2:', r2_val)
-                if not load_model:
+                if not self.save_dir is None:
                     model_path = saver.save(sess, self.save_dir)
                     print("Model saved in file: %s" % model_path)

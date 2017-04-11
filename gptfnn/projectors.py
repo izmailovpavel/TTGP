@@ -3,11 +3,6 @@ import numpy as np
 from scipy.linalg import orth
 from abc import ABCMeta, abstractmethod
 
-import t3f
-import t3f.kronecker as kron
-from t3f import ops, TensorTrain, TensorTrainBatch
-from tensorflow.contrib.opt import ScipyOptimizerInterface
-
 
 class FeatureTransformer:
     __metaclass__ = ABCMeta
@@ -33,22 +28,13 @@ class FeatureTransformer:
     def get_params(self):
         """Returns a list of parameters of the model.
         """
-#    @abstractmethod
-#    def save(self, path, sess):
-#        """Saves the model.
-#        Args:
-#            path: path to the directory, where the model will be saved
-#            sess: a `Session` instance
-#        """
-#        pass
-#    
-#    @abstractmethod
-#    def load(self, path):
-#        """loads the model.
-#        Args:
-#            path: path to the directory, where the model is stored
-#        """
-#        pass
+        pass
+    
+    @abstractmethod
+    def out_dim(self):
+        """Returns the dimensionality of the output space.
+        """
+        pass
 
 
 class LinearProjector:
@@ -76,3 +62,6 @@ class LinearProjector:
 
     def get_params(self):
         return [self.P]
+
+    def out_dim(self):
+        return self.P.get_shape()[0].value

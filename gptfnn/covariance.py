@@ -4,7 +4,6 @@ import numpy as np
 import t3f
 import t3f.kronecker as kron
 from t3f import ops, TensorTrain, TensorTrainBatch
-from tensorflow.contrib.opt import ScipyOptimizerInterface
 
 class SE:
 
@@ -77,3 +76,8 @@ class SE:
         """
         self.projector.initialize(sess)
         sess.run(tf.variables_initializer([self.sigma_f, self.l, self.sigma_n]))
+
+    def feature_dim(self):
+        """Returns the dimensionality of feature space used.
+        """
+        return self.projector.out_dim()
