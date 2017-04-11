@@ -2,7 +2,6 @@ import tensorflow as tf
 import numpy as np
 import os
 import time
-import time
 from sklearn.cluster import KMeans
 
 from input import prepare_data, make_tensor
