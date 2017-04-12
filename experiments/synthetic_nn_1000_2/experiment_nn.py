@@ -46,6 +46,13 @@ class NN(FeatureTransformer):
         l2 = tf.matmul(l1, self.W2) + self.b2
         #l3 = 2 * (tf.sigmoid(tf.matmul(l2, self.W3) + self.b3) - 0.5)
         projected = l2
+
+        # Rescaling
+        mean, scale = tf.nn.moments(projected, axes=[0])
+        scale += 1e-8
+        projected = (projected - mean[None, :]) / scale[None, :]
+        projected /= 3
+
         projected = tf.minimum(projected, 1)
         projected = tf.maximum(projected, -1)
         return projected
@@ -65,18 +72,18 @@ with tf.Graph().as_default():
     mu_ranks = 15
     projector = NN(H1=5, H2=2)#LinearProjector(D=2, d=2)
     cov = SE(0.7, 0.2, 0.1, projector)
-    lr = 0.01
-    n_epoch = 100
-    batch_size = 300
+    lr = 1e-2
+    decay = None#(50, 0.1)
+    n_epoch = 50
+    batch_size = 200
     data_type = 'numpy'
     log_dir = 'log'
     save_dir = 'models/proj_nn.ckpt'
-    model_dir = None
-    load_model = None
-    
+    model_dir = save_dir
+    load_model = True
     
     runner=GPRunner(data_dir, n_inputs, mu_ranks, cov,
-                lr=lr, n_epoch=n_epoch, batch_size=batch_size,
+                lr=lr, decay=decay, n_epoch=n_epoch, batch_size=batch_size,
                 data_type=data_type, log_dir=log_dir, save_dir=save_dir,
                 model_dir=model_dir, load_model=load_model)
     runner.run_experiment()

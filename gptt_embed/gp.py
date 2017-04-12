@@ -22,8 +22,8 @@ class GP:
         self.inputs = inputs
         self.inputs_dists = inputs.kron_dists()
         with tf.variable_scope('gp_var_params'):
-            self.sigma_l = self._get_sigma_l()#load=load_mu_sigma) 
-            self.mu = self._get_mu(mu_ranks, x_init, y_init)#, load=load_mu_sigma)
+            self.sigma_l = self._get_sigma_l()
+            self.mu = self._get_mu(mu_ranks, x_init, y_init)
         self.N = 0 # Size of the training set
 
     def initialize(self, sess):
@@ -149,22 +149,24 @@ class GP:
                                    ops.tt_tt_matmul(K_mm_inv, mu)) / (2 * N)
             return -elbo[0]
     
-    def fit(self, x, y, N, lr=0.5, name=None):
+    def fit(self, x, y, N, lr, global_step, name=None):
         """Fit the GP to the data.
 
         Args:
-            w: interpolation vector for the current batch.
-            y: target values for the current batch.
-            N: number of training points.
-            lr: learning rate for the optimization method.
+            w: interpolation vector for the current batch
+            y: target values for the current batch
+            N: number of training points
+            lr: learning rate for the optimization method
+            global_step: global step tensor
             name: name for the op.
         """
         self.N = N
         with tf.name_scope(name, 'fit', [x, y]):
             w = self.inputs.interpolate_on_batch(self.cov.project(x))
             fun = self.elbo(w, y)
-            print('Adadelta, lr=', lr)
-            return fun, tf.train.AdamOptimizer(learning_rate=lr).minimize(fun)
-    
-#    def get_mu_sigma_cores(self):
-#        return self.mu.tt_cores, self.sigma_l.tt_cores
+            #return fun, tf.train.AdamOptimizer(learning_rate=lr).minimize(fun,
+            #    global_step=global_step) 
+            optimizer = tf.train.AdamOptimizer(learning_rate=lr)
+            #optimizer = tf.train.GradientDescentOptimizer(learning_rate=lr)
+            return fun, optimizer.minimize(fun, global_step=global_step)
+

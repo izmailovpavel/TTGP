@@ -37,13 +37,6 @@ class InputsGrid:
                                             dtype=tf.float64))
             self.steps_tf.append(h)
             self.npoints.append(npoints[i] + 2)
-            #self.inputs.append(np.linspace(left[i], right[i], npoints[i]))
-        #self._add_padding()
-        #self.left = [dim[0] for dim in self.inputs]
-        #self.right = [dim[-1] for dim in self.inputs]
-        #self.npoints = [len(dim) for dim in self.inputs]
-        #self.size = np.prod([dim.size for dim in self.inputs])
-        #self.steps = [dim[1] - dim[0] for dim in self.inputs]
         self.steps_tf = tf.constant(self.steps_tf, dtype=tf.float64)
         self.left = tf.constant(left, dtype=tf.float64)
         self.right = tf.constant(right, dtype=tf.float64)
@@ -125,10 +118,6 @@ class InputsGrid:
                 values = tf.concat([values_1, values_0], axis=0)
                 core = core + tf.scatter_nd(indices, values, 
                                             (n_test, n_inputs_dims[dim]))
-                #core_j = tf.sparse_to_dense(sparse_indices=indices, 
-                #            sparse_values=values, validate_indices=False,
-                #            output_shape=(n_test, n_inputs_dims[dim]))
-                #core = core + core_j
             w_cores.append(core)
         W = TensorTrainBatch([tf.reshape(core, [core.get_shape()[0].value, 1, 
                                            core.get_shape()[1].value, 1, 1])

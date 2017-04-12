@@ -19,7 +19,7 @@ class DataLoader:
 
 class GPRunner:
     def __init__(self, data_dir, n_inputs, mu_ranks, cov,
-            lr=0.01, n_epoch=15, batch_size=None,
+            lr=0.01, n_epoch=15, decay=None, batch_size=None,
             data_type='numpy', log_dir=None, save_dir=None,
             model_dir=None, load_model=False):
         """Runs the experiments for the given parameters and data.
@@ -34,6 +34,9 @@ class GPRunner:
             #TODO: make an abstract base class for covariances
             cov: an object, representing covariance
             lr: learning rate of the optimization method
+            decay: learning rate decay for the oprimization; must be a tuple 
+            (decay_rate, decay_steps) --- see tf.train.exponential_decay. Here
+            decay_steps is in terms of training epochs
             n_epoch: number of epochs of the optimization method
             batch_size: batch size of the optimization method
             data_type: either 'numpy' or 'svmlight' — type of the data encoding
@@ -50,6 +53,7 @@ class GPRunner:
         self.cov = cov
         self.lr = lr
         self.n_epoch = n_epoch
+        self.decay = decay
         self.batch_size = batch_size
         self.data_type = data_type
         self.log_dir = log_dir
@@ -110,7 +114,15 @@ class GPRunner:
             sigma_initializer = tf.variables_initializer(gp.sigma_l.tt_cores)
 
             # train_op and elbo
-            elbo, train_op = gp.fit(x_batch, y_batch, N, lr=self.lr)
+            global_step = tf.Variable(0, trainable=False)
+            if self.decay is not None:
+                steps = iter_per_epoch * self.decay[0]
+                print(steps, 'steps before decay')
+                lr = tf.train.exponential_decay(self.lr, global_step, 
+                                        steps, self.decay[1], staircase=True)
+            else:
+                lr = tf.Variable(self.lr, trainable=False)
+            elbo, train_op = gp.fit(x_batch, y_batch, N, lr, global_step)
             elbo_summary = tf.summary.scalar('elbo_batch', elbo)
 
             # prediction and r2_score on test data
@@ -144,7 +156,7 @@ class GPRunner:
                 for i in range(maxiter):
                     if not (i % iter_per_epoch):
                         # At the end of every epoch evaluate method on test data
-                        print('Epoch', i/iter_per_epoch, ':')
+                        print('Epoch', i/iter_per_epoch, ', lr=', lr.eval(), ':')
                         print('\tparams:', gp.cov.sigma_f.eval(), gp.cov.l.eval(), 
                                 gp.cov.sigma_n.eval())
                         if i != 0:
