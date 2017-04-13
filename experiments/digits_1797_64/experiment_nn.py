@@ -78,17 +78,17 @@ class NN(FeatureTransformer):
 
 with tf.Graph().as_default():
     data_dir = ""
-    n_inputs = 10
-    mu_ranks = 10
-    projector = NN(H1=100, H2=100)
+    n_inputs = 20
+    mu_ranks = 15
+    projector = NN(H1=100, H2=100, d=4)
     cov = SE(0.7, 0.2, 0.1, projector)
-    lr = 1e-1
-    decay = (50, 0.1)
+    lr = 1e-2
+    decay = (50, 0.2)
     n_epoch = 100
     batch_size = 200
     data_type = 'numpy'
     log_dir = 'log'
-    save_dir = 'models/proj_nn.ckpt'
+    save_dir = 'models/proj_nn_4.ckpt'
     model_dir = save_dir
     load_model = False#True
     
