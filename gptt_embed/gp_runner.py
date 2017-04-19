@@ -92,7 +92,7 @@ class GPRunner:
         return x_init, y_init
 
     def run_experiment(self):
-         
+            start_compiling = time.time()
             d = self.cov.feature_dim()
             x_tr, y_tr, x_te, y_te = self._get_data(self.data_dir, self.data_type)
             x_batch, y_batch = self._make_batches(x_tr, y_tr, self.batch_size)
