@@ -92,7 +92,6 @@ class GPRunner:
         return x_init, y_init
 
     def run_experiment(self):
-            start_compiling = time.time()
             d = self.cov.feature_dim()
             x_tr, y_tr, x_te, y_te = self._get_data(self.data_dir, self.data_type)
             x_batch, y_batch = self._make_batches(x_tr, y_tr, self.batch_size)
@@ -143,13 +142,13 @@ class GPRunner:
                 writer = tf.summary.FileWriter(self.log_dir, sess.graph) 
                 sess.run(data_initializer)
                 gp.initialize(sess)
+                threads = tf.train.start_queue_runners(sess=sess, coord=coord) 
                 sess.run(init)
 
                 if self.load_model:
                     print('Restoring the model...')
                     saver.restore(sess, self.model_dir)
                     print('restored.')
-                threads = tf.train.start_queue_runners(sess=sess, coord=coord) 
 
                 batch_elbo = 0
                 start_epoch = time.time()
@@ -180,4 +179,4 @@ class GPRunner:
                 if not self.save_dir is None:
                     model_path = saver.save(sess, self.save_dir)
                     print("Model saved in file: %s" % model_path)
-                    gp.cov.projector.save_weights(sess)
+#                    gp.cov.projector.save_weights(sess)
