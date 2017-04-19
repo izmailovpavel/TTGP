@@ -1,5 +1,6 @@
 import tensorflow as tf
 import os
+import numpy as np
 
 from gptt_embed.gp import GP
 from gptt_embed.covariance import SE
@@ -11,7 +12,7 @@ data_basedir2 = "/Users/IzmailovPavel/Documents/Education/Projects/GPtf/experime
 
 class NN(FeatureTransformer):
     
-    def __init__(self, H1=100, H2=100, d=2, D=64):
+    def __init__(self, H1=100, H2=100, d=2, D=64, p=0.3):
 
         with tf.name_scope('layer_1'):
             self.W1 = self.weight_var('W1', [D, H1])
@@ -22,6 +23,7 @@ class NN(FeatureTransformer):
         with tf.name_scope('layer_3'):
             self.W3 = self.weight_var('W3', [H2, d])
 
+        self.p = p
         self.d = d
         
     @staticmethod
@@ -45,7 +47,9 @@ class NN(FeatureTransformer):
 
     def transform(self, x):
         l1 = tf.sigmoid(tf.matmul(x, self.W1) + self.b1)
+#        l1_d = tf.nn.dropout(l1, self.p)
         l2 = tf.sigmoid(tf.matmul(l1, self.W2) + self.b2)
+#        l2_d = tf.nn.dropout(l2, self.p)
         l3 = tf.matmul(l2, self.W3)
         projected = l3
 
@@ -69,7 +73,7 @@ class NN(FeatureTransformer):
         return self.d
 
     def save_weights(self, sess):
-        W1, b1, W2, b2, W3, b3, W4 = sess.run(self.get_params())
+        W1, b1, W2, b2, W3 = sess.run(self.get_params())
         np.save('W1.npy', W1)
         np.save('b1.npy', b1)
         np.save('W2.npy', W2)
