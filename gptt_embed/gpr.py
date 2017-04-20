@@ -43,19 +43,7 @@ class TTGPR:
             x: data features.
             name: name of the op.
         '''
-        expectation = self.gp.mu
-        with tf.name_scope(name, 'GP_Predict', [x]):
-            w = self.gp.inputs.interpolate_on_batch(self.gp.cov.project(x))
-            K_mm = self.gp.K_mm()
-
-            # TODO: Do we need this?
-            K_mm_noeig = self.gp.K_mm(eig_correction=0.)
-            K_xm = ops.tt_tt_matmul(K_mm_noeig, w)
-            K_mm_inv = kron.inv(K_mm)
-
-            y = ops.tt_tt_flat_inner(K_xm, 
-                                       t3f.tt_tt_matmul(K_mm_inv, expectation))
-            return y
+        return self.gp.predict_process_value(x)
 
     def elbo(self, w, y, name=None):
         '''Evidence lower bound.
@@ -71,7 +59,6 @@ class TTGPR:
             N = tf.cast(self.N, dtype=tf.float64) 
 
             y = tf.reshape(y, [-1])
-#            y = tf.reshape(y, [-1, 1])
            
             mu = self.gp.mu
             sigma_l = _kron_tril(self.gp.sigma_l)

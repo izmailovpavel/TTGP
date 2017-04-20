@@ -114,3 +114,24 @@ class _TTGPbase:
         """Returns covariance matrix computed at inducing inputs. 
         """
         return self.cov.kron_cov(self.inputs_dists, eig_correction)
+
+    def predict_process_value(self, x, with_variance=False):
+        """Predicts the value of the process at point x.
+
+        Args:
+            x: data features
+            with_variance: if True, returns process variance at x
+        """
+        mu = self.mu
+        w = self.inputs.interpolate_on_batch(self.cov.project(x))
+
+        mean = ops.tt_tt_flat_inner(w, mu)
+        if not with_variance:
+            return mean
+        # TODO: must check this
+        K_mm = self.K_mm()
+        variance = self.cov.cov_0() 
+        sigma_l_w = ops.tt_tt_matmul(ops.transpose(self.sigma_l), w)
+        variance += ops.tt_tt_flat_inner(sigma_l_w, sigma_l_w)
+        variance -= ops.tt_tt_flat_inner(w, ops.tt_tt_matmul(K_mm, w))
+        return mean, variance
