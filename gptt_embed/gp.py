@@ -10,11 +10,12 @@ from gptt_embed.misc import _kron_tril, _kron_logdet
 class GP:
 
     def __init__(self, cov, inputs, x_init, y_init, mu_ranks): 
-        '''Gaussian Process model.
+        '''Gaussian Process model for regression.
         
         Args:
             cov: covariance function.
             inputs: inducing inputs — InputsGrid object.
+            x_init, y_init: tensors of data for initialization of GP parameters.
             mu_ranks: TT-ranks of mu — expectations of the process at
                 inducing inputs.
         '''
