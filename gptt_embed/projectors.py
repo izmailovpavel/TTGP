@@ -37,7 +37,7 @@ class FeatureTransformer:
         pass
 
 
-class LinearProjector:
+class LinearProjector(FeatureTransformer):
     """Linear Feature Transformer"""
 
     def __init__(self, P=None, d=None, D=None, trainable=True):
@@ -65,3 +65,28 @@ class LinearProjector:
 
     def out_dim(self):
         return self.P.get_shape()[0].value
+
+class Identity(FeatureTransformer):
+    """Identity transform.
+
+    A non-trainable FeatureTransformer, that returns it's
+    argument. To be used when no projection is needed.
+    """
+    def __init__(self, D):
+        """
+        Args:
+            D: dimensionality of the feature space
+        """
+        self.D = D
+
+    def transform(self, x):
+        return x
+
+    def initialize(self, sess):
+        pass
+
+    def get_params(self):
+        return []
+
+    def out_dim(self):
+        return self.D
