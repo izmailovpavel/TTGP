@@ -4,7 +4,7 @@ import os
 import time
 
 from gptt_embed.input import prepare_data, make_tensor
-from gptt_embed.gp import GP
+from gptt_embed.gpr import TTGPR
 from gptt_embed.misc import r2
 from gptt_embed.covariance import SE
 from gptt_embed import grid
@@ -107,10 +107,10 @@ class GPRunner:
                 os.system('rm -rf ' + self.log_dir)
     
 
-            gp = GP(self.cov, inputs, x_init, y_init, self.mu_ranks) 
+            gp = TTGPR(self.cov, inputs, x_init, y_init, self.mu_ranks) 
             
             #TODO: do we need this?
-            sigma_initializer = tf.variables_initializer(gp.sigma_l.tt_cores)
+#            sigma_initializer = tf.variables_initializer(gp.sigma_l.tt_cores)
 
             # train_op and elbo
             global_step = tf.Variable(0, trainable=False)
@@ -156,8 +156,6 @@ class GPRunner:
                     if not (i % iter_per_epoch):
                         # At the end of every epoch evaluate method on test data
                         print('Epoch', i/iter_per_epoch, ', lr=', lr.eval(), ':')
-                        print('\tparams:', gp.cov.sigma_f.eval(), gp.cov.l.eval(), 
-                                gp.cov.sigma_n.eval())
                         if i != 0:
                             print('\tEpoch took:', time.time() - start_epoch)
                         r2_summary_val, r2_val = sess.run([r2_summary, r2_te])

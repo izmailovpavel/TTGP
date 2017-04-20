@@ -98,10 +98,7 @@ class _TTGPbase:
         sigma = ops.tt_tt_matmul(sigma_l, ops.transpose(sigma_l))
         sigma_logdet = _kron_logdet(sigma_l)
 
-        cov = self.cov
-        inputs_dists = self.inputs_dists
-        K_mm = cov.kron_cov(inputs_dists)
-        
+        K_mm = self.K_mm()
         K_mm_inv = kron.inv(K_mm)
         K_mm_logdet = kron.slog_determinant(K_mm)[1]
 
@@ -111,4 +108,9 @@ class _TTGPbase:
         elbo += - ops.tt_tt_flat_inner(sigma, K_mm_inv)
         elbo += - ops.tt_tt_flat_inner(mu, 
                                ops.tt_tt_matmul(K_mm_inv, mu))
-        return elbo[0] / 2
+        return elbo / 2
+
+    def K_mm(self, eig_correction=1e-2):
+        """Returns covariance matrix computed at inducing inputs. 
+        """
+        return self.cov.kron_cov(self.inputs_dists, eig_correction)

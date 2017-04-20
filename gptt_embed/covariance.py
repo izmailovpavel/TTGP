@@ -5,6 +5,8 @@ import t3f
 import t3f.kronecker as kron
 from t3f import ops, TensorTrain, TensorTrainBatch
 
+# TODO: write an abstract base class for covariances
+
 class SE:
 
     def __init__(self, sigma_f, l, sigma_n, projector, trainable=True):
@@ -60,8 +62,8 @@ class SE:
             res_ranks = kron_dists.get_tt_ranks()
             return TensorTrain(res_cores, res_shape, res_ranks)
 
-    def __call__(self, x1, x2, name=None):
-        return self.cov(x1, x2, name)
+#    def __call__(self, x1, x2, name=None):
+#        return self.cov(x1, x2, name)
 
     def get_params(self):
         cov_params = [self.sigma_f, self.l, self.sigma_n]
@@ -81,3 +83,13 @@ class SE:
         """Returns the dimensionality of feature space used.
         """
         return self.projector.out_dim()
+
+    def noise_variance(self):
+        """Returns the noise variance of the process.
+        """
+        return self.sigma_n
+
+    def cov_0(self):
+        """Returns covariance between a point and itself.
+        """
+        return self.sigma_n**2 + self.sigma_f**2
