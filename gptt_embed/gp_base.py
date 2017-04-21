@@ -18,7 +18,7 @@ class _TTGPbase:
     represented in the Tensor Train format ([Oseledets 2011]).
     """
 
-    def __init__(self, cov, inputs, x_init, y_init, mu_ranks):
+    def __init__(self, cov, inputs, x_init, y_init, mu_ranks, name_append=""):
         '''
         Args:
             cov: covariance function.
@@ -31,8 +31,8 @@ class _TTGPbase:
         self.inputs = inputs
         self.inputs_dists = inputs.kron_dists()
         with tf.variable_scope('gp_var_params'):
-            self.sigma_l = self._get_sigma_l()
-            self.mu = self._get_mu(mu_ranks, x_init, y_init)
+            self.sigma_l = self._get_sigma_l(name_append)
+            self.mu = self._get_mu(mu_ranks, x_init, y_init, name_append)
 
     def initialize(self, sess):
         """Initializes the variational and covariance parameters.
@@ -54,7 +54,7 @@ class _TTGPbase:
         return cov_params + gp_var_params
 
 
-    def _get_mu(self, ranks, x, y):
+    def _get_mu(self, ranks, x, y, name_append):
         """Initializes latent inputs expectations mu.
 
         Either loads pretrained values of tt-cores of mu, or initializes it
@@ -77,17 +77,17 @@ class _TTGPbase:
                     tt_ranks=[1]*(anc.ndims()+1))
             res = ops.add(res, elem)
         mu_ranks = [1] + [ranks] * (res.ndims() - 1) + [1]
-        return t3f.get_variable('tt_mu', initializer=TensorTrain(res.tt_cores, 
+        return t3f.get_variable('tt_mu'+name_append, initializer=TensorTrain(res.tt_cores, 
                                     res.get_raw_shape(), mu_ranks))
 
-    def _get_sigma_l(self):
+    def _get_sigma_l(self, name_append):
         """Initializes latent inputs covariance Sigma_l.
         """
         shapes = self.inputs.npoints
         cov = self.cov
         inputs_dists = self.inputs_dists
         K_mm = cov.kron_cov(inputs_dists)    
-        return t3f.get_variable('sigma_l', initializer=kron.cholesky(K_mm))
+        return t3f.get_variable('sigma_l'+name_append, initializer=kron.cholesky(K_mm))
 
     def complexity_penalty(self):
         """Returns the complexity penalty term for ELBO of different GP models. 

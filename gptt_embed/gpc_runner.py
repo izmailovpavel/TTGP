@@ -4,15 +4,15 @@ import os
 import time
 
 from gptt_embed.input import prepare_data, make_tensor
-from gptt_embed.gpr import TTGPR
-from gptt_embed.misc import r2
+from gptt_embed.gpc import TTGPC
 from gptt_embed import grid
 import t3f
 from t3f import TensorTrain, TensorTrainBatch
+from gptt_embed.misc import accuracy
 
 
-class GPRunner:
-    def __init__(self, data_dir, n_inputs, mu_ranks, cov,
+class GPCRunner:
+    def __init__(self, data_dir, n_inputs, mu_ranks, covs,
             lr=0.01, n_epoch=15, decay=None, batch_size=None,
             data_type='numpy', log_dir=None, save_dir=None,
             model_dir=None, load_model=False):
@@ -44,7 +44,7 @@ class GPRunner:
         self.data_dir = data_dir 
         self.n_inputs = n_inputs
         self.mu_ranks = mu_ranks
-        self.cov = cov
+        self.covs = covs
         self.lr = lr
         self.n_epoch = n_epoch
         self.decay = decay
@@ -62,11 +62,12 @@ class GPRunner:
 
     @staticmethod
     def _get_data(data_dir, data_type):
-        x_tr, y_tr, x_te, y_te = prepare_data(data_dir, mode=data_type)
+        x_tr, y_tr, x_te, y_te = prepare_data(data_dir, mode=data_type, 
+                                                        target='class')
         x_tr = make_tensor(x_tr, 'x_tr')
-        y_tr = make_tensor(y_tr, 'y_tr')
+        y_tr = make_tensor(y_tr, 'y_tr', dtype=tf.int64)
         x_te = make_tensor(x_te, 'x_te')
-        y_te = make_tensor(y_te, 'y_te')
+        y_te = make_tensor(y_te, 'y_te', dtype=tf.int64)
         return x_tr, y_tr, x_te, y_te
        
     @staticmethod
@@ -78,7 +79,7 @@ class GPRunner:
     @staticmethod
     def _make_mu_initializers(x_tr, y_tr, n_init, d):
         x_init = x_tr[:n_init]
-        y_init_cores = [tf.reshape(y_tr[:n_init], (n_init, 1, 1, 1, 1))]
+        y_init_cores = [tf.cast(tf.reshape(y_tr[:n_init], (n_init, 1, 1, 1, 1)), tf.float64)]
         for core_idx in range(d):
             if core_idx > 0:
                 y_init_cores += [tf.ones((n_init, 1, 1, 1, 1), dtype=tf.float64)]
@@ -86,7 +87,7 @@ class GPRunner:
         return x_init, y_init
 
     def run_experiment(self):
-            d = self.cov.feature_dim()
+            d = self.covs[0].feature_dim()
             x_tr, y_tr, x_te, y_te = self._get_data(self.data_dir, self.data_type)
             x_batch, y_batch = self._make_batches(x_tr, y_tr, self.batch_size)
             x_init, y_init = self._make_mu_initializers(x_tr, y_tr, self.mu_ranks, d)
@@ -101,7 +102,7 @@ class GPRunner:
                 os.system('rm -rf ' + self.log_dir)
     
 
-            gp = TTGPR(self.cov, inputs, x_init, y_init, self.mu_ranks) 
+            gp = TTGPC(self.covs, inputs, x_init, y_init, self.mu_ranks) 
             
             # train_op and elbo
             global_step = tf.Variable(0, trainable=False)
@@ -117,8 +118,8 @@ class GPRunner:
 
             # prediction and r2_score on test data
             pred = gp.predict(x_te)
-            r2_te = r2(pred, y_te)
-            r2_summary = tf.summary.scalar('r2_test', r2_te)
+            accuracy_te = accuracy(pred, y_te)
+            accuracy_summary = tf.summary.scalar('accuracy_test', accuracy_te)
 
             # Saving results
             model_params = gp.get_params()
@@ -149,10 +150,11 @@ class GPRunner:
                         print('Epoch', i/iter_per_epoch, ', lr=', lr.eval(), ':')
                         if i != 0:
                             print('\tEpoch took:', time.time() - start_epoch)
-                        r2_summary_val, r2_val = sess.run([r2_summary, r2_te])
-                        writer.add_summary(r2_summary_val, i/iter_per_epoch)
+                        accuracy_summary_val, accuracy_val = sess.run(
+                                            [accuracy_summary, accuracy_te])
+                        writer.add_summary(accuracy_summary_val, i/iter_per_epoch)
                         writer.flush()
-                        print('\tr_2 on test set:', r2_val)       
+                        print('\taccuracy on test set:', accuracy_val)       
                         print('\taverage elbo:', batch_elbo / iter_per_epoch)
                         batch_elbo = 0
                         start_epoch = time.time()
@@ -163,8 +165,10 @@ class GPRunner:
                     batch_elbo += elbo_val
                     writer.add_summary(elbo_summary_val, i)
                 
-                r2_val = sess.run(r2_te)
-                print('Final r2:', r2_val)
+                print(sess.run(y_te))
+                print(sess.run(pred))
+                accuracy_val = sess.run([accuracy_te])
+                print('Final accuracy:', accuracy_val)
                 if not self.save_dir is None:
                     model_path = saver.save(sess, self.save_dir)
                     print("Model saved in file: %s" % model_path)

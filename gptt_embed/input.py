@@ -6,9 +6,13 @@ from sklearn.datasets import load_svmlight_file
 from t3f import TensorTrainBatch
 
 
-def prepare_data(path, mode='svmlight'):
+def prepare_data(path, mode='svmlight', target='reg'):
     """
-    Prepares the dataset
+    Data preprocessing.
+    Args:
+       mode: 'svmlight' or 'numpy'; the type of data to be loaded (.csv or .npy)
+       target: 'reg' or 'class'; type of target values (regression or 
+            classification)
     """
     print('Preparing Data')
     if mode == 'svmlight':
@@ -30,16 +34,20 @@ def prepare_data(path, mode='svmlight'):
         y_te = np.load(path+'y_te.npy')
     else:
         raise ValueError("unknown mode: " + str(mode))
-    # TODO: project to a unit cube
     scaler_x = StandardScaler()
-    scaler_y = StandardScaler()
     x_tr = scaler_x.fit_transform(x_tr) / 3
     x_te = scaler_x.transform(x_te) / 3
-    y_tr = scaler_y.fit_transform(y_tr)
-    y_te = scaler_y.transform(y_te)
+    if target =='reg':
+        scaler_y = StandardScaler()
+        y_tr = scaler_y.fit_transform(y_tr)
+        y_te = scaler_y.transform(y_te)
+    elif target == 'class':
+        pass
+    else:
+        raise ValueError("unknown target: " + str(target))
     return x_tr, y_tr, x_te, y_te
 
-def make_tensor(array, name):
+def make_tensor(array, name, dtype=tf.float64):
     init = tf.constant(array)
-    return tf.Variable(init, name=name, trainable=False)
+    return tf.Variable(init, name=name, trainable=False, dtype=dtype)
 

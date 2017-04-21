@@ -22,6 +22,12 @@ def mse(y_pred, y_true, name=None):
                              tf.reshape(y_true, [-1])), name='MSE')
         return mse
 
+def accuracy(y_pred, y_true, name=None):
+    """Acuracy score.
+    """
+    correct_prediction = tf.equal(y_pred, y_true)
+    return tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
         
 def _kron_tril(kron_mat, name=None):
     '''Computes the lower triangular part of a kronecker-factorized matrix.

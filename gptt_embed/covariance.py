@@ -9,7 +9,8 @@ from t3f import ops, TensorTrain, TensorTrainBatch
 
 class SE:
 
-    def __init__(self, sigma_f, l, sigma_n, projector, trainable=True):
+    def __init__(self, sigma_f, l, sigma_n, projector, trainable=True, 
+                name_append=''):
         """Squared Exponential kernel.
         Args:
             sigma_f: process variance
@@ -18,14 +19,14 @@ class SE:
             projector: `FeatureTransformer` object
             trainable: Bool, parameters are trainable iff True
         """
-        with tf.name_scope('Cov_params'):
-            self.sigma_f = tf.get_variable('Process_variance', [1], 
+        with tf.name_scope('SE'+name_append):
+            self.sigma_f = tf.get_variable('Process_variance'+name_append, [1], 
                                 initializer=tf.constant_initializer(sigma_f), 
                                 dtype=tf.float64, trainable=trainable)
-            self.l = tf.get_variable('Process_lengthscale', [1], 
+            self.l = tf.get_variable('Process_lengthscale'+name_append, [1], 
                                 initializer=tf.constant_initializer(l), 
                                 dtype=tf.float64, trainable=trainable)
-            self.sigma_n = tf.get_variable('Noise_variance', [1], 
+            self.sigma_n = tf.get_variable('Noise_variance'+name_append, [1], 
                                 initializer=tf.constant_initializer(sigma_n), 
                                 dtype=tf.float64, trainable=trainable)
         self.projector = projector

@@ -6,9 +6,9 @@ import t3f.kronecker as kron
 from t3f import ops, TensorTrain, TensorTrainBatch
 
 from gptt_embed.misc import _kron_tril, _kron_logdet
-from gp_base import _TTGPbase
+from gptt_embed.gp_base import _TTGPbase
 
-class GPC:
+class TTGPC:
 
     def __init__(self, covs, inputs, x_init, y_init, mu_ranks): 
         '''Gaussian Process model for multiclass classification.
@@ -27,22 +27,24 @@ class GPC:
         self.n_class = len(covs)
         self.gps = []
         for c, cov in enumerate(covs):
-            print('GPC/__init__/c', c)
-            y_init_c = self._prepare_labels(y_init, c)
-            self.gps.append(_TTGPbase(cov, inputs, x_init, y_init_c))
+#            print('GPC/__init__/c', c)
+#            y_init_c = self._prepare_labels(y_init, c)
+#            self.gps.append(_TTGPbase(cov, inputs, x_init, y_init_c))
+            self.gps.append(_TTGPbase(cov, inputs, x_init, y_init, mu_ranks, 
+                name_append=str(c)))
         self.N = 0 # Size of the training set
 
-    @staticmethod
-    def _prepare_labels(y, c):
-        """Prepares labels for GP initialization. 
-
-        Returns a vector y_c, s.t. 
-            y_c == 1 if y == c; y_c == -1 if y ≠ c;
-        Args:
-            y: target values
-            c: class label
-        """
-        return 2 * tf.cast(tf.equal(y, c), tf.float64) - 1
+#    @staticmethod
+#    def _prepare_labels(y, c):
+#        """Prepares labels for GP initialization. 
+#
+#        Returns a vector y_c, s.t. 
+#            y_c == 1 if y == c; y_c == -1 if y ≠ c;
+#        Args:
+#            y: target values
+#            c: class label
+#        """
+#        return 2 * tf.cast(tf.equal(y, c), tf.float64) - 1
 
     def initialize(self, sess):
         """Initializes the variational and covariance parameters.
@@ -57,25 +59,25 @@ class GPC:
         """Returns a list of all the parameters of the model.
         """
         params = []
-        for gp in zip(self.gps):
+        for gp in self.gps:
             params += gp.get_params()
         return params
 
-    def _process_predicions(self, x, with_variance=False):
+    def _process_predictions(self, x, with_variance=False):
         """Returns prediction means (and variances) for GPs for all classes.
         Args:
             x: data features
             with_variance: if True, returns process variance at x
         """
-        means, variances = []
+        means, variances = [], []
         for gp in self.gps:
             if with_variance:
-                mean, var = append(gp.predict_process_value(x, with_variance))
-                means.append(mean)
-                variances.append(var)
+                mean, var = gp.predict_process_value(x, with_variance)
+                means.append(mean[:, None])
+                variances.append(var[:, None])
             else:
-                mean = append(gp.predict_process_value(x, with_variance))
-                means.append(mean)
+                mean = gp.predict_process_value(x, with_variance)
+                means.append(mean[:, None])
         means = tf.concat(means, axis=1)
         if not with_variance:
             return means
@@ -94,7 +96,7 @@ class GPC:
         preds = self._process_predictions(x)
         return tf.argmax(preds, axis=1)  
 
-    def elbo(self, w, y, name=None):
+    def elbo(self, x, y, name=None):
         '''Evidence lower bound.
         
         Args:
@@ -102,7 +104,7 @@ class GPC:
             y: target values for the current batch.
         '''
         
-        with tf.name_scope(name, 'ELBO', [w, y]):
+        with tf.name_scope(name, 'ELBO', [x, y]):
 
             means, variances = self._process_predictions(x, with_variance=True)
 
@@ -110,7 +112,8 @@ class GPC:
             N = tf.cast(self.N, dtype=tf.float64) 
 
             y = tf.reshape(y, [-1, 1])
-            indices = tf.concat([tf.range(l)[:, None], y], axis=1)
+            indices = tf.concat([tf.range(tf.cast(l, tf.int64))[:, None], y], axis=1)
+
             # means for true classes
             means_c = tf.gather_nd(means, indices)
             print('GPC/elbo/means_c', means_c.get_shape())
@@ -123,8 +126,9 @@ class GPC:
             print('GPC/elbo/log_sum_exp_bound', log_sum_exp_bound.get_shape())
             elbo -= tf.reduce_sum(log_sum_exp_bound)
             elbo /= l
-            elbo += self.gp.complexity_penalty() / N
-            return -elbo[0]
+            for gp in self.gps:
+                elbo += gp.complexity_penalty() / N
+            return -elbo
     
     def fit(self, x, y, N, lr, global_step, name=None):
         """Fit the GP to the data.
@@ -139,8 +143,7 @@ class GPC:
         """
         self.N = N
         with tf.name_scope(name, 'fit', [x, y]):
-            w = self.gp.inputs.interpolate_on_batch(self.gp.cov.project(x))
-            fun = self.elbo(w, y)
+            fun = self.elbo(x, y)
             optimizer = tf.train.AdamOptimizer(learning_rate=lr)
             return fun, optimizer.minimize(fun, global_step=global_step)
 
