@@ -4,7 +4,7 @@ import numpy as np
 
 from gptt_embed.covariance import SE
 from gptt_embed.projectors import FeatureTransformer, LinearProjector
-from gptt_embed.gp_runner import GPRunner
+from gptt_embed.gpc_runner import GPCRunner
 
 data_basedir1 = "/Users/IzmailovPavel/Documents/Education/Programming/DataSets/"
 data_basedir2 = "/Users/IzmailovPavel/Documents/Education/Projects/GPtf/experiments/"
@@ -80,11 +80,15 @@ class NN(FeatureTransformer):
         np.save('W3.npy', W3)
 
 with tf.Graph().as_default():
-    data_dir = "data_reg/"
+    data_dir = "data_class/"
     n_inputs = 10
     mu_ranks = 10
-    projector = NN(H1=20, H2=20, d=4)
-    cov = SE(0.7, 0.2, 0.1, projector)
+    projector = NN(H1=20, H2=20, d=2)
+    C = 10
+    covs = []
+    for c in range(C):
+        cov = SE(0.7, 0.2, 0.1, projector, name_append=str(c))
+        covs.append(cov)
     lr = 1e-2
     decay = (50, 0.2)
     n_epoch = 100
@@ -95,7 +99,7 @@ with tf.Graph().as_default():
     model_dir = save_dir
     load_model = False#True
     
-    runner=GPRunner(data_dir, n_inputs, mu_ranks, cov,
+    runner=GPCRunner(data_dir, n_inputs, mu_ranks, covs,
                 lr=lr, decay=decay, n_epoch=n_epoch, batch_size=batch_size,
                 data_type=data_type, log_dir=log_dir, save_dir=save_dir,
                 model_dir=model_dir, load_model=load_model)

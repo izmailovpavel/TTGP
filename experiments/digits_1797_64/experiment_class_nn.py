@@ -6,7 +6,7 @@ import time
 from gptt_embed.covariance import SE
 from gptt_embed.projectors import FeatureTransformer, LinearProjector
 from gptt_embed.gp_runner import GPRunner
-from gptt_embed.misc import mse, r2
+from gptt_embed.misc import accuracy
 from gptt_embed.input import prepare_data, make_tensor
 
 data_basedir1 = "/Users/IzmailovPavel/Documents/Education/Programming/DataSets/"
@@ -26,7 +26,8 @@ class NN:
             self.W3 = self.weight_var('W3', [H2, d])
             self.b3 = self.bias_var('b3', [d])
         with tf.name_scope('layer_4'):
-            self.W4 = self.weight_var('W4', [d, 1])
+            self.W4 = self.weight_var('W4', [d, 10])
+            self.b4 = self.bias_var('b4', [10])
         self.p = p
         self.d = d
         
@@ -56,14 +57,15 @@ class NN:
         l2_d = tf.nn.dropout(l2, self.p)
         l3 = tf.sigmoid(tf.matmul(l2_d, self.W3) + self.b3)
 #	l3_d = tf.nn.dropout(l3, self.p)
-        l4 = tf.matmul(l3, self.W4)
-        return l4
+        l4 = tf.matmul(l3, self.W4) + self.b4
+        return tf.reshape(l4, [-1, 10])
 
     def initialize(self, sess):
         sess.run(tf.variables_initializer(self.get_params()))
 
     def get_params(self):
-        return [self.W1, self.b1, self.W2, self.b2, self.W3, self.b3, self.W4]
+        return [self.W1, self.b1, self.W2, self.b2, self.W3, self.b3, self.W4, 
+                self.b4]
 
     def out_dim(self):
         return self.d
@@ -79,34 +81,38 @@ class NN:
         np.save('W4.npy', W4)
 
 with tf.Graph().as_default():
-    data_dir = "data_reg/"
+    data_dir = "data_class/"
     net = NN(H1=100, H2=100, d=4, p=0.5)
     lr = 1e-2
 
     # data
-    x_tr, y_tr, x_te, y_te = prepare_data(data_dir, mode='numpy')
+    x_tr, y_tr, x_te, y_te = prepare_data(data_dir, mode='numpy',
+                                                    target='class')
     x_tr = make_tensor(x_tr, 'x_tr')
-    y_tr = make_tensor(y_tr, 'y_tr')
+    y_tr = make_tensor(y_tr, 'y_tr', dtype=tf.int64)
     x_te = make_tensor(x_te, 'x_te')
-    y_te = make_tensor(y_te, 'y_te')
+    y_te = make_tensor(y_te, 'y_te', dtype=tf.int64)
     pred_te = net.predict(x_te)
-    r2_te = r2(pred_te, y_te)
-    mse_te = mse(pred_te, y_te)
+    accuracy_te = accuracy(tf.argmax(pred_te, axis=1), y_te)
     
     decay = (100, 0.2)
     n_epoch = 300
     batch_size = 200
     
-    sample = tf.train.slice_input_producer([x_tr, y_tr])
-    x_batch, y_batch = tf.train.batch(sample, batch_size)
-    pred = net.predict(x_batch)
-    loss = mse(pred, y_batch)
-
     N = y_tr.get_shape()[0].value
     iter_per_epoch = int(N / batch_size)
     maxiter = iter_per_epoch * n_epoch
     global_step = tf.Variable(0, trainable=False)
-    
+
+    sample = tf.train.slice_input_producer([x_tr, y_tr])
+    x_batch, y_batch = tf.train.batch(sample, batch_size)
+    y_batch_oh = tf.one_hot(y_batch, 10)
+    pred = net.predict(x_batch)
+    print(y_batch.get_shape())
+    print(pred.get_shape())
+    loss = tf.reduce_mean(
+            tf.nn.softmax_cross_entropy_with_logits(labels=y_batch_oh, logits=pred))
+
     steps = iter_per_epoch * decay[0]
     lr = tf.train.exponential_decay(lr, global_step, 
         steps, decay[1], staircase=True)
@@ -120,22 +126,20 @@ with tf.Graph().as_default():
         sess.run(init)
         threads = tf.train.start_queue_runners(sess=sess, coord=coord) 
 
-        batch_mse = 0
+        batch_loss = 0
         for i in range(maxiter):
             if not (i % iter_per_epoch):
                 print('Epoch', i/iter_per_epoch, ', lr=', lr.eval(), ':')
                 if i != 0:
                     print('\tEpoch took:', time.time() - start_epoch)
-                print('\taverage mse:', batch_mse / iter_per_epoch)
-                r2_val, mse_val = sess.run([r2_te, mse_te])
-                print('\tr_2 on test set:', r2_val) 
-                print('\tmse on test set:', mse_val) 
-                batch_mse = 0
+                print('\taverage loss:', batch_loss / iter_per_epoch)
+                accuracy_val = sess.run([accuracy_te])
+                print('\taccuracy on test set:', accuracy_val) 
+                batch_loss = 0
                 start_epoch = time.time()
 
-            mse, _ = sess.run([loss, train_op])
-            batch_mse += mse
+            loss_val, _ = sess.run([loss, train_op])
+            batch_loss += loss_val
 
-        r2_val, mse_val = sess.run([r2_te, mse_te])
-        print('Final r_2 on test set:', r2_val) 
-        print('Final mse on test set:', mse_val) 
+        accuracy_val = sess.run([accuracy_te])
+        print('Final accuracy on test set:', accuracy_val) 

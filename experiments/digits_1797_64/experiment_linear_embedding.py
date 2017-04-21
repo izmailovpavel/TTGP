@@ -2,16 +2,12 @@ import tensorflow as tf
 import numpy as np
 import os
 
-from gptt_embed.gp import GP
 from gptt_embed.covariance import SE
 from gptt_embed.projectors import LinearProjector
 from gptt_embed.gp_runner import GPRunner
 
-data_basedir1 = "/Users/IzmailovPavel/Documents/Education/Programming/DataSets/"
-data_basedir2 = "/Users/IzmailovPavel/Documents/Education/Projects/GPtf/experiments/"
-
 with tf.Graph().as_default():
-    data_dir = data_basedir2 + "digits_1797_64/"
+    data_dir = "data_reg/"
     n_inputs = 10
     mu_ranks = 10
     D, d = 64, 4
