@@ -19,7 +19,7 @@ with tf.Graph().as_default():
         covs.append(cov)
     lr = 0.05
     decay = (50, 0.1)
-    n_epoch = 100
+    n_epoch = 10
     batch_size = 50
     data_type = 'numpy'
     log_dir = 'log'

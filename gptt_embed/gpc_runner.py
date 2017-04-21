@@ -115,6 +115,7 @@ class GPCRunner:
                 lr = tf.Variable(self.lr, trainable=False)
             elbo, train_op = gp.fit(x_batch, y_batch, N, lr, global_step)
             elbo_summary = tf.summary.scalar('elbo_batch', elbo)
+            mean_te, var_te = gp._process_predictions(x_te, with_variance=True)
 
             # prediction and r2_score on test data
             pred = gp.predict(x_te)
