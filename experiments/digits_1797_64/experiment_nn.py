@@ -80,7 +80,7 @@ class NN:
 
 with tf.Graph().as_default():
     data_dir = "data_reg/"
-    net = NN(H1=100, H2=100, d=4, p=0.5)
+    net = NN(H1=20, H2=20, d=4, p=0.5)
     lr = 1e-2
 
     # data

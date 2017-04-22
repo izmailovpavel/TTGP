@@ -83,7 +83,7 @@ with tf.Graph().as_default():
     data_dir = "data_class/"
     n_inputs = 10
     mu_ranks = 10
-    projector = NN(H1=20, H2=20, d=2)
+    projector = NN(H1=20, H2=20, d=4)
     C = 10
     covs = []
     for c in range(C):

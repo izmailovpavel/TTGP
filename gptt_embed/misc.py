@@ -36,15 +36,23 @@ def _kron_tril(kron_mat, name=None):
     of the elements of the product, which is not exactly the lower 
     triangular part.
     '''
+    is_batch = isinstance(kron_mat, TensorTrainBatch)
     with tf.name_scope(name, 'Kron_tril', [kron_mat]):
         mat_l_cores = []
         for core_idx in range(kron_mat.ndims()):
-            core = kron_mat.tt_cores[core_idx][0, :, :, 0]
-            mat_l_cores.append(tf.matrix_band_part(core,-1, 0)
-                                                [None, :, :, None])
+            if is_batch:
+                core = kron_mat.tt_cores[core_idx][:, 0, :, :, 0]
+                core_tril = tf.matrix_band_part(core,-1, 0)[:, None, :, :, None]
+            else:
+                core = kron_mat.tt_cores[core_idx][0, :, :, 0]
+                core_tril = tf.matrix_band_part(core,-1, 0)[None, :, :, None]
+            mat_l_cores.append(core_tril)
         mat_l_shape = kron_mat.get_raw_shape()
         mat_l_ranks = kron_mat.get_tt_ranks()
-        mat_l = TensorTrain(mat_l_cores, mat_l_shape, mat_l_ranks)
+        if is_batch:
+            mat_l = TensorTrainBatch(mat_l_cores, mat_l_shape, mat_l_ranks)
+        else:
+            mat_l = TensorTrain(mat_l_cores, mat_l_shape, mat_l_ranks)
         return mat_l
 
 
@@ -52,13 +60,19 @@ def _kron_logdet(kron_mat, name=None):
     '''Computes the logdet of a kronecker-factorized matrix.
     '''
     with tf.name_scope(name, 'Kron_logdet', [kron_mat]):
+        is_batch = isinstance(kron_mat, TensorTrainBatch)
         i_shapes = kron_mat.get_raw_shape()[0]
         pows = tf.cast(tf.reduce_prod(i_shapes), kron_mat.dtype)
         logdet = 0.
         for core_idx in range(kron_mat.ndims()):
-            core = kron_mat.tt_cores[core_idx][0, :, :, 0]
             core_pow = pows / i_shapes[core_idx].value
-            logdet += (core_pow * 
-                tf.reduce_sum(tf.log(tf.abs(tf.diag_part(core)))))
+            if is_batch:
+                core = kron_mat.tt_cores[core_idx][:, 0, :, :, 0]
+                logdet += (core_pow * tf.reduce_sum(tf.log(tf.abs(
+                                    tf.matrix_diag_part(core))), axis=1))
+            else:
+                core = kron_mat.tt_cores[core_idx][0, :, :, 0]
+                logdet += (core_pow * tf.reduce_sum(tf.log(tf.abs(
+                                    tf.matrix_diag_part(core)))))
         logdet *= 2
         return logdet
