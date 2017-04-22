@@ -98,7 +98,7 @@ with tf.Graph().as_default():
     data_dir = "data_class/"
     n_inputs = 10
     mu_ranks = 10
-    projector = NN(H1=100, H2=100, d=2)
+    projector = NN(H1=32, H2=64, H3=64, d=4)
     C = 10
 
     cov = SE_multidim(C, 0.7, 0.2, 0.1, projector)
