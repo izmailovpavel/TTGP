@@ -4,7 +4,8 @@ import os
 import time
 
 from gptt_embed.input import prepare_data, make_tensor
-from gptt_embed.gpc import TTGPC
+#from gptt_embed.gpc import TTGPC
+from gptt_embed.gpc_alt import TTGPC
 from gptt_embed import grid
 import t3f
 from t3f import TensorTrain, TensorTrainBatch
@@ -89,7 +90,8 @@ class GPCRunner:
     def run_experiment(self):
             
             start_compilation = time.time()
-            d = self.covs[0].feature_dim()
+#            d = self.covs[0].feature_dim()
+            d = self.covs.feature_dim()
             x_tr, y_tr, x_te, y_te = self._get_data(self.data_dir, self.data_type)
             x_batch, y_batch = self._make_batches(x_tr, y_tr, self.batch_size)
             x_init, y_init = self._make_mu_initializers(x_tr, y_tr, self.mu_ranks, d)
@@ -117,7 +119,7 @@ class GPCRunner:
                 lr = tf.Variable(self.lr, trainable=False)
             elbo, train_op = gp.fit(x_batch, y_batch, N, lr, global_step)
             elbo_summary = tf.summary.scalar('elbo_batch', elbo)
-            mean_te, var_te = gp._process_predictions(x_te, with_variance=True)
+#            mean_te, var_te = gp._process_predictions(x_te, with_variance=True)
 
             # prediction and r2_score on test data
             pred = gp.predict(x_te)

@@ -83,7 +83,7 @@ class _TTGPbase:
     def _get_sigma_l(self, name_append):
         """Initializes latent inputs covariance Sigma_l.
         """
-        shapes = self.inputs.npoints
+#        shapes = self.inputs.npoints
         cov = self.cov
         inputs_dists = self.inputs_dists
         K_mm = cov.kron_cov(inputs_dists)    
