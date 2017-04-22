@@ -179,4 +179,4 @@ class GPCRunner:
                 if not self.save_dir is None:
                     model_path = saver.save(sess, self.save_dir)
                     print("Model saved in file: %s" % model_path)
-                    gp.gps[0].cov.projector.save_weights(sess)
+                    gp.cov.projector.save_weights(sess)

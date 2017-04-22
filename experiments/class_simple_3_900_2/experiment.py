@@ -14,10 +14,6 @@ with tf.Graph().as_default():
     C = 3 # Number of classes
     projector = Identity(D=D)
     cov = SE_multidim(C, 0.7, 0.2, 0.1, projector)
-#    covs = []
-#    for c in range(C):
-#        cov = SE(0.7, 0.2, 0.1, projector, name_append=str(c))
-#        covs.append(cov)
     lr = 0.05
     decay = (50, 0.1)
     n_epoch = 10

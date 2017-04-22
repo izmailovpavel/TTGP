@@ -2,7 +2,7 @@ import tensorflow as tf
 import os
 import numpy as np
 
-from gptt_embed.covariance import SE
+from gptt_embed.covariance import SE_multidim
 from gptt_embed.projectors import FeatureTransformer, LinearProjector
 from gptt_embed.gpc_runner import GPCRunner
 
@@ -83,12 +83,11 @@ with tf.Graph().as_default():
     data_dir = "data_class/"
     n_inputs = 10
     mu_ranks = 10
-    projector = NN(H1=20, H2=20, d=4)
+    projector = NN(H1=100, H2=100, d=2)
     C = 10
-    covs = []
-    for c in range(C):
-        cov = SE(0.7, 0.2, 0.1, projector, name_append=str(c))
-        covs.append(cov)
+
+    cov = SE_multidim(C, 0.7, 0.2, 0.1, projector)
+
     lr = 1e-2
     decay = (50, 0.2)
     n_epoch = 100
@@ -99,7 +98,7 @@ with tf.Graph().as_default():
     model_dir = save_dir
     load_model = False#True
     
-    runner=GPCRunner(data_dir, n_inputs, mu_ranks, covs,
+    runner=GPCRunner(data_dir, n_inputs, mu_ranks, cov,
                 lr=lr, decay=decay, n_epoch=n_epoch, batch_size=batch_size,
                 data_type=data_type, log_dir=log_dir, save_dir=save_dir,
                 model_dir=model_dir, load_model=load_model)

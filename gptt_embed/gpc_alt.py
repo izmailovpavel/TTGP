@@ -83,18 +83,24 @@ class TTGPC:
         if not with_variance:
             return mean
         K_mms = self._K_mms()
-        variance = self.cov.cov_0() 
 
-        # TODO: might not be optimal
-        sigma_ls = _kron_tril(self.sigma_ls)
-        sigmas = ops.tt_tt_matmul(sigma_ls, ops.transpose(sigma_ls))
-        w_w_T = ops.tt_tt_matmul(w, ops.transpose(w))        
-        variance += batch_ops.pairwise_flat_inner(w_w_T, sigmas)
-        variance -= batch_ops.pairwise_flat_inner(w_w_T, K_mms)
-#        sigma_l_w = ops.tt_tt_matmul(ops.transpose(self.sigma_l), w)
-#        variance += ops.tt_tt_flat_inner(sigma_l_w, sigma_l_w)
-#        variance -= ops.tt_tt_flat_inner(w, ops.tt_tt_matmul(K_mm, w))
-        return mean, variance
+#        # TODO: might not be optimal
+#        sigma_ls = _kron_tril(self.sigma_ls)
+#        sigmas = ops.tt_tt_matmul(sigma_ls, ops.transpose(sigma_ls))
+#        w_w_T = ops.tt_tt_matmul(w, ops.transpose(w))        
+#        variance += batch_ops.pairwise_flat_inner(w_w_T, sigmas)
+#        variance -= batch_ops.pairwise_flat_inner(w_w_T, K_mms)
+        variances = []
+        for c in range(self.n_class):
+            sigma_l = self.sigma_ls[c]
+            K_mm = K_mms[c]
+            sigma_l_w = ops.tt_tt_matmul(ops.transpose(sigma_l), w)
+            variance = ops.tt_tt_flat_inner(sigma_l_w, sigma_l_w)
+            variance -= ops.tt_tt_flat_inner(w, ops.tt_tt_matmul(K_mm, w))
+            variances.append(variance[:, None])
+        variances = tf.concat(variances, axis=1)
+        variances += self.cov.cov_0()[None, :]
+        return mean, variances
 
     def predict(self, x):
         '''Predicts the labels at points x.
@@ -178,4 +184,3 @@ class TTGPC:
             fun = self.elbo(x, y)
             optimizer = tf.train.AdamOptimizer(learning_rate=lr)
             return fun, optimizer.minimize(fun, global_step=global_step)
-
