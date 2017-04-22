@@ -2,13 +2,9 @@ import tensorflow as tf
 import numpy as np
 import os
 
-from gptt_embed.gp import GP
 from gptt_embed.covariance import SE
 from gptt_embed.projectors import FeatureTransformer, LinearProjector
 from gptt_embed.gp_runner import GPRunner
-
-data_basedir1 = "/Users/IzmailovPavel/Documents/Education/Programming/DataSets/"
-data_basedir2 = "/Users/IzmailovPavel/Documents/Education/Projects/GPtf/experiments/"
 
 class NN(FeatureTransformer):
     
@@ -98,7 +94,7 @@ class NN(FeatureTransformer):
         np.save('W4.npy', W4)
 
 with tf.Graph().as_default():
-    data_dir = ""
+    data_dir = "data_class/"
     n_inputs = 10
     mu_ranks = 10
     projector = NN(H1=16, H2=16, H3=32)
