@@ -15,6 +15,7 @@ from gptt_embed.misc import accuracy, num_correct
 class GPCRunner:
     def __init__(self, data_dir, n_inputs, mu_ranks, covs,
             lr=0.01, n_epoch=15, decay=None, batch_size=None,
+            preprocess_op=None, te_preprocess_op=None,
             data_type='numpy', log_dir=None, save_dir=None,
             model_dir=None, load_model=False):
         """Runs the experiments for the given parameters and data.
@@ -34,6 +35,8 @@ class GPCRunner:
             decay_steps is in terms of training epochs
             n_epoch: number of epochs of the optimization method
             batch_size: batch size of the optimization method
+            preprocess_op: preprocessing operation for train dataset
+            preprocess_op_te: preprocessing operation for test dataset
             data_type: either 'numpy' or 'svmlight' — type of the data encoding
             log_dir: path to the directory where the logs will be stored
             save_dir: path to the directory where the model should be saved
@@ -50,6 +53,8 @@ class GPCRunner:
         self.n_epoch = n_epoch
         self.decay = decay
         self.batch_size = batch_size
+        self.preprocess_op = preprocess_op
+        self.te_preprocess_op = te_preprocess_op
         self.data_type = data_type
         self.log_dir = log_dir
         self.save_dir = save_dir
@@ -71,21 +76,25 @@ class GPCRunner:
         y_te = make_tensor(y_te, 'y_te', dtype=tf.int64)
         return x_tr, y_tr, x_te, y_te
        
-    @staticmethod
-    def _make_batches(x_tr, y_tr, batch_size):
-        sample = tf.train.slice_input_producer([x_tr, y_tr], shuffle=True)
+    def _make_batches(self, x_tr, y_tr, batch_size, test=False):
+        sample_x, sample_y = tf.train.slice_input_producer([x_tr, y_tr], shuffle=True)
+        if (self.preprocess_op is not None) and (not test):
+            sample_x = self.preprocess_op(sample_x)
+        if (self.te_preprocess_op is not None) and test:
+            sample_x = self.te_preprocess_op(sample_x)
+        sample = [sample_x, sample_y]
         x_batch, y_batch = tf.train.batch(sample, batch_size)
         return x_batch, y_batch
 
     @staticmethod
-    def _make_mu_initializers(x_tr, y_tr, n_init, d):
-        x_init = x_tr[:n_init]
-        y_init_cores = [tf.cast(tf.reshape(y_tr[:n_init], (n_init, 1, 1, 1, 1)), tf.float64)]
+    def _make_mu_initializers(y_init, d):
+        n_init = y_init.get_shape()[0]
+        y_init_cores = [tf.cast(tf.reshape(y_init, (-1, 1, 1, 1, 1)), tf.float64)]
         for core_idx in range(d):
             if core_idx > 0:
                 y_init_cores += [tf.ones((n_init, 1, 1, 1, 1), dtype=tf.float64)]
         y_init = TensorTrainBatch(y_init_cores)
-        return x_init, y_init
+        return y_init
 
     def eval(self, sess, correct_on_batch, iter_per_test, n_test):
         # TODO: verify this is valid
@@ -103,8 +112,9 @@ class GPCRunner:
             x_tr, y_tr, x_te, y_te = self._get_data(self.data_dir, self.data_type)
             x_batch, y_batch = self._make_batches(x_tr, y_tr, self.batch_size)
             x_te_batch, y_te_batch = self._make_batches(x_te, y_te, 
-                                                            self.batch_size)
-            x_init, y_init = self._make_mu_initializers(x_tr, y_tr, self.mu_ranks, d)
+                                                    self.batch_size, test=True)
+            x_init, y_init = self._make_batches(x_tr, y_tr, self.mu_ranks)
+            y_init = self._make_mu_initializers(y_init, d)
             inputs = self._init_inputs(d, self.n_inputs)
 
             N = y_tr.get_shape()[0].value #number of data
@@ -131,13 +141,10 @@ class GPCRunner:
                 lr = tf.Variable(self.lr, trainable=False)
             elbo, train_op = gp.fit(x_batch, y_batch, N, lr, global_step)
             elbo_summary = tf.summary.scalar('elbo_batch', elbo)
-#            mean_te, var_te = gp._process_predictions(x_te, with_variance=True)
 
             # prediction and r2_score on test data
             pred = gp.predict(x_te_batch)
             correct_te_batch = num_correct(pred, y_te_batch)
-#            accuracy_te = tf.constant([0])
-#            accuracy_summary = tf.summary.scalar('accuracy_test', accuracy_te)
 
             # Saving results
             model_params = gp.get_params()
@@ -149,10 +156,10 @@ class GPCRunner:
             # Main session
             with tf.Session() as sess:
                 # Initialization
-                writer = tf.summary.FileWriter(self.log_dir, sess.graph) 
+                #writer = tf.summary.FileWriter(self.log_dir, sess.graph) 
                 sess.run(data_initializer)
-                gp.initialize(sess)
                 threads = tf.train.start_queue_runners(sess=sess, coord=coord) 
+                gp.initialize(sess)
                 sess.run(init)
 
                 if self.load_model:
@@ -172,10 +179,7 @@ class GPCRunner:
                             print('\tEpoch took:', time.time() - start_epoch)
                         
                         accuracy = self.eval(sess, correct_te_batch, iter_per_te, N_te)
-#                        accuracy_summary_val, accuracy_val = sess.run(
-#                                            [accuracy_summary, accuracy_te])
-#                        writer.add_summary(accuracy_summary_val, i/iter_per_epoch)
-                        writer.flush()
+                        #writer.flush()
                         print('\taccuracy on test set:', accuracy) 
                         print('\taverage elbo:', batch_elbo / iter_per_epoch)
                         batch_elbo = 0
@@ -185,7 +189,7 @@ class GPCRunner:
                     elbo_summary_val, elbo_val, _ = sess.run([elbo_summary, 
                                                               elbo, train_op])
                     batch_elbo += elbo_val
-                    writer.add_summary(elbo_summary_val, i)
+#                    writer.add_summary(elbo_summary_val, i)
                 
 #                print(sess.run([y_te_batch, pred]))
                 accuracy = self.eval(sess, correct_te_batch, iter_per_te, N_te)

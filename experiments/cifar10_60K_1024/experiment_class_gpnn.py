@@ -6,6 +6,9 @@ from gptt_embed.covariance import SE_multidim
 from gptt_embed.projectors import FeatureTransformer, LinearProjector
 from gptt_embed.gpc_runner import GPCRunner
 
+
+HEIGHT, WIDTH = 24, 24
+
 class NN(FeatureTransformer):
     
     def __init__(self, H1=32, H2=64, H3=100, d=2):
@@ -17,7 +20,7 @@ class NN(FeatureTransformer):
             self.W_conv2 = self.weight_var('W2', [5, 5, H1, H2])
             self.b2 = self.bias_var('b2', [H2])
         with tf.name_scope('layer_3'):
-            self.W3 = self.weight_var('W3', [64 * H2, H3])
+            self.W3 = self.weight_var('W3', [36 * H2, H3])
             self.b3 = self.bias_var('b3', [H3])
         with tf.name_scope('layer_4'):
             self.W4 = self.weight_var('W4', [H3, d])
@@ -51,7 +54,7 @@ class NN(FeatureTransformer):
 
     def transform(self, x):
         batch_size = x.get_shape()[0].value
-        x_image = tf.cast(tf.reshape(x, [-1, 32, 32, 3]), tf.float32)
+        x_image = tf.cast(tf.reshape(x, [-1, HEIGHT, WIDTH, 3]), tf.float32)
 
         h_conv1 = tf.nn.relu(self.conv2d(x_image, self.W_conv1) + self.b1)
         h_pool1 = self.max_pool_2x2(h_conv1)
@@ -97,6 +100,26 @@ class NN(FeatureTransformer):
         np.save('W4.npy', W4)
 
 
+def tr_preprocess_op(img):
+
+    img = tf.reshape(img, [32, 32, 3])
+    distorted_image = tf.random_crop(img, [HEIGHT, WIDTH, 3])
+    distorted_image = tf.image.random_flip_left_right(distorted_image)
+    distorted_image = tf.image.random_brightness(distorted_image, max_delta=63)
+    distorted_image = tf.image.random_contrast(distorted_image, lower=0.2, upper=1.8)
+    res = tf.image.per_image_standardization(distorted_image)
+    res = tf.reshape(res, [-1])
+    return res
+
+def te_preprocess_op(img):
+
+    img = tf.reshape(img, [32, 32, 3])
+    resized_image = tf.image.resize_image_with_crop_or_pad(img, HEIGHT, WIDTH)
+    res = tf.image.per_image_standardization(resized_image)
+    res = tf.reshape(res, [-1])
+    return res
+
+
 with tf.Graph().as_default():
     data_dir = "data_class/"
     n_inputs = 10
@@ -108,8 +131,8 @@ with tf.Graph().as_default():
     batch_size = 200
     data_type = 'numpy'
     log_dir = 'log'
-    save_dir = 'models/gpnn_100_100_2.ckpt'
-    model_dir = save_dir
+    save_dir = None#'models/gpnn_100_100_2.ckpt'
+    model_dir = None#save_dir
     load_model = False#True
 
     projector = NN(H1=64, H2=64, H3=64, d=4)
@@ -117,6 +140,7 @@ with tf.Graph().as_default():
     
     runner=GPCRunner(data_dir, n_inputs, mu_ranks, cov,
                 lr=lr, decay=decay, n_epoch=n_epoch, batch_size=batch_size,
+                preprocess_op=tr_preprocess_op, te_preprocess_op=te_preprocess_op,
                 data_type=data_type, log_dir=log_dir, save_dir=save_dir,
                 model_dir=model_dir, load_model=load_model)
     runner.run_experiment()
