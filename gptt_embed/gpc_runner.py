@@ -9,7 +9,7 @@ from gptt_embed.gpc_alt import TTGPC
 from gptt_embed import grid
 import t3f
 from t3f import TensorTrain, TensorTrainBatch
-from gptt_embed.misc import accuracy
+from gptt_embed.misc import accuracy, num_correct
 
 
 class GPCRunner:
@@ -73,7 +73,7 @@ class GPCRunner:
        
     @staticmethod
     def _make_batches(x_tr, y_tr, batch_size):
-        sample = tf.train.slice_input_producer([x_tr, y_tr])
+        sample = tf.train.slice_input_producer([x_tr, y_tr], shuffle=True)
         x_batch, y_batch = tf.train.batch(sample, batch_size)
         return x_batch, y_batch
 
@@ -87,6 +87,14 @@ class GPCRunner:
         y_init = TensorTrainBatch(y_init_cores)
         return x_init, y_init
 
+    def eval(self, sess, correct_on_batch, iter_per_test, n_test):
+        # TODO: verify this is valid
+        correct = 0
+        for i in range(iter_per_test):
+            correct += sess.run(correct_on_batch)
+        accuracy = correct / n_test
+        return accuracy
+
     def run_experiment(self):
             
             start_compilation = time.time()
@@ -94,11 +102,15 @@ class GPCRunner:
             d = self.covs.feature_dim()
             x_tr, y_tr, x_te, y_te = self._get_data(self.data_dir, self.data_type)
             x_batch, y_batch = self._make_batches(x_tr, y_tr, self.batch_size)
+            x_te_batch, y_te_batch = self._make_batches(x_te, y_te, 
+                                                            self.batch_size)
             x_init, y_init = self._make_mu_initializers(x_tr, y_tr, self.mu_ranks, d)
-            N = y_tr.get_shape()[0].value #number of data
             inputs = self._init_inputs(d, self.n_inputs)
-            
+
+            N = y_tr.get_shape()[0].value #number of data
+            N_te = y_te.get_shape()[0].value #number of data
             iter_per_epoch = int(N / self.batch_size)
+            iter_per_te = int(N_te / self.batch_size)
             maxiter = iter_per_epoch * self.n_epoch
 
             if not self.log_dir is None:
@@ -122,9 +134,10 @@ class GPCRunner:
 #            mean_te, var_te = gp._process_predictions(x_te, with_variance=True)
 
             # prediction and r2_score on test data
-            pred = gp.predict(x_te)
-            accuracy_te = accuracy(pred, y_te)
-            accuracy_summary = tf.summary.scalar('accuracy_test', accuracy_te)
+            pred = gp.predict(x_te_batch)
+            correct_te_batch = num_correct(pred, y_te_batch)
+#            accuracy_te = tf.constant([0])
+#            accuracy_summary = tf.summary.scalar('accuracy_test', accuracy_te)
 
             # Saving results
             model_params = gp.get_params()
@@ -157,11 +170,13 @@ class GPCRunner:
                         print('Epoch', i/iter_per_epoch, ', lr=', lr.eval(), ':')
                         if i != 0:
                             print('\tEpoch took:', time.time() - start_epoch)
-                        accuracy_summary_val, accuracy_val = sess.run(
-                                            [accuracy_summary, accuracy_te])
-                        writer.add_summary(accuracy_summary_val, i/iter_per_epoch)
+                        
+                        accuracy = self.eval(sess, correct_te_batch, iter_per_te, N_te)
+#                        accuracy_summary_val, accuracy_val = sess.run(
+#                                            [accuracy_summary, accuracy_te])
+#                        writer.add_summary(accuracy_summary_val, i/iter_per_epoch)
                         writer.flush()
-                        print('\taccuracy on test set:', accuracy_val)       
+                        print('\taccuracy on test set:', accuracy) 
                         print('\taverage elbo:', batch_elbo / iter_per_epoch)
                         batch_elbo = 0
                         start_epoch = time.time()
@@ -172,10 +187,9 @@ class GPCRunner:
                     batch_elbo += elbo_val
                     writer.add_summary(elbo_summary_val, i)
                 
-                print(sess.run(y_te))
-                print(sess.run(pred))
-                accuracy_val = sess.run([accuracy_te])
-                print('Final accuracy:', accuracy_val)
+#                print(sess.run([y_te_batch, pred]))
+                accuracy = self.eval(sess, correct_te_batch, iter_per_te, N_te)
+                print('Final accuracy:', accuracy)
                 if not self.save_dir is None:
                     model_path = saver.save(sess, self.save_dir)
                     print("Model saved in file: %s" % model_path)

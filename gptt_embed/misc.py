@@ -28,6 +28,12 @@ def accuracy(y_pred, y_true, name=None):
     correct_prediction = tf.equal(y_pred, y_true)
     return tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
+def num_correct(y_pred, y_true, name=None):
+    """Number of correct predictions.
+    """
+    correct_prediction = tf.equal(y_pred, y_true)
+    return tf.reduce_sum(tf.cast(correct_prediction, tf.float32))
+
         
 def _kron_tril(kron_mat, name=None):
     '''Computes the lower triangular part of a kronecker-factorized matrix.
