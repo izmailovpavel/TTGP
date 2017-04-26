@@ -11,7 +11,7 @@ HEIGHT, WIDTH = 24, 24
 
 class NN(FeatureTransformer):
     
-    def __init__(self, H1=32, H2=64, H3=100, d=2):
+    def __init__(self, H1=32, H2=64, H3=100, H4=100, d=2):
 
         with tf.name_scope('layer_1'):
             self.W_conv1 = self.weight_var('W1', [5, 5, 3, H1])
@@ -23,11 +23,15 @@ class NN(FeatureTransformer):
             self.W3 = self.weight_var('W3', [36 * H2, H3])
             self.b3 = self.bias_var('b3', [H3])
         with tf.name_scope('layer_4'):
-            self.W4 = self.weight_var('W4', [H3, d])
+            self.W4 = self.weight_var('W4', [H3, H4])
+            self.b4 = self.bias_var('b4', [H4])
+        with tf.name_scope('layer_5'):
+            self.W5 = self.weight_var('W5', [H3, d])
         
         self.H1 = H1
         self.H2 = H2
         self.H3 = H3
+        self.H4 = H4
         self.d = d
         self.batch_size = batch_size
         
@@ -65,8 +69,9 @@ class NN(FeatureTransformer):
         h_pool2_flat = tf.reshape(h_pool2, [batch_size, -1])
         print('h_pol2_flat', h_pool2_flat.get_shape())
         h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, self.W3) + self.b3)
+        h_fc2 = tf.nn.relu(tf.matmul(h_fc1, self.W4) + self.b4)
         
-        projected = tf.matmul(h_fc1, self.W4) 
+        projected = tf.matmul(h_fc1, self.W5) 
         projected = tf.cast(projected, tf.float64)
 
         # Rescaling
@@ -84,20 +89,20 @@ class NN(FeatureTransformer):
 
     def get_params(self):
         return [self.W_conv1, self.b1, self.W_conv2, self.b2, 
-                self.W3, self.b3, self.W4]
+                self.W3, self.b3, self.W4, self.b4, self.W5]
 
     def out_dim(self):
         return self.d
 
-    def save_weights(self, sess):
-        W1, b1, W2, b2, W3, b3, W4 = sess.run(self.get_params())
-        np.save('W1.npy', W1)
-        np.save('b1.npy', b1)
-        np.save('W2.npy', W2)
-        np.save('b2.npy', b2)
-        np.save('W3.npy', W3)
-        np.save('b3.npy', b3)
-        np.save('W4.npy', W4)
+#    def save_weights(self, sess):
+#        W1, b1, W2, b2, W3, b3, W4 = sess.run(self.get_params())
+#        np.save('W1.npy', W1)
+#        np.save('b1.npy', b1)
+#        np.save('W2.npy', W2)
+#        np.save('b2.npy', b2)
+#        np.save('W3.npy', W3)
+#        np.save('b3.npy', b3)
+#        np.save('W4.npy', W4)
 
 
 def tr_preprocess_op(img):
@@ -135,7 +140,7 @@ with tf.Graph().as_default():
     model_dir = None#save_dir
     load_model = False#True
 
-    projector = NN(H1=64, H2=64, H3=64, d=4)
+    projector = NN(H1=64, H2=64, H3=384, H4=192, d=5)
     cov = SE_multidim(C, 0.7, 0.2, 0.1, projector)
     
     runner=GPCRunner(data_dir, n_inputs, mu_ranks, cov,
