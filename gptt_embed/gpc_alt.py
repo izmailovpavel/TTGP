@@ -76,20 +76,14 @@ class TTGPC:
         """
         return self.cov.kron_cov(self.inputs_dists, eig_correction)
 
-    def _predict_process_values(self, x, with_variance=False):
-        w = self.inputs.interpolate_on_batch(self.cov.project(x))
+    def _predict_process_values(self, x, with_variance=False, test=False):
+        w = self.inputs.interpolate_on_batch(self.cov.project(x, test=test))
 
         mean = batch_ops.pairwise_flat_inner(w, self.mus)
         if not with_variance:
             return mean
         K_mms = self._K_mms()
 
-#        # TODO: might not be optimal
-#        sigma_ls = _kron_tril(self.sigma_ls)
-#        sigmas = ops.tt_tt_matmul(sigma_ls, ops.transpose(sigma_ls))
-#        w_w_T = ops.tt_tt_matmul(w, ops.transpose(w))        
-#        variance += batch_ops.pairwise_flat_inner(w_w_T, sigmas)
-#        variance -= batch_ops.pairwise_flat_inner(w_w_T, K_mms)
         variances = []
         for c in range(self.n_class):
             sigma_l = self.sigma_ls[c]
@@ -102,7 +96,7 @@ class TTGPC:
         variances += self.cov.cov_0()[None, :]
         return mean, variances
 
-    def predict(self, x):
+    def predict(self, x, test=False):
         '''Predicts the labels at points x.
 
         Note, this function predicts the label that has the highest expectation.
@@ -110,7 +104,7 @@ class TTGPC:
         Args:
             x: data features.
         '''
-        preds = self._predict_process_values(x)
+        preds = self._predict_process_values(x, test=test)
         return tf.argmax(preds, axis=1)  
 
     def complexity_penalty(self):

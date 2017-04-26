@@ -129,13 +129,13 @@ class SE_multidim:
         self.projector = projector
         self.ndim = n_dims
 
-    def project(self, x, name=None):
+    def project(self, x, test=False, name=None):
         """Transforms the features of x with projector.
         Args:
             x: batch of data to be transformed through the projector.
         """
         with tf.name_scope(name, 'SE_project', [x]):
-            return self.projector.transform(x)
+            return self.projector.transform(x, test=test)
 
     def kron_cov(self, kron_dists, eig_correction=1e-2, name=None):
         """Computes the covariance matrix, given a kronecker product 

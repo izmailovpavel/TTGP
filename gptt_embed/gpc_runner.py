@@ -105,96 +105,96 @@ class GPCRunner:
         return accuracy
 
     def run_experiment(self):
-            
-            start_compilation = time.time()
-#            d = self.covs[0].feature_dim()
-            d = self.covs.feature_dim()
-            x_tr, y_tr, x_te, y_te = self._get_data(self.data_dir, self.data_type)
-            x_batch, y_batch = self._make_batches(x_tr, y_tr, self.batch_size)
-            x_te_batch, y_te_batch = self._make_batches(x_te, y_te, 
-                                                    self.batch_size, test=True)
-            x_init, y_init = self._make_batches(x_tr, y_tr, self.mu_ranks)
-            y_init = self._make_mu_initializers(y_init, d)
-            inputs = self._init_inputs(d, self.n_inputs)
-
-            N = y_tr.get_shape()[0].value #number of data
-            N_te = y_te.get_shape()[0].value #number of data
-            iter_per_epoch = int(N / self.batch_size)
-            iter_per_te = int(N_te / self.batch_size)
-            maxiter = iter_per_epoch * self.n_epoch
-
-            if not self.log_dir is None:
-                print('Deleting old stats')
-                os.system('rm -rf ' + self.log_dir)
-    
-
-            gp = TTGPC(self.covs, inputs, x_init, y_init, self.mu_ranks) 
-            
-            # train_op and elbo
-            global_step = tf.Variable(0, trainable=False)
-            if self.decay is not None:
-                steps = iter_per_epoch * self.decay[0]
-                print(steps, 'steps before decay')
-                lr = tf.train.exponential_decay(self.lr, global_step, 
-                                        steps, self.decay[1], staircase=True)
-            else:
-                lr = tf.Variable(self.lr, trainable=False)
-            elbo, train_op = gp.fit(x_batch, y_batch, N, lr, global_step)
-            elbo_summary = tf.summary.scalar('elbo_batch', elbo)
-
-            # prediction and r2_score on test data
-            pred = gp.predict(x_te_batch)
-            correct_te_batch = num_correct(pred, y_te_batch)
-
-            # Saving results
-            model_params = gp.get_params()
-            saver = tf.train.Saver(model_params)
-            coord = tf.train.Coordinator()
-            data_initializer = tf.variables_initializer([x_tr, y_tr, x_te, y_te])
-            init = tf.global_variables_initializer()
-    
-            # Main session
-            with tf.Session() as sess:
-                # Initialization
-                #writer = tf.summary.FileWriter(self.log_dir, sess.graph) 
-                sess.run(data_initializer)
-                threads = tf.train.start_queue_runners(sess=sess, coord=coord) 
-                gp.initialize(sess)
-                sess.run(init)
-
-                if self.load_model:
-                    print('Restoring the model...')
-                    saver.restore(sess, self.model_dir)
-                    print('restored.')
-
-                batch_elbo = 0
-                start_epoch = time.time()
-                for i in range(maxiter):
-                    if not (i % iter_per_epoch):
-                        # At the end of every epoch evaluate method on test data
-                        if i == 0:
-                            print('Compilation took', time.time() - start_compilation)
-                        print('Epoch', i/iter_per_epoch, ', lr=', lr.eval(), ':')
-                        if i != 0:
-                            print('\tEpoch took:', time.time() - start_epoch)
-                        
-                        accuracy = self.eval(sess, correct_te_batch, iter_per_te, N_te)
-                        #writer.flush()
-                        print('\taccuracy on test set:', accuracy) 
-                        print('\taverage elbo:', batch_elbo / iter_per_epoch)
-                        batch_elbo = 0
-                        start_epoch = time.time()
-
-                    # Training operation
-                    elbo_summary_val, elbo_val, _ = sess.run([elbo_summary, 
-                                                              elbo, train_op])
-                    batch_elbo += elbo_val
-#                    writer.add_summary(elbo_summary_val, i)
                 
-#                print(sess.run([y_te_batch, pred]))
-                accuracy = self.eval(sess, correct_te_batch, iter_per_te, N_te)
-                print('Final accuracy:', accuracy)
-                if not self.save_dir is None:
-                    model_path = saver.save(sess, self.save_dir)
-                    print("Model saved in file: %s" % model_path)
-                    gp.cov.projector.save_weights(sess)
+        start_compilation = time.time()
+        d = self.covs.feature_dim()
+        x_tr, y_tr, x_te, y_te = self._get_data(self.data_dir, self.data_type)
+        x_batch, y_batch = self._make_batches(x_tr, y_tr, self.batch_size)
+        x_te_batch, y_te_batch = self._make_batches(x_te, y_te,
+                                                self.batch_size, test=True)
+        x_init, y_init = self._make_batches(x_tr, y_tr, self.mu_ranks)
+        y_init = self._make_mu_initializers(y_init, d)
+        inputs = self._init_inputs(d, self.n_inputs)
+
+        N = y_tr.get_shape()[0].value #number of data
+        N_te = y_te.get_shape()[0].value #number of data
+        iter_per_epoch = int(N / self.batch_size)
+        iter_per_te = int(N_te / self.batch_size)
+        maxiter = iter_per_epoch * self.n_epoch
+
+        if not self.log_dir is None:
+            print('Deleting old stats')
+            os.system('rm -rf ' + self.log_dir)
+    
+
+        gp = TTGPC(self.covs, inputs, x_init, y_init, self.mu_ranks) 
+        
+        # train_op and elbo
+        global_step = tf.Variable(0, trainable=False)
+        if self.decay is not None:
+            steps = iter_per_epoch * self.decay[0]
+            print(steps, 'steps before decay')
+            lr = tf.train.exponential_decay(self.lr, global_step, 
+                                    steps, self.decay[1], staircase=True)
+        else:
+            lr = tf.Variable(self.lr, trainable=False)
+        elbo, train_op = gp.fit(x_batch, y_batch, N, lr, global_step)
+        elbo_summary = tf.summary.scalar('elbo_batch', elbo)
+
+        # prediction and r2_score on test data
+        pred = gp.predict(x_te_batch, test=True)
+        correct_te_batch = num_correct(pred, y_te_batch)
+
+        # Saving results
+        model_params = gp.get_params()
+        saver = tf.train.Saver(model_params)
+        coord = tf.train.Coordinator()
+        data_initializer = tf.variables_initializer([x_tr, y_tr, x_te, y_te])
+        init = tf.global_variables_initializer()
+    
+        update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS) 
+        # Main session
+        with tf.Session() as sess:
+            # Initialization
+            #writer = tf.summary.FileWriter(self.log_dir, sess.graph) 
+            sess.run(data_initializer)
+            threads = tf.train.start_queue_runners(sess=sess, coord=coord) 
+            gp.initialize(sess)
+            sess.run(init)
+
+            if self.load_model:
+                print('Restoring the model...')
+                saver.restore(sess, self.model_dir)
+                print('restored.')
+
+            batch_elbo = 0
+            start_epoch = time.time()
+            for i in range(maxiter):
+                if not (i % iter_per_epoch):
+                    # At the end of every epoch evaluate method on test data
+                    if i == 0:
+                        print('Compilation took', time.time() - start_compilation)
+                    print('Epoch', i/iter_per_epoch, ', lr=', lr.eval(), ':')
+                    if i != 0:
+                        print('\tEpoch took:', time.time() - start_epoch)
+                    
+                    accuracy = self.eval(sess, correct_te_batch, iter_per_te, N_te)
+                    #writer.flush()
+                    print('\taccuracy on test set:', accuracy) 
+                    print('\taverage elbo:', batch_elbo / iter_per_epoch)
+                    batch_elbo = 0
+                    start_epoch = time.time()
+
+                # Training operation
+                elbo_summary_val, elbo_val, _, _ = sess.run([elbo_summary, 
+                                                          elbo, train_op, update_ops])
+                batch_elbo += elbo_val
+#                writer.add_summary(elbo_summary_val, i)
+            
+#            print(sess.run([y_te_batch, pred]))
+            accuracy = self.eval(sess, correct_te_batch, iter_per_te, N_te)
+            print('Final accuracy:', accuracy)
+            if not self.save_dir is None:
+                model_path = saver.save(sess, self.save_dir)
+                print("Model saved in file: %s" % model_path)
+                gp.cov.projector.save_weights(sess)

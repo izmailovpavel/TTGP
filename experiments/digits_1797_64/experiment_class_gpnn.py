@@ -1,6 +1,7 @@
 import tensorflow as tf
 import os
 import numpy as np
+from tensorflow.contrib.layers import batch_norm
 
 from gptt_embed.covariance import SE_multidim
 from gptt_embed.projectors import FeatureTransformer, LinearProjector
@@ -24,6 +25,10 @@ class NN(FeatureTransformer):
 
         self.p = p
         self.d = d
+        self.ema = tf.train.ExponentialMovingAverage(decay=0.99)
+
+    def variable_averaging_op(self):
+        self.ema.apply(self.mean, self.variance)
         
     @staticmethod
     def weight_var(name, shape, W=None, trainable=True):
@@ -44,18 +49,16 @@ class NN(FeatureTransformer):
         return tf.get_variable(name, initializer=init, 
                                 dtype=tf.float64, trainable=trainable)
 
-    def transform(self, x):
+    def transform(self, x, test=False):
         l1 = tf.sigmoid(tf.matmul(x, self.W1) + self.b1)
-#        l1_d = tf.nn.dropout(l1, self.p)
         l2 = tf.sigmoid(tf.matmul(l1, self.W2) + self.b2)
-#        l2_d = tf.nn.dropout(l2, self.p)
         l3 = tf.matmul(l2, self.W3)
         projected = l3
 
-        # Rescaling
-        mean, variance = tf.nn.moments(projected, axes=[0])
-        scale = tf.rsqrt(variance + 1e-8)
-        projected = (projected - mean[None, :]) * scale[None, :]
+        projected = tf.cast(projected, tf.float32)
+        projected = batch_norm(projected, decay=0.99, center=False, scale=False,
+                                is_training=(not test), reuse=True, scope="batch_norm")
+        projected = tf.cast(projected, tf.float64)
         projected /= 3
 
         projected = tf.minimum(projected, 1)
@@ -63,6 +66,9 @@ class NN(FeatureTransformer):
         return projected
 
     def initialize(self, sess):
+        # TODO: looks rather ugly
+        bn_vars =tf.get_collection(tf.GraphKeys.VARIABLES, scope='batch_norm')
+        sess.run(tf.variables_initializer(bn_vars))
         sess.run(tf.variables_initializer(self.get_params()))
 
     def get_params(self):
@@ -83,15 +89,15 @@ with tf.Graph().as_default():
     data_dir = "data_class/"
     n_inputs = 10
     mu_ranks = 10
-    projector = NN(H1=100, H2=100, d=2)
+    projector = NN(H1=20, H2=20, d=2)
     C = 10
 
     cov = SE_multidim(C, 0.7, 0.2, 0.1, projector)
 
     lr = 1e-2
-    decay = (50, 0.2)
+    decay = (20, 0.2)
     n_epoch = 100
-    batch_size = 200
+    batch_size = 50
     data_type = 'numpy'
     log_dir = 'log'
     save_dir = 'models/gpnn_100_100_4.ckpt'

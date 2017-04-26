@@ -94,17 +94,6 @@ class NN(FeatureTransformer):
     def out_dim(self):
         return self.d
 
-#    def save_weights(self, sess):
-#        W1, b1, W2, b2, W3, b3, W4 = sess.run(self.get_params())
-#        np.save('W1.npy', W1)
-#        np.save('b1.npy', b1)
-#        np.save('W2.npy', W2)
-#        np.save('b2.npy', b2)
-#        np.save('W3.npy', W3)
-#        np.save('b3.npy', b3)
-#        np.save('W4.npy', W4)
-
-
 def tr_preprocess_op(img):
 
     img = tf.reshape(img, [32, 32, 3])
