@@ -1,6 +1,7 @@
 import tensorflow as tf
 import os
 import numpy as np
+from tensorflow.contrib.layers import batch_norm
 
 from gptt_embed.covariance import SE_multidim
 from gptt_embed.projectors import FeatureTransformer, LinearProjector
@@ -26,7 +27,7 @@ class NN(FeatureTransformer):
             self.W4 = self.weight_var('W4', [H3, H4])
             self.b4 = self.bias_var('b4', [H4])
         with tf.name_scope('layer_5'):
-            self.W5 = self.weight_var('W5', [H3, d])
+            self.W5 = self.weight_var('W5', [H4, d])
         
         self.H1 = H1
         self.H2 = H2
@@ -34,6 +35,7 @@ class NN(FeatureTransformer):
         self.H4 = H4
         self.d = d
         self.batch_size = batch_size
+        self.reuse = False
         
     @staticmethod
     def weight_var(name, shape, trainable=True):
@@ -56,7 +58,7 @@ class NN(FeatureTransformer):
           return tf.nn.max_pool(x, ksize=[1, 3, 3, 1],
                                           strides=[1, 2, 2, 1], padding='SAME')
 
-    def transform(self, x):
+    def transform(self, x, test=False):
         batch_size = x.get_shape()[0].value
         x_image = tf.cast(tf.reshape(x, [-1, HEIGHT, WIDTH, 3]), tf.float32)
 
@@ -69,16 +71,21 @@ class NN(FeatureTransformer):
         h_pool2_flat = tf.reshape(h_pool2, [batch_size, -1])
         print('h_pol2_flat', h_pool2_flat.get_shape())
         h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, self.W3) + self.b3)
+        print('h_fc1', h_fc1.get_shape())
         h_fc2 = tf.nn.relu(tf.matmul(h_fc1, self.W4) + self.b4)
+        print('h_fc2', h_fc2.get_shape())
         
-        projected = tf.matmul(h_fc1, self.W5) 
+        projected = tf.matmul(h_fc2, self.W5) 
+        print('projected', projected.get_shape())
         projected = tf.cast(projected, tf.float64)
 
         # Rescaling
-        mean, variance = tf.nn.moments(projected, axes=[0])
-        scale = tf.rsqrt(variance + 1e-8)
-        projected = (projected - mean[None, :]) * scale[None, :]
+        projected = tf.cast(projected, tf.float32)
+        projected = batch_norm(projected, decay=0.99, center=False, scale=False,
+                                is_training=(not test), reuse=self.reuse, scope="batch_norm")
+        projected = tf.cast(projected, tf.float64)
         projected /= 3
+        self.reuse = True
 
         projected = tf.minimum(projected, 1)
         projected = tf.maximum(projected, -1)
@@ -88,8 +95,9 @@ class NN(FeatureTransformer):
         sess.run(tf.variables_initializer(self.get_params()))
 
     def get_params(self):
+        bn_vars = tf.get_collection(tf.GraphKeys.VARIABLES, scope='batch_norm')
         return [self.W_conv1, self.b1, self.W_conv2, self.b2, 
-                self.W3, self.b3, self.W4, self.b4, self.W5]
+                self.W3, self.b3, self.W4, self.b4, self.W5] + bn_vars
 
     def out_dim(self):
         return self.d
@@ -129,7 +137,7 @@ with tf.Graph().as_default():
     model_dir = None#save_dir
     load_model = False#True
 
-    projector = NN(H1=64, H2=64, H3=384, H4=192, d=5)
+    projector = NN(H1=64, H2=128, H3=512, H4=128, d=6)
     cov = SE_multidim(C, 0.7, 0.2, 0.1, projector)
     
     runner=GPCRunner(data_dir, n_inputs, mu_ranks, cov,

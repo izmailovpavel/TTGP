@@ -25,10 +25,7 @@ class NN(FeatureTransformer):
 
         self.p = p
         self.d = d
-        self.ema = tf.train.ExponentialMovingAverage(decay=0.99)
-
-    def variable_averaging_op(self):
-        self.ema.apply(self.mean, self.variance)
+        self.reuse = False
         
     @staticmethod
     def weight_var(name, shape, W=None, trainable=True):
@@ -57,22 +54,22 @@ class NN(FeatureTransformer):
 
         projected = tf.cast(projected, tf.float32)
         projected = batch_norm(projected, decay=0.99, center=False, scale=False,
-                                is_training=(not test), reuse=True, scope="batch_norm")
+                                is_training=(not test), reuse=self.reuse, scope="batch_norm")
         projected = tf.cast(projected, tf.float64)
         projected /= 3
+        self.reuse = True
 
         projected = tf.minimum(projected, 1)
         projected = tf.maximum(projected, -1)
         return projected
 
     def initialize(self, sess):
-        # TODO: looks rather ugly
-        bn_vars =tf.get_collection(tf.GraphKeys.VARIABLES, scope='batch_norm')
-        sess.run(tf.variables_initializer(bn_vars))
         sess.run(tf.variables_initializer(self.get_params()))
 
     def get_params(self):
-        return [self.W1, self.b1, self.W2, self.b2, self.W3]
+        # TODO: looks rather ugly
+        bn_vars = tf.get_collection(tf.GraphKeys.VARIABLES, scope='batch_norm')
+        return [self.W1, self.b1, self.W2, self.b2, self.W3] + bn_vars
 
     def out_dim(self):
         return self.d
@@ -89,7 +86,7 @@ with tf.Graph().as_default():
     data_dir = "data_class/"
     n_inputs = 10
     mu_ranks = 10
-    projector = NN(H1=20, H2=20, d=2)
+    projector = NN(H1=20, H2=20, d=4)
     C = 10
 
     cov = SE_multidim(C, 0.7, 0.2, 0.1, projector)

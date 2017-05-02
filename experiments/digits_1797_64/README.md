@@ -20,5 +20,7 @@ Here we train an GP on DIGITS with regression likelihood.
 
 Here we use a multiclass GP with NN embedding. 
 - NN Embedding to dim d=2 with (64->20->20->2) fully-connected architecture 
-  achievs 0.87 accuracy. 
+  achieves 0.87 accuracy. 
+- NN Embedding to dim d=2 with (64->20->20->4) fully-connected architecture 
+  achieves 0.9 accuracy. 
 ![NNEmbeddingClass](https://cloud.githubusercontent.com/assets/14368801/25273973/cecfce9c-2696-11e7-8281-f4de84919e8d.png)
