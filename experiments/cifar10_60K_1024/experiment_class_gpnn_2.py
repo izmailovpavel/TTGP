@@ -8,7 +8,7 @@ from gptt_embed.projectors import FeatureTransformer, LinearProjector
 from gptt_embed.gpc_runner import GPCRunner
 
 
-HEIGHT, WIDTH = 24, 24
+HEIGHT, WIDTH = 30, 30
 
 class NN(FeatureTransformer):
     
@@ -37,7 +37,7 @@ class NN(FeatureTransformer):
 
         # Fully-connected
         with tf.name_scope('fc1'):
-            self.W_fc1 = self.weight_var('W_fc1', [36 * Hc6, Hd1])
+            self.W_fc1 = self.weight_var('W_fc1', [64 * Hc6, Hd1])
             self.b_fc1 = self.bias_var('b_fc1', [Hd1])
         with tf.name_scope('fc2'):
             self.W_fc2 = self.weight_var('W_fc2', [Hd1, Hd2])

@@ -1,6 +1,7 @@
 import tensorflow as tf
 import os
 import numpy as np
+from tensorflow.contrib.layers import batch_norm
 
 from gptt_embed.covariance import SE_multidim
 from gptt_embed.projectors import FeatureTransformer, LinearProjector
@@ -26,6 +27,7 @@ class NN(FeatureTransformer):
         self.H2 = H2
         self.H3 = H3
         self.d = d
+        self.reuse = False
         
     @staticmethod
     def weight_var(name, shape, trainable=True):
@@ -48,7 +50,7 @@ class NN(FeatureTransformer):
           return tf.nn.max_pool(x, ksize=[1, 2, 2, 1],
                                           strides=[1, 2, 2, 1], padding='SAME')
 
-    def transform(self, x):
+    def transform(self, x, test=False):
         x_image = tf.cast(tf.reshape(x, [-1, 28, 28, 1]), tf.float32)
 
         h_conv1 = tf.nn.relu(self.conv2d(x_image, self.W_conv1) + self.b1)
@@ -64,10 +66,12 @@ class NN(FeatureTransformer):
         projected = tf.cast(projected, tf.float64)
 
         # Rescaling
-        mean, variance = tf.nn.moments(projected, axes=[0])
-        scale = tf.rsqrt(variance + 1e-8)
-        projected = (projected - mean[None, :]) * scale[None, :]
+        projected = tf.cast(projected, tf.float32)
+        projected = batch_norm(projected, decay=0.99, center=False, scale=False,
+                                is_training=(not test), reuse=self.reuse, scope="batch_norm")
+        projected = tf.cast(projected, tf.float64)
         projected /= 3
+        self.reuse = True
 
         projected = tf.minimum(projected, 1)
         projected = tf.maximum(projected, -1)
@@ -104,7 +108,7 @@ with tf.Graph().as_default():
     cov = SE_multidim(C, 0.7, 0.2, 0.1, projector)
 
     lr = 1e-2
-    decay = (50, 0.2)
+    decay = (10, 0.2)
     n_epoch = 100
     batch_size = 200
     data_type = 'numpy'
