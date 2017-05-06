@@ -8,7 +8,7 @@ from gptt_embed.projectors import FeatureTransformer, LinearProjector
 from gptt_embed.gpc_runner import GPCRunner
 
 
-HEIGHT, WIDTH = 30, 30
+HEIGHT, WIDTH = 24, 24
 
 class NN(FeatureTransformer):
     
@@ -37,7 +37,7 @@ class NN(FeatureTransformer):
 
         # Fully-connected
         with tf.name_scope('fc1'):
-            self.W_fc1 = self.weight_var('W_fc1', [64 * Hc6, Hd1])
+            self.W_fc1 = self.weight_var('W_fc1', [36 * Hc6, Hd1])
             self.b_fc1 = self.bias_var('b_fc1', [Hd1])
         with tf.name_scope('fc2'):
             self.W_fc2 = self.weight_var('W_fc2', [Hd1, Hd2])
@@ -199,8 +199,8 @@ with tf.Graph().as_default():
     model_dir = None#save_dir
     load_model = False#True
 
-    projector = NN(Hc1=64, Hc2=64, Hc3=394, Hc4=192, Hc5=128, Hc6=128,
-            Hd1=1536, Hd2=512, d=5)
+    projector = NN(Hc1=64, Hc2=64, Hc3=256, Hc4=256, Hc5=256, Hc6=256,
+            Hd1=1536, Hd2=512, d=7)
     cov = SE_multidim(C, 0.7, 0.2, 0.1, projector)
     
     runner=GPCRunner(data_dir, n_inputs, mu_ranks, cov,

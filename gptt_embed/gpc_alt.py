@@ -84,15 +84,25 @@ class TTGPC:
             return mean
         K_mms = self._K_mms()
 
+        sigma_ls = _kron_tril(self.sigma_ls)
         variances = []
-        for c in range(self.n_class):
-            sigma_l = self.sigma_ls[c]
-            K_mm = K_mms[c]
-            sigma_l_w = ops.tt_tt_matmul(ops.transpose(sigma_l), w)
-            variance = ops.tt_tt_flat_inner(sigma_l_w, sigma_l_w)
-            variance -= ops.tt_tt_flat_inner(w, ops.tt_tt_matmul(K_mm, w))
-            variances.append(variance[:, None])
-        variances = tf.concat(variances, axis=1)
+#        for c in range(self.n_class):
+#            sigma_l = self.sigma_ls[c]
+#            K_mm = K_mms[c]
+#            sigma_l_w = ops.tt_tt_matmul(ops.transpose(sigma_l), w)
+#            variance = ops.tt_tt_flat_inner(sigma_l_w, sigma_l_w)
+#            variance -= ops.tt_tt_flat_inner(w, ops.tt_tt_matmul(K_mm, w))
+#            variances.append(variance[:, None])
+#        variances = tf.concat(variances, axis=1)
+        sigmas = ops.tt_tt_matmul(sigma_ls, ops.transpose(sigma_ls))
+        variances = t3f.pairwise_quadratic_form(sigmas, w, w)
+        print('_predict.../variances', variances.get_shape())
+        print('_predict.../variances', variances.dtype)
+        print('_predict.../Kmms', str(K_mms))
+        print('_predict.../Kmms', K_mms.dtype)
+        print('_predict.../w', str(w))
+        print('_predict.../Sigmas', str(sigmas))
+        variances -= t3f.pairwise_quadratic_form(sigmas, w, w)
         variances += self.cov.cov_0()[None, :]
         return mean, variances
 
