@@ -82,3 +82,34 @@ def _kron_logdet(kron_mat, name=None):
                                     tf.matrix_diag_part(core)))))
         logdet *= 2
         return logdet
+
+def pairwise_quadratic_form(A, b, c):
+  """???
+
+      res[i, j] = t3f.flat_inner(tt[i], t3f.matmul(matrix[j], tt[i]))
+    or more shortly
+      res[i, j] = tt[i]^T * matrices[j] * tt[i]
+    but is more efficient.
+
+  Args:
+    A: TensorTrainBatch of TT-matrices.
+    b: TensorTrainBatch.
+    c: TensorTrainBatch.
+
+  Returns:
+    tf.tensor with the matrix of pairwise scalar products (flat inners).
+  """
+  ndims = A.ndims()
+  curr_core_A = A.tt_cores[0][:, 0, :, :, :]
+  curr_core_b = b.tt_cores[0][:, 0, :, :, :]
+  curr_core_c = c.tt_cores[0][:, 0, :, :, :]
+  res = tf.einsum('qikd,pkjf,pijb->pqbdf', curr_core_A, curr_core_c,
+                  curr_core_b)
+  for core_idx in range(1, ndims):
+    curr_core_A = A.tt_cores[core_idx]
+    curr_core_b = b.tt_cores[core_idx]
+    curr_core_c = c.tt_cores[core_idx]
+    res = tf.einsum('qcikd,pekjf,paijb,pqace->pqbdf', curr_core_A, curr_core_c,
+                    curr_core_b, res)
+
+  return tf.squeeze(res)
