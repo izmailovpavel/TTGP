@@ -199,7 +199,7 @@ with tf.Graph().as_default():
     model_dir = None#save_dir
     load_model = False#True
 
-    projector = NN(Hc1=64, Hc2=64, Hc3=256, Hc4=256, Hc5=256, Hc6=256,
+    projector = NN(Hc1=128, Hc2=128, Hc3=256, Hc4=256, Hc5=256, Hc6=256,
             Hd1=1536, Hd2=512, d=7)
     cov = SE_multidim(C, 0.7, 0.2, 0.1, projector)
     
