@@ -5,7 +5,7 @@ import time
 
 from gptt_embed.input import prepare_data, make_tensor
 from gptt_embed.gpr import TTGPR
-from gptt_embed.misc import r2
+from gptt_embed.misc import r2, mse
 from gptt_embed import grid
 import t3f
 from t3f import TensorTrain, TensorTrainBatch
@@ -118,6 +118,7 @@ class GPRunner:
             # prediction and r2_score on test data
             pred = gp.predict(x_te)
             r2_te = r2(pred, y_te)
+            mse_te = mse(pred, y_te)
             r2_summary = tf.summary.scalar('r2_test', r2_te)
 
             # Saving results
@@ -149,10 +150,13 @@ class GPRunner:
                         print('Epoch', i/iter_per_epoch, ', lr=', lr.eval(), ':')
                         if i != 0:
                             print('\tEpoch took:', time.time() - start_epoch)
-                        r2_summary_val, r2_val = sess.run([r2_summary, r2_te])
+                        r2_summary_val, r2_val, mse_val = sess.run([r2_summary, 
+                                                    r2_te, mse_te])
                         writer.add_summary(r2_summary_val, i/iter_per_epoch)
                         writer.flush()
-                        print('\tr_2 on test set:', r2_val)       
+                        print('\tr_2 on test set:', r2_val)
+                        print('\tmse on test set:', mse_val)
+                        print('\trmse on test set:', np.sqrt(mse_val))
                         print('\taverage elbo:', batch_elbo / iter_per_epoch)
                         batch_elbo = 0
                         start_epoch = time.time()
@@ -163,8 +167,10 @@ class GPRunner:
                     batch_elbo += elbo_val
                     writer.add_summary(elbo_summary_val, i)
                 
-                r2_val = sess.run(r2_te)
+                r2_val, mse_vale = sess.run(r2_te, mse_te)
                 print('Final r2:', r2_val)
+                print('Final mse:', mse_val)
+                print('Final rmse:', np.sqrt(mse_val))
                 if not self.save_dir is None:
                     model_path = saver.save(sess, self.save_dir)
                     print("Model saved in file: %s" % model_path)
