@@ -71,9 +71,9 @@ class GPCRunner:
         x_tr, y_tr, x_te, y_te = prepare_data(data_dir, mode=data_type, 
                                                         target='class')
         x_tr = make_tensor(x_tr, 'x_tr')
-        y_tr = make_tensor(y_tr, 'y_tr', dtype=tf.int64)
+        y_tr = make_tensor(y_tr.astype(int), 'y_tr', dtype=tf.int64)
         x_te = make_tensor(x_te, 'x_te')
-        y_te = make_tensor(y_te, 'y_te', dtype=tf.int64)
+        y_te = make_tensor(y_te.astype(int), 'y_te', dtype=tf.int64)
         return x_tr, y_tr, x_te, y_te
        
     def _make_batches(self, x_tr, y_tr, batch_size, test=False):
@@ -189,6 +189,7 @@ class GPCRunner:
                 elbo_summary_val, elbo_val, _, _ = sess.run([elbo_summary, 
                                                           elbo, train_op, update_ops])
                 batch_elbo += elbo_val
+                print('next_batch')
 #                writer.add_summary(elbo_summary_val, i)
             
 #            print(sess.run([y_te_batch, pred]))
