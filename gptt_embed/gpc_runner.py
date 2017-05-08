@@ -189,7 +189,7 @@ class GPCRunner:
                 elbo_summary_val, elbo_val, _, _ = sess.run([elbo_summary, 
                                                           elbo, train_op, update_ops])
                 batch_elbo += elbo_val
-                print('next_batch')
+#                print('next_batch')
 #                writer.add_summary(elbo_summary_val, i)
             
 #            print(sess.run([y_te_batch, pred]))

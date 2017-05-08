@@ -90,7 +90,7 @@ with tf.Graph().as_default():
     accuracy_te = accuracy(tf.argmax(pred_te, axis=1), y_te)
     
     decay = (10, 0.2)
-    n_epoch = 300
+    n_epoch = 30
     batch_size = 50
     
     N = y_tr.get_shape()[0].value
