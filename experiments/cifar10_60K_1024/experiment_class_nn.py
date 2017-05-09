@@ -140,6 +140,15 @@ class NN():
     def initialize(self, sess):
         sess.run(tf.variables_initializer(self.get_params()))
 
+    def get_bn_vars(self):
+        bn_vars = []
+        for scope in ["norm_conv1", "norm_conv2", "norm_conv3", 
+                      "norm_conv4", "norm_conv5", "norm_conv6",
+                      "norm_fc1", "norm_fc2", "norm_fc3"]:
+            bn_vars += tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=scope)
+        return bn_vars
+
+
     def get_params(self):
         bn_vars = []
         for scope in ["norm_conv1", "norm_conv2", "norm_conv3", 
@@ -172,8 +181,8 @@ def te_preprocess_op(img):
     res = tf.reshape(res, [-1])
     return res
 
-def _make_batches(x_tr, y_tr, batch_size, test=False):
-    sample_x, sample_y = tf.train.slice_input_producer([x_tr, y_tr], shuffle=True)
+def _make_batches(x, y, batch_size, test=False):
+    sample_x, sample_y = tf.train.slice_input_producer([x, y], shuffle=True)
     if not test:
         sample_x = tr_preprocess_op(sample_x)
     elif test:
@@ -191,10 +200,10 @@ def eval(sess, correct_on_batch, iter_per_test, n_test):
 
 with tf.Graph().as_default():
     
-    net = NN(Hc1=128, Hc2=128, Hc3=256, Hc4=256, Hc5=256, Hc6=256,
+    net = NN(Hc1=64, Hc2=64, Hc3=128, Hc4=128, Hc5=128, Hc6=128,
             Hd1=1536, Hd2=512)
 
-    lr = 1e-3
+    lr = 1e-2
     decay = (30, 0.2)
     n_epoch = 100
     batch_size = 100
@@ -212,13 +221,13 @@ with tf.Graph().as_default():
     x_batch, y_batch = _make_batches(x_tr, y_tr, batch_size)
     x_te_batch, y_te_batch = _make_batches(x_te, y_te, batch_size, test=True)
 
-
     # Loss
     y_batch_oh = tf.one_hot(y_batch, 10)
     pred = net.predict(x_batch)
     loss = tf.reduce_mean(
         tf.nn.softmax_cross_entropy_with_logits(labels=y_batch_oh, logits=pred))
-
+    pred_labels = tf.argmax(pred, axis=1) 
+    correct_tr_batch = num_correct(pred_labels, y_batch)
 
     # Accuracy
     pred_raw = net.predict(x_te_batch, test=True)
@@ -229,6 +238,7 @@ with tf.Graph().as_default():
     N_te = y_te.get_shape()[0].value
     iter_per_te = int(N_te / batch_size)
     print('iter_per_te', iter_per_te)
+    print('N_te', N_te)
 
     N = y_tr.get_shape()[0].value
     iter_per_epoch = int(N / batch_size)
@@ -245,26 +255,28 @@ with tf.Graph().as_default():
 
     coord = tf.train.Coordinator()
     init = tf.global_variables_initializer()
+    update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS) 
     with tf.Session() as sess:
         sess.run(init)
         threads = tf.train.start_queue_runners(sess=sess, coord=coord) 
 
         batch_loss = 0
+        batch_correct = 0
         for i in range(maxiter):
             if not (i % iter_per_epoch):
                 print('Epoch', i/iter_per_epoch, ', lr=', lr.eval(), ':')
                 if i != 0:
                     print('\tEpoch took:', time.time() - start_epoch)
                 print('\taverage loss:', batch_loss / iter_per_epoch)
+                print('\taverage train accuracy:', batch_correct / N)
                 accuracy = eval(sess, correct_te_batch, iter_per_te, N_te)
-                print('\taccuracy on test set:', accuracy) 
-#                print(sess.run(pred_te)[:20])
-
-
                 batch_loss = 0
+                batch_correct = 0
                 start_epoch = time.time()
 
-            loss_val, _ = sess.run([loss, train_op])
+            loss_val, correct_preds, _, _ = sess.run([loss, correct_tr_batch, 
+                                                train_op, update_ops])
+            batch_correct += correct_preds
             batch_loss += loss_val
 
         accuracy_val = sess.run([accuracy_te])
