@@ -195,9 +195,6 @@ class GPCRunner:
                 if self.frequent_print:
                     print('batch', i % iter_per_epoch)
                 
-#                writer.add_summary(elbo_summary_val, i)
-            
-#            print(sess.run([y_te_batch, pred]))
             accuracy = self.eval(sess, correct_te_batch, iter_per_te, N_te)
             print('Final accuracy:', accuracy)
             if not self.save_dir is None:
