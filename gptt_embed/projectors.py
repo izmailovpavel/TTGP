@@ -51,7 +51,7 @@ class LinearProjector(FeatureTransformer):
                                 initializer=tf.constant_initializer(P), 
                                 dtype=tf.float64, trainable=trainable)
 
-    def transform(self, x):
+    def transform(self, x, test=False):
         projected = tf.matmul(x, tf.transpose(self.P))
         projected = tf.minimum(projected, 1)
         projected = tf.maximum(projected, -1)
@@ -79,7 +79,7 @@ class Identity(FeatureTransformer):
         """
         self.D = D
 
-    def transform(self, x):
+    def transform(self, x, test=False):
         return x
 
     def initialize(self, sess):

@@ -17,7 +17,7 @@ class GPCRunner:
             lr=0.01, n_epoch=15, decay=None, batch_size=None,
             preprocess_op=None, te_preprocess_op=None,
             data_type='numpy', log_dir=None, save_dir=None,
-            model_dir=None, load_model=False):
+            model_dir=None, load_model=False, print_freq=None):
         """Runs the experiments for the given parameters and data.
 
         This class is designed to run the experiments with tt-gp model.
@@ -60,6 +60,8 @@ class GPCRunner:
         self.save_dir = save_dir
         self.model_dir = model_dir
         self.load_model = load_model
+        self.print_freq = print_freq
+        self.frequent_print = print_freq is not None
 
     @staticmethod
     def _init_inputs(d, n_inputs):
@@ -170,7 +172,8 @@ class GPCRunner:
             batch_elbo = 0
             start_epoch = time.time()
             for i in range(maxiter):
-                if not (i % iter_per_epoch):
+                if ((not (i % iter_per_epoch)) or 
+                (not (i % self.print_freq) and self.frequent_print)):
                     # At the end of every epoch evaluate method on test data
                     if i == 0:
                         print('Compilation took', time.time() - start_compilation)
@@ -189,7 +192,9 @@ class GPCRunner:
                 elbo_summary_val, elbo_val, _, _ = sess.run([elbo_summary, 
                                                           elbo, train_op, update_ops])
                 batch_elbo += elbo_val
-                print('next_batch')
+                if self.frequent_print:
+                    print('batch', i % iter_per_epoch)
+                
 #                writer.add_summary(elbo_summary_val, i)
             
 #            print(sess.run([y_te_batch, pred]))
