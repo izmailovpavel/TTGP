@@ -5,21 +5,22 @@ import numpy as np
 from tensorflow.contrib.layers import batch_norm
 
 from gptt_embed.covariance import SE
-from gptt_embed.projectors import Identity
+from gptt_embed.projectors import LinearProjector
 from gptt_embed.gp_runner import GPRunner
 
 with tf.Graph().as_default():
     data_dir = "data/"
-    n_inputs = 30
-    mu_ranks = 25
+    n_inputs = 20
+    mu_ranks = 20
     D = 4
+    d = 3
 
-    projector = Identity(D=D)
+    projector = LinearProjector(d=d, D=D)
     cov = SE(0.7, 0.2, 0.1, projector)
 
     lr = 1e-3
     decay = (10, 0.2)
-    n_epoch = 20
+    n_epoch = 30
     batch_size = 100
     data_type = 'numpy'
     log_dir = 'log'

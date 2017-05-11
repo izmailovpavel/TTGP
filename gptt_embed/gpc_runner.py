@@ -61,7 +61,7 @@ class GPCRunner:
         self.model_dir = model_dir
         self.load_model = load_model
         self.print_freq = print_freq
-        self.frequent_print = print_freq is not None
+        self.frequent_print = not (print_freq is None)
 
     @staticmethod
     def _init_inputs(d, n_inputs):
@@ -173,7 +173,7 @@ class GPCRunner:
             start_epoch = time.time()
             for i in range(maxiter):
                 if ((not (i % iter_per_epoch)) or 
-                (not (i % self.print_freq) and self.frequent_print)):
+                (self.frequent_print and not (i % self.print_freq))):
                     # At the end of every epoch evaluate method on test data
                     if i == 0:
                         print('Compilation took', time.time() - start_compilation)
