@@ -10,7 +10,9 @@ from gptt_embed.gp_runner import GPRunner
 
 with tf.Graph().as_default():
     data_dir = "data/"
-    n_inputs = 30
+#    n_inputs = 30
+#    mu_ranks = 25
+    n_inputs = 35
     mu_ranks = 25
     D = 4
 
@@ -19,7 +21,7 @@ with tf.Graph().as_default():
 
     lr = 1e-3
     decay = (10, 0.2)
-    n_epoch = 20
+    n_epoch = 30
     batch_size = 100
     data_type = 'numpy'
     log_dir = 'log'

@@ -22,6 +22,20 @@ def mse(y_pred, y_true, name=None):
                              tf.reshape(y_true, [-1])), name='MSE')
         return mse
 
+def reg_mnll(mus, sigmas, y_true, name=None):
+    """MNLL score.
+    """
+    with tf.name_scope(name, 'mnll', [y_true]):
+        y_true_ = tf.reshape(y_true, [-1]) 
+        mus_ = tf.reshape(mus, [-1]) 
+        sigmas_ = tf.abs(tf.reshape(sigmas, [-1]))
+        pi = tf.constant([np.pi], dtype=tf.float64)
+        Z = 0.5 * tf.log(2 * pi * sigmas_)
+        pdfs = -(y_true_ - mus_)**2 / (2 * sigmas_) - Z
+        return pdfs
+        mnll = -tf.reduce_mean(pdfs)
+        return mnll
+
 def accuracy(y_pred, y_true, name=None):
     """Acuracy score.
     """

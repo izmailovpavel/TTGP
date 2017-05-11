@@ -106,6 +106,14 @@ class GPCRunner:
         accuracy = correct / n_test
         return accuracy
 
+#    def eval_snll(self, sess, snll_on_batch, iter_per_test, n_test):
+#        # TODO: verify this is valid
+#        snll = 0
+#        for i in range(iter_per_test):
+#            snll += sess.run(snll_on_batch)
+#        mnll = snll / n_test
+#        return mnll
+
     def run_experiment(self):
                 
         start_compilation = time.time()
@@ -146,6 +154,7 @@ class GPCRunner:
         # prediction and r2_score on test data
         pred = gp.predict(x_te_batch, test=True)
         correct_te_batch = num_correct(pred, y_te_batch)
+#        snll_te_batch = reg_snll(pred, sigmas, y_te_batch)
 
         # Saving results
         model_params = gp.get_params()
