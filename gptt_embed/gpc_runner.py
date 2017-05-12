@@ -61,7 +61,7 @@ class GPCRunner:
         self.model_dir = model_dir
         self.load_model = load_model
         self.print_freq = print_freq
-        self.frequent_print = print_freq is not None
+        self.frequent_print = not (print_freq is None)
 
     @staticmethod
     def _init_inputs(d, n_inputs):
@@ -106,6 +106,14 @@ class GPCRunner:
         accuracy = correct / n_test
         return accuracy
 
+#    def eval_snll(self, sess, snll_on_batch, iter_per_test, n_test):
+#        # TODO: verify this is valid
+#        snll = 0
+#        for i in range(iter_per_test):
+#            snll += sess.run(snll_on_batch)
+#        mnll = snll / n_test
+#        return mnll
+
     def run_experiment(self):
                 
         start_compilation = time.time()
@@ -146,6 +154,7 @@ class GPCRunner:
         # prediction and r2_score on test data
         pred = gp.predict(x_te_batch, test=True)
         correct_te_batch = num_correct(pred, y_te_batch)
+#        snll_te_batch = reg_snll(pred, sigmas, y_te_batch)
 
         # Saving results
         model_params = gp.get_params()
@@ -173,7 +182,7 @@ class GPCRunner:
             start_epoch = time.time()
             for i in range(maxiter):
                 if ((not (i % iter_per_epoch)) or 
-                (not (i % self.print_freq) and self.frequent_print)):
+                (self.frequent_print and not (i % self.print_freq))):
                     # At the end of every epoch evaluate method on test data
                     if i == 0:
                         print('Compilation took', time.time() - start_compilation)
