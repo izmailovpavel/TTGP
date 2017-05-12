@@ -137,7 +137,7 @@ with tf.Graph().as_default():
     model_dir = None#save_dir
     load_model = False#True
 
-    projector = NN(H1=64, H2=128, H3=512, H4=128, d=6)
+    projector = NN(H1=64, H2=128, H3=512, H4=128, d=8)
     cov = SE_multidim(C, 0.7, 0.2, 0.1, projector)
     
     runner=GPCRunner(data_dir, n_inputs, mu_ranks, cov,

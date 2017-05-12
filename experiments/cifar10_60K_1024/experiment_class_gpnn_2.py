@@ -149,8 +149,6 @@ class NN(FeatureTransformer):
 
     def initialize(self, sess):
         sess.run(tf.variables_initializer(self.get_params()))
-
-    def get_params(self):
         bn_vars = []
         for scope in ["norm_conv1", "norm_conv2", "norm_conv3", 
                       "norm_conv4", "norm_conv5", "norm_conv6",
@@ -200,7 +198,7 @@ with tf.Graph().as_default():
     load_model = False#True
 
     projector = NN(Hc1=128, Hc2=128, Hc3=256, Hc4=256, Hc5=256, Hc6=256,
-            Hd1=1536, Hd2=512, d=7)
+            Hd1=1536, Hd2=512, d=9)
     cov = SE_multidim(C, 0.7, 0.2, 0.1, projector)
     
     runner=GPCRunner(data_dir, n_inputs, mu_ranks, cov,

@@ -200,12 +200,12 @@ def eval(sess, correct_on_batch, iter_per_test, n_test):
 
 with tf.Graph().as_default():
     
-    net = NN(Hc1=64, Hc2=64, Hc3=128, Hc4=128, Hc5=128, Hc6=128,
+    net = NN(Hc1=128, Hc2=128, Hc3=256, Hc4=256, Hc5=256, Hc6=256,
             Hd1=1536, Hd2=512)
 
     lr = 1e-2
     decay = (30, 0.2)
-    n_epoch = 100
+    n_epoch = 150
     batch_size = 100
 
     # data
@@ -237,8 +237,6 @@ with tf.Graph().as_default():
     # Optimization params 
     N_te = y_te.get_shape()[0].value
     iter_per_te = int(N_te / batch_size)
-    print('iter_per_te', iter_per_te)
-    print('N_te', N_te)
 
     N = y_tr.get_shape()[0].value
     iter_per_epoch = int(N / batch_size)
@@ -270,6 +268,7 @@ with tf.Graph().as_default():
                 print('\taverage loss:', batch_loss / iter_per_epoch)
                 print('\taverage train accuracy:', batch_correct / N)
                 accuracy = eval(sess, correct_te_batch, iter_per_te, N_te)
+                print('\ttest accuracy:', accuracy)
                 batch_loss = 0
                 batch_correct = 0
                 start_epoch = time.time()
