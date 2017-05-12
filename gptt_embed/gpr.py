@@ -36,14 +36,15 @@ class TTGPR:
         """
         return self.gp.get_params()        
 
-    def predict(self, x, name=None):
+    def predict(self, x, with_variance=False, name=None):
         '''Predicts the value of the process x points.
 
         Args:
             x: data features.
+            with_variance: wether or not to return prediction variance
             name: name of the op.
         '''
-        return self.gp.predict_process_value(x)
+        return self.gp.predict_process_value(x, with_variance=with_variance)
 
     def elbo(self, w, y, name=None):
         '''Evidence lower bound.
