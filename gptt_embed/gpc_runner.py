@@ -114,12 +114,15 @@ class GPCRunner:
         start_compilation = time.time()
         d = self.covs.feature_dim()
         x_tr, y_tr, x_te, y_te = self._get_data(self.data_dir, self.data_type)
+        print('y_tr', y_tr.get_shape())
         x_batch, y_batch = self._make_batches(x_tr, y_tr, self.batch_size)
 #        x_batch, y_batch = tf.random_normal((200, 1728)), tf.random_uniform((200,), 0, 10, dtype=tf.int64) 
         x_te_batch, y_te_batch = self._make_batches(x_te, y_te,
                                                 self.batch_size, test=True)
         x_init, y_init = self._make_batches(x_tr, y_tr, self.mu_ranks)
         y_init = self._make_mu_initializers(y_init, d)
+        print('x_init', x_init.get_shape())
+        print('y_init', y_init.get_shape())
         inputs = self._init_inputs(d, self.n_inputs)
 
         N = y_tr.get_shape()[0].value #number of data

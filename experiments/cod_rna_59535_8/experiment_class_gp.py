@@ -9,26 +9,26 @@ from gptt_embed.gpc_runner import GPCRunner
 
 with tf.Graph().as_default():
     data_dir = "data/"
-    n_inputs = 10
-    mu_ranks = 10
+    n_inputs = 20
+    mu_ranks = 15
     D = 8
     projector = Identity(D=D)
     C = 2
 
     cov = SE_multidim(C, 0.7, 0.2, 0.1, projector)
 
-    lr = 5e-3
-    decay = (1, 0.2)
-    n_epoch = 100
-    batch_size = 50000
+    lr = 1e-2
+    decay = (5, 0.2)
+    n_epoch = 200
+    batch_size = 100
     data_type = 'numpy'
     log_dir = 'log'
-    save_dir = 'models/gpnn_100_100_4.ckpt'
+    save_dir = None#'models/gpnn_100_100_4.ckpt'
     model_dir = save_dir
     load_model = False#True
     
     runner=GPCRunner(data_dir, n_inputs, mu_ranks, cov,
                 lr=lr, decay=decay, n_epoch=n_epoch, batch_size=batch_size,
                 data_type=data_type, log_dir=log_dir, save_dir=save_dir,
-                model_dir=model_dir, load_model=load_model, print_freq=10)
+                model_dir=model_dir, load_model=load_model)
     runner.run_experiment()
