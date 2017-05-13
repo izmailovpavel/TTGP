@@ -80,7 +80,9 @@ class Identity(FeatureTransformer):
         self.D = D
 
     def transform(self, x, test=False):
-        return x
+        projected = tf.minimum(x, 1)
+        projected = tf.maximum(x, -1)
+        return projected
 
     def initialize(self, sess):
         pass

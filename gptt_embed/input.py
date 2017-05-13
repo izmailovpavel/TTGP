@@ -38,10 +38,10 @@ def prepare_data(path, mode='svmlight', target='reg'):
     x_tr = scaler_x.fit_transform(x_tr) / 3
     x_te = scaler_x.transform(x_te) / 3
 
-    x_tr[x_tr < -1] = -1
-    x_tr[x_tr > 1] = 1
-    x_te[x_te < -1] = -1
-    x_te[x_te > 1] = 1
+#    x_tr[x_tr < -1] = -1
+#    x_tr[x_tr > 1] = 1
+#    x_te[x_te < -1] = -1
+#    x_te[x_te > 1] = 1
 
     if target =='reg':
         scaler_y = StandardScaler()
