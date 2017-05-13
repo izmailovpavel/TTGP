@@ -53,7 +53,7 @@ def process_flags():
     flags.DEFINE_integer('batch_size', 128, 'Batch size')
     flags.DEFINE_string('logdir', 'data', 'Directory for progress logging')
     flags.DEFINE_string('datadir', '', 'Directory containing the data')
-    flags.DEFINE_string('datatype', 'numpy', 'Data type — numpy or svmlight')
+    flags.DEFINE_string('datatype', 'numpy', 'Data type - numpy or svmlight')
     flags.DEFINE_bool('refresh_stats', False, 
                       'Deletes old events from logdir if True')
     flags.DEFINE_integer('n_inputs', 50, 'Number of inducing inputs')

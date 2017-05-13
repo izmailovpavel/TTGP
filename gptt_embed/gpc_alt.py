@@ -16,9 +16,9 @@ class TTGPC:
         Args:
             cov: a multidimensional covariance.
             should share the same FeatureTransformer.
-            inputs: inducing inputs — InputsGrid object.
+            inputs: inducing inputs - InputsGrid object.
             x_init, y_init: tensors of data for initialization of GP parameters.
-            mu_ranks: TT-ranks of mu — expectations of the process at
+            mu_ranks: TT-ranks of mu - expectations of the process at
                 inducing inputs.
         '''
         self.inputs = inputs
@@ -88,7 +88,7 @@ class TTGPC:
         variances = []
         sigmas = ops.tt_tt_matmul(sigma_ls, ops.transpose(sigma_ls))
         variances = pairwise_quadratic_form(sigmas, w, w)
-        variances -= pairwise_quadratic_form(sigmas, w, w)
+        variances -= pairwise_quadratic_form(K_mms, w, w)
         variances += self.cov.cov_0()[None, :]
         return mean, variances
 

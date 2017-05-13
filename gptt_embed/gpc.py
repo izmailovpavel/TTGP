@@ -16,9 +16,9 @@ class TTGPC:
         Args:
             covs: a list of covariances; one covariance for each class; covs
             should share the same FeatureTransformer.
-            inputs: inducing inputs — InputsGrid object.
+            inputs: inducing inputs - InputsGrid object.
             x_init, y_init: tensors of data for initialization of GP parameters.
-            mu_ranks: TT-ranks of mu — expectations of the process at
+            mu_ranks: TT-ranks of mu - expectations of the process at
                 inducing inputs.
         '''
 #        self.covs = covs

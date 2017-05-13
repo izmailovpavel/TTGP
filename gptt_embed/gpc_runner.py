@@ -38,7 +38,7 @@ class GPCRunner:
             batch_size: batch size of the optimization method
             preprocess_op: preprocessing operation for train dataset
             preprocess_op_te: preprocessing operation for test dataset
-            data_type: either 'numpy' or 'svmlight' — type of the data encoding
+            data_type: either 'numpy' or 'svmlight' - type of the data encoding
             log_dir: path to the directory where the logs will be stored
             save_dir: path to the directory where the model should be saved
             model_dir: path to the directory, where the model should be restored

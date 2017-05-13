@@ -33,7 +33,7 @@ class GPRunner:
             decay_steps is in terms of training epochs
             n_epoch: number of epochs of the optimization method
             batch_size: batch size of the optimization method
-            data_type: either 'numpy' or 'svmlight' — type of the data encoding
+            data_type: either 'numpy' or 'svmlight' - type of the data encoding
             log_dir: path to the directory where the logs will be stored
             save_dir: path to the directory where the model should be saved
             model_dir: path to the directory, where the model should be restored

@@ -15,9 +15,9 @@ class TTGPR:
         
         Args:
             cov: covariance function.
-            inputs: inducing inputs — InputsGrid object.
+            inputs: inducing inputs - InputsGrid object.
             x_init, y_init: tensors of data for initialization of GP parameters.
-            mu_ranks: TT-ranks of mu — expectations of the process at
+            mu_ranks: TT-ranks of mu - expectations of the process at
                 inducing inputs.
         '''
         self.gp = _TTGPbase(cov, inputs, x_init, y_init, mu_ranks)

@@ -60,8 +60,8 @@ class GP:
         
         Args:
             cov: covariance function.
-            inputs: inducing inputs — InputsGrid object.
-            mu_ranks: TT-ranks of mu — expectations of the process at
+            inputs: inducing inputs - InputsGrid object.
+            mu_ranks: TT-ranks of mu - expectations of the process at
                 inducing inputs.
             load_mu_sigma: wether or not to load pretrained values for mu and 
                 sigma.
