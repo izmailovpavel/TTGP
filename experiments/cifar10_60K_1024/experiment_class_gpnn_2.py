@@ -149,6 +149,8 @@ class NN(FeatureTransformer):
 
     def initialize(self, sess):
         sess.run(tf.variables_initializer(self.get_params()))
+        
+    def get_params(self):
         bn_vars = []
         for scope in ["norm_conv1", "norm_conv2", "norm_conv3", 
                       "norm_conv4", "norm_conv5", "norm_conv6",
@@ -196,6 +198,7 @@ with tf.Graph().as_default():
     save_dir = None#'models/gpnn_100_100_2.ckpt'
     model_dir = None#save_dir
     load_model = False#True
+    num_threads=3
 
     projector = NN(Hc1=128, Hc2=128, Hc3=256, Hc4=256, Hc5=256, Hc6=256,
             Hd1=1536, Hd2=512, d=9)
@@ -205,5 +208,6 @@ with tf.Graph().as_default():
                 lr=lr, decay=decay, n_epoch=n_epoch, batch_size=batch_size,
                 preprocess_op=tr_preprocess_op, te_preprocess_op=te_preprocess_op,
                 data_type=data_type, log_dir=log_dir, save_dir=save_dir,
-                model_dir=model_dir, load_model=load_model)
+                model_dir=model_dir, load_model=load_model, 
+                num_threads=num_threads)
     runner.run_experiment()

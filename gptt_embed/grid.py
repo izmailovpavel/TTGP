@@ -102,19 +102,26 @@ class InputsGrid:
 
             s = tf.abs(x_dim - tf.gather(inputs_dim, x_indices)) / hs_tensor[dim]
 
-            s_0 = s[:, 0][:, None]
-            s_1 = s[:, 1][:, None]
-            s_2 = s[:, 2][:, None]
-            s_3 = s[:, 3][:, None]
-            values_0 = (- s_0**3 / 2 +  5 * s_0**2 /2 - 4 * s_0 + 2)
-            values_3 = (- s_3**3 / 2 +  5 * s_3**2 /2 - 4 * s_3 + 2)
-
-            values_1 = (3 * s_1**3 / 2 - 5 * s_1**2 / 2 + 1)
-            values_2 = (3 * s_2**3 / 2 - 5 * s_2**2 / 2 + 1)
+            s_q = tf.pow(s, 3) / 2
+            s_s = 2.5 * tf.pow(s, 2)
+            values_03 = (- s_q +  s_s - 4 * s + 2)
+            values_0 = values_03[:, 0:1]
+            values_3 = values_03[:, 3:4]
+            values_12 = (3 * s_q[:, 1:3] - s_s[:, 1:3] + 1)
+            values = tf.concat([values_0, values_12, values_3], axis=1)
+#            s_0 = s[:, 0][:, None]
+#            s_1 = s[:, 1][:, None]
+#            s_2 = s[:, 2][:, None]
+#            s_3 = s[:, 3][:, None]
+#            values_0 = (- s_0**3 / 2 +  5 * s_0**2 /2 - 4 * s_0 + 2)
+#            values_3 = (- s_3**3 / 2 +  5 * s_3**2 /2 - 4 * s_3 + 2)
+#
+#            values_1 = (3 * s_1**3 / 2 - 5 * s_1**2 / 2 + 1)
+#            values_2 = (3 * s_2**3 / 2 - 5 * s_2**2 / 2 + 1)
             indices = tf.concat([y_indices[:, None], 
                                  tf.reshape(x_indices, [-1])[:, None]], axis=1)
 
-            values = tf.concat([values_0, values_1, values_2, values_3], axis=1)
+#            values = tf.concat([values_0, values_1, values_2, values_3], axis=1)
             core = core + tf.scatter_nd(indices, tf.reshape(values, [-1]), 
                                             [n_test, n_inputs_dims[dim]])
             w_cores.append(core)

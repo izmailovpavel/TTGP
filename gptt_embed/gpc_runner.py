@@ -17,7 +17,8 @@ class GPCRunner:
             lr=0.01, n_epoch=15, decay=None, batch_size=None,
             preprocess_op=None, te_preprocess_op=None,
             data_type='numpy', log_dir=None, save_dir=None,
-            model_dir=None, load_model=False, print_freq=None):
+            model_dir=None, load_model=False, print_freq=None,
+            num_threads=1):
         """Runs the experiments for the given parameters and data.
 
         This class is designed to run the experiments with tt-gp model.
@@ -62,6 +63,7 @@ class GPCRunner:
         self.load_model = load_model
         self.print_freq = print_freq
         self.frequent_print = not (print_freq is None)
+        self.num_threads = num_threads
 
     @staticmethod
     def _init_inputs(d, n_inputs):
@@ -85,7 +87,8 @@ class GPCRunner:
         if (self.te_preprocess_op is not None) and test:
             sample_x = self.te_preprocess_op(sample_x)
         sample = [sample_x, sample_y]
-        x_batch, y_batch = tf.train.batch(sample, batch_size)
+        x_batch, y_batch = tf.train.batch(sample, batch_size, 
+                num_threads=self.num_threads, capacity=256+3*batch_size)
         return x_batch, y_batch
 
     @staticmethod
@@ -106,20 +109,13 @@ class GPCRunner:
         accuracy = correct / n_test
         return accuracy
 
-#    def eval_snll(self, sess, snll_on_batch, iter_per_test, n_test):
-#        # TODO: verify this is valid
-#        snll = 0
-#        for i in range(iter_per_test):
-#            snll += sess.run(snll_on_batch)
-#        mnll = snll / n_test
-#        return mnll
-
     def run_experiment(self):
                 
         start_compilation = time.time()
         d = self.covs.feature_dim()
         x_tr, y_tr, x_te, y_te = self._get_data(self.data_dir, self.data_type)
         x_batch, y_batch = self._make_batches(x_tr, y_tr, self.batch_size)
+#        x_batch, y_batch = tf.random_normal((200, 1728)), tf.random_uniform((200,), 0, 10, dtype=tf.int64) 
         x_te_batch, y_te_batch = self._make_batches(x_te, y_te,
                                                 self.batch_size, test=True)
         x_init, y_init = self._make_batches(x_tr, y_tr, self.mu_ranks)

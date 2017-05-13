@@ -116,9 +116,10 @@ with tf.Graph().as_default():
     save_dir = 'models/gpnn_100_100_2.ckpt'
     model_dir = save_dir
     load_model = False#True
+    num_threads = 3
     
     runner=GPCRunner(data_dir, n_inputs, mu_ranks, cov,
                 lr=lr, decay=decay, n_epoch=n_epoch, batch_size=batch_size,
                 data_type=data_type, log_dir=log_dir, save_dir=save_dir,
-                model_dir=model_dir, load_model=load_model)
+                model_dir=model_dir, load_model=load_model, num_threads=num_threads)
     runner.run_experiment()
