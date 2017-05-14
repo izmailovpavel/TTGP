@@ -200,8 +200,8 @@ class GPCRunner:
                 elbo_summary_val, elbo_val, _, _ = sess.run([elbo_summary, 
                                                           elbo, train_op, update_ops])
                 batch_elbo += elbo_val
-                if self.frequent_print:
-                    print('batch', i % iter_per_epoch)
+#                if self.frequent_print:
+#                    print('batch', i % iter_per_epoch)
                 
             accuracy = self.eval(sess, correct_te_batch, iter_per_te, N_te)
             print('Final accuracy:', accuracy)
