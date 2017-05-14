@@ -13,7 +13,7 @@ with tf.Graph().as_default():
 #    n_inputs = 30
 #    mu_ranks = 25
     n_inputs = 35
-    mu_ranks = 25
+    mu_ranks = 30
     D = 4
 
     projector = Identity(D=D)
@@ -25,8 +25,8 @@ with tf.Graph().as_default():
     batch_size = 100
     data_type = 'numpy'
     log_dir = 'log'
-    save_dir = 'models/gpnn_100_100_4.ckpt'
-    model_dir = save_dir
+    save_dir = None#'models/gpnn_100_100_4.ckpt'
+    model_dir = None#save_dir
     load_model = False#True
     
     runner=GPRunner(data_dir, n_inputs, mu_ranks, cov,
