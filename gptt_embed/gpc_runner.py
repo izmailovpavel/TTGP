@@ -18,7 +18,7 @@ class GPCRunner:
             preprocess_op=None, te_preprocess_op=None,
             data_type='numpy', log_dir=None, save_dir=None,
             model_dir=None, load_model=False, print_freq=None,
-            num_threads=1):
+            num_threads=1, batch_test=True):
         """Runs the experiments for the given parameters and data.
 
         This class is designed to run the experiments with tt-gp model.
@@ -64,6 +64,7 @@ class GPCRunner:
         self.print_freq = print_freq
         self.frequent_print = not (print_freq is None)
         self.num_threads = num_threads
+        self.batch_test = batch_test
 
     @staticmethod
     def _init_inputs(d, n_inputs):
@@ -117,7 +118,8 @@ class GPCRunner:
         print('y_tr', y_tr.get_shape())
         x_batch, y_batch = self._make_batches(x_tr, y_tr, self.batch_size)
 #        x_batch, y_batch = tf.random_normal((200, 1728)), tf.random_uniform((200,), 0, 10, dtype=tf.int64) 
-        x_te_batch, y_te_batch = self._make_batches(x_te, y_te,
+        if self.batch_test:
+            x_te_batch, y_te_batch = self._make_batches(x_te, y_te,
                                                 self.batch_size, test=True)
         x_init, y_init = self._make_batches(x_tr, y_tr, self.mu_ranks)
         y_init = self._make_mu_initializers(y_init, d)
@@ -128,7 +130,8 @@ class GPCRunner:
         N = y_tr.get_shape()[0].value #number of data
         N_te = y_te.get_shape()[0].value #number of data
         iter_per_epoch = int(N / self.batch_size)
-        iter_per_te = int(N_te / self.batch_size)
+        if self.batch_test:
+            iter_per_te = int(N_te / self.batch_size)
         maxiter = iter_per_epoch * self.n_epoch
 
         if not self.log_dir is None:
@@ -151,8 +154,12 @@ class GPCRunner:
         elbo_summary = tf.summary.scalar('elbo_batch', elbo)
 
         # prediction and r2_score on test data
-        pred = gp.predict(x_te_batch, test=True)
-        correct_te_batch = num_correct(pred, y_te_batch)
+        if self.batch_test:
+            pred = gp.predict(x_te_batch, test=True)
+            correct_te_batch = num_correct(pred, y_te_batch)
+        else:
+            pred = gp.predict(x_te, test=True)
+            accuracy_te = accuracy(pred, y_te)
 #        snll_te_batch = reg_snll(pred, sigmas, y_te_batch)
 
         # Saving results
@@ -189,9 +196,12 @@ class GPCRunner:
                     if i != 0:
                         print('\tEpoch took:', time.time() - start_epoch)
                     
-                    accuracy = self.eval(sess, correct_te_batch, iter_per_te, N_te)
+                    if self.batch_test:
+                        accuracy_val = self.eval(sess, correct_te_batch, iter_per_te, N_te)
+                    else:
+                        accuracy_val = sess.run(accuracy_te)
                     #writer.flush()
-                    print('\taccuracy on test set:', accuracy) 
+                    print('\taccuracy on test set:', accuracy_val) 
                     print('\taverage elbo:', batch_elbo / iter_per_epoch)
                     batch_elbo = 0
                     start_epoch = time.time()
@@ -200,11 +210,9 @@ class GPCRunner:
                 elbo_summary_val, elbo_val, _, _ = sess.run([elbo_summary, 
                                                           elbo, train_op, update_ops])
                 batch_elbo += elbo_val
-#                if self.frequent_print:
-#                    print('batch', i % iter_per_epoch)
                 
-            accuracy = self.eval(sess, correct_te_batch, iter_per_te, N_te)
-            print('Final accuracy:', accuracy)
+            accuracy_val = self.eval(sess, correct_te_batch, iter_per_te, N_te)
+            print('Final accuracy:', accuracy_val)
             if not self.save_dir is None:
                 model_path = saver.save(sess, self.save_dir)
                 print("Model saved in file: %s" % model_path)

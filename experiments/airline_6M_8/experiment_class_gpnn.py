@@ -7,12 +7,9 @@ from gptt_embed.covariance import SE_multidim
 from gptt_embed.projectors import FeatureTransformer, LinearProjector, Identity
 from gptt_embed.gpc_runner import GPCRunner
 
-data_basedir1 = "/Users/IzmailovPavel/Documents/Education/Programming/DataSets/"
-data_basedir2 = "/Users/IzmailovPavel/Documents/Education/Projects/GPtf/experiments/"
-
 class NN(FeatureTransformer):
     
-    def __init__(self, H1=1000, H2=1000, d=4, D=8):
+    def __init__(self, H1=1000, H2=1000, H3=500, H4=50, d=4, D=8, p=0.5):
 
         with tf.name_scope('layer_1'):
             self.W1 = self.weight_var('W1', [D, H1])
@@ -21,8 +18,15 @@ class NN(FeatureTransformer):
             self.W2 = self.weight_var('W2', [H1, H2])
             self.b2 = self.bias_var('b2', [H2])
         with tf.name_scope('layer_3'):
-            self.W3 = self.weight_var('W3', [H2, d])
+            self.W3 = self.weight_var('W3', [H2, H3])
+            self.b3 = self.bias_var('b3', [H3])
+        with tf.name_scope('layer_4'):
+            self.W4 = self.weight_var('W4', [H3, H4])
+            self.b4 = self.bias_var('b4', [H4])
+        with tf.name_scope('layer_5'):
+            self.W5 = self.weight_var('W5', [H4, d])
 
+        self.p = p
         self.d = d
         self.reuse = False
         
@@ -42,23 +46,27 @@ class NN(FeatureTransformer):
         # layer 1
         x_input = tf.cast(x, tf.float32)
         h_preact1 = tf.matmul(x_input, self.W1) + self.b1
-#        norm1 = batch_norm(h_preact1, decay=0.99, is_training=(not test), 
-#                           reuse=self.reuse, scope="norm_1")
         h_1 = tf.nn.relu(h_preact1)
 
         # layer 2
         h_preact2 = tf.matmul(h_1, self.W2) + self.b2
-#        norm2 = batch_norm(h_preact2, decay=0.99, is_training=(not test), 
-#                           reuse=self.reuse, scope="norm_2")
         h_2 = tf.nn.relu(h_preact2)
 
         # layer 3
-        h_preact3 = tf.matmul(h_2, self.W3) 
-        projected = h_preact3
+        h_preact3 = tf.matmul(h_2, self.W3) + self.b3
+        h_3 = tf.nn.relu(h_preact3)
+
+        # layer 4
+        h_preact4 = tf.matmul(h_3, self.W4) + self.b4
+        h_4 = tf.nn.relu(h_preact4)
+
+        # layer 5
+        h_preact5 = tf.matmul(h_4, self.W5) 
+        projected = h_preact5
 
         projected = tf.cast(projected, tf.float32)
         projected = batch_norm(projected, decay=0.99, center=False, scale=False,
-                                is_training=(not test), reuse=self.reuse, scope="norm_5")
+                                is_training=(not test), reuse=self.reuse, scope="norm")
         projected = tf.cast(projected, tf.float64)
         projected /= 3
         self.reuse = True
@@ -72,9 +80,21 @@ class NN(FeatureTransformer):
 
     def get_params(self):
         bn_vars = []
-        for scope in ["norm_5"]:
+        for scope in ["norm"]:
             bn_vars += tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=scope)
-        return bn_vars + [self.W1, self.b1, self.W2, self.b2, self.W3] 
+        return bn_vars + [self.W1, self.b1, self.W2, self.b2,
+                self.W3, self.b3, self.W4, self.b4, self.W5] 
+
+    def save_weights(self, sess):
+        np.save('models/W1.npy', sess.run(self.W1))
+        np.save('models/b1.npy', sess.run(self.b1))
+        np.save('models/W2.npy', sess.run(self.W2))
+        np.save('models/b2.npy', sess.run(self.b2))
+        np.save('models/W3.npy', sess.run(self.W3))
+        np.save('models/b3.npy', sess.run(self.b3))
+        np.save('models/W4.npy', sess.run(self.W4))
+        np.save('models/b4.npy', sess.run(self.b4))
+        np.save('models/W5.npy', sess.run(self.W5))
 
     def out_dim(self):
         return self.d
@@ -83,23 +103,23 @@ with tf.Graph().as_default():
     data_dir = "data/"
     n_inputs = 10
     mu_ranks = 10
-    projector = NN(H1=1000, H2=1000, d=4)
+    projector = NN(H1=1000, H2=1000, H3=500, H4=50, d=2)
     C = 2
 
     cov = SE_multidim(C, 0.7, 0.2, 0.1, projector)
 
     lr = 1e-2
     decay = (2, 0.2)
-    n_epoch = 100
-    batch_size = 50000
+    n_epoch = 15
+    batch_size = 5000
     data_type = 'numpy'
     log_dir = 'log'
-    save_dir = 'models/gpnn_100_100_4.ckpt'
-    model_dir = save_dir
+    save_dir = 'models/gpnn.ckpt'
+    model_dir = None#save_dir
     load_model = False#True
     
     runner=GPCRunner(data_dir, n_inputs, mu_ranks, cov,
                 lr=lr, decay=decay, n_epoch=n_epoch, batch_size=batch_size,
                 data_type=data_type, log_dir=log_dir, save_dir=save_dir,
-                model_dir=model_dir, load_model=load_model, print_freq=10)
+                model_dir=model_dir, load_model=load_model, print_freq=100)
     runner.run_experiment()
