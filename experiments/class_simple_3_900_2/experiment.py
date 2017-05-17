@@ -22,7 +22,7 @@ with tf.Graph().as_default():
     log_dir = 'log'
     save_dir = 'models/model.ckpt'
     model_dir = save_dir
-    load_model = False
+    load_model = True
     
     runner=GPCRunner(data_dir, n_inputs, mu_ranks, cov,
                 lr=lr, decay=decay, n_epoch=n_epoch, batch_size=batch_size,
