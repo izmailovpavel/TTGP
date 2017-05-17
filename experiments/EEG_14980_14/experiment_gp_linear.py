@@ -12,25 +12,25 @@ with tf.Graph().as_default():
     n_inputs = 10
     mu_ranks = 10
     D = 14
-    d = 8
+    d = 10
     projector = LinearProjector(D=D, d=d)
-#    projector = Identity(D=D)
+    #projector = Identity(D=D)
     C = 2
 
     cov = SE_multidim(C, 0.7, 0.2, 0.1, projector)
 
-    lr = 1e-2
+    lr = 5e-3
     decay = (10, 0.2)
     n_epoch = 20
     batch_size = 200
     data_type = 'numpy'
     log_dir = 'log'
-    save_dir = 'models/gpnn_100_100_4.ckpt'
-    model_dir = save_dir
+    save_dir = None#'models/gpnn_100_100_4.ckpt'
+    model_dir = None#save_dir
     load_model = False#True
     
     runner=GPCRunner(data_dir, n_inputs, mu_ranks, cov,
                 lr=lr, decay=decay, n_epoch=n_epoch, batch_size=batch_size,
                 data_type=data_type, log_dir=log_dir, save_dir=save_dir,
-                model_dir=model_dir, load_model=load_model)
+                model_dir=model_dir, load_model=load_model, batch_test=False)
     runner.run_experiment()

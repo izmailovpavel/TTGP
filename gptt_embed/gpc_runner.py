@@ -189,6 +189,7 @@ class GPCRunner:
             for i in range(maxiter):
                 if ((not (i % iter_per_epoch)) or 
                 (self.frequent_print and not (i % self.print_freq))):
+#                if not (i % 5*iter_per_epoch):
                     # At the end of every epoch evaluate method on test data
                     if i == 0:
                         print('Compilation took', time.time() - start_compilation)
@@ -211,7 +212,10 @@ class GPCRunner:
                                                           elbo, train_op, update_ops])
                 batch_elbo += elbo_val
                 
-            accuracy_val = self.eval(sess, correct_te_batch, iter_per_te, N_te)
+            if self.batch_test:
+                accuracy_val = self.eval(sess, correct_te_batch, iter_per_te, N_te)
+            else:
+                accuracy_val = sess.run(accuracy_te)
             print('Final accuracy:', accuracy_val)
             if not self.save_dir is None:
                 model_path = saver.save(sess, self.save_dir)
