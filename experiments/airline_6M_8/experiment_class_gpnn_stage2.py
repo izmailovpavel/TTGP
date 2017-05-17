@@ -108,14 +108,14 @@ with tf.Graph().as_default():
 
     cov = SE_multidim(C, 0.7, 0.2, 0.1, projector)
 
-    lr = 1e-6
+    lr = 1e-3
     decay = (1, 0.2)
     n_epoch = 100
     batch_size = 1000
     data_type = 'numpy'
     log_dir = 'log'
     save_dir = 'models/gpnn_stage2.ckpt'
-    model_dir = 'models/gpnn.ckpt'
+    model_dir = 'models/gpnn_2.ckpt'
     load_model = True
     
     runner=GPCRunner(data_dir, n_inputs, mu_ranks, cov,
