@@ -92,6 +92,7 @@ class GPRunner:
             x_init, y_init = self._make_mu_initializers(x_tr, y_tr, self.mu_ranks, d)
             N = y_tr.get_shape()[0].value #number of data
             inputs = self._init_inputs(d, self.n_inputs)
+            print(x_batch.get_shape())
             
             iter_per_epoch = int(N / self.batch_size)
             maxiter = iter_per_epoch * self.n_epoch

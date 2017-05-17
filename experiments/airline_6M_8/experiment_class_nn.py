@@ -50,30 +50,18 @@ class NN:
         # layer 1
         x_input = tf.cast(x, tf.float32)
         h_preact1 = tf.matmul(x_input, self.W1) + self.b1
-#        norm1 = batch_norm(h_preact1, decay=0.99, is_training=(not test), 
-#                           reuse=self.reuse, scope="norm_1")
-#        h_1 = tf.nn.relu(norm1)
         h_1 = tf.nn.relu(h_preact1)
 
         # layer 2
         h_preact2 = tf.matmul(h_1, self.W2) + self.b2
-#        norm2 = batch_norm(h_preact2, decay=0.99, is_training=(not test), 
-#                           reuse=self.reuse, scope="norm_2")
-#        h_2 = tf.nn.relu(norm2)
         h_2 = tf.nn.relu(h_preact2)
 
         # layer 3
         h_preact3 = tf.matmul(h_2, self.W3) + self.b3
-#        norm3 = batch_norm(h_preact3, decay=0.99, is_training=(not test), 
-#                           reuse=self.reuse, scope="norm_3")
-#        h_3 = tf.nn.relu(norm3)
         h_3 = tf.nn.relu(h_preact3)
 
         # layer 4
         h_preact4 = tf.matmul(h_3, self.W4) + self.b4
-#        norm4 = batch_norm(h_preact4, decay=0.99, is_training=(not test), 
-#                           reuse=self.reuse, scope="norm_4")
-#        h_4 = tf.nn.relu(norm4)
         h_4 = tf.nn.relu(h_preact4)
 
         # layer 5
@@ -91,6 +79,17 @@ class NN:
             bn_vars += tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=scope)
         return bn_vars + [self.W1, self.b1, self.W2, self.b2,
                 self.W3, self.b3, self.W4, self.b4, self.W5] 
+    
+    def save_weights(self, sess):
+        np.save('models/dnn/W1.npy', sess.run(self.W1))
+        np.save('models/dnn/b1.npy', sess.run(self.b1))
+        np.save('models/dnn/W2.npy', sess.run(self.W2))
+        np.save('models/dnn/b2.npy', sess.run(self.b2))
+        np.save('models/dnn/W3.npy', sess.run(self.W3))
+        np.save('models/dnn/b3.npy', sess.run(self.b3))
+        np.save('models/dnn/W4.npy', sess.run(self.W4))
+        np.save('models/dnn/b4.npy', sess.run(self.b4))
+        np.save('models/dnn/W5.npy', sess.run(self.W5))
 
 def _make_batches(x, y, batch_size, test=False):
     sample_x, sample_y = tf.train.slice_input_producer([x, y], shuffle=True)
@@ -115,7 +114,7 @@ with tf.Graph().as_default():
 
     lr = 1e-2
     decay = (1, 0.2)
-    n_epoch = 100
+    n_epoch = 5
     batch_size = 1000
 
     # data
@@ -208,5 +207,6 @@ with tf.Graph().as_default():
             if not (i % 100):
                 print('batch', i % iter_per_epoch)
 
-        accuracy_val = sess.run([accuracy_te])
-        print('Final accuracy on test set:', accuracy_val) 
+        accuracy = eval(sess, correct_te_batch, iter_per_te, N_te)
+        print('Final accuracy on test set:', accuracy) 
+        net.save_weights(sess)

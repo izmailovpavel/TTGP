@@ -103,15 +103,15 @@ with tf.Graph().as_default():
     data_dir = "data/"
     n_inputs = 10
     mu_ranks = 10
-    projector = NN(H1=1000, H2=1000, H3=500, H4=50, d=2)
+    projector = NN(H1=1000, H2=1000, H3=500, H4=50, d=3)
     C = 2
 
     cov = SE_multidim(C, 0.7, 0.2, 0.1, projector)
 
     lr = 1e-2
     decay = (2, 0.2)
-    n_epoch = 15
-    batch_size = 5000
+    n_epoch = 50
+    batch_size = 1000
     data_type = 'numpy'
     log_dir = 'log'
     save_dir = 'models/gpnn.ckpt'
@@ -121,5 +121,5 @@ with tf.Graph().as_default():
     runner=GPCRunner(data_dir, n_inputs, mu_ranks, cov,
                 lr=lr, decay=decay, n_epoch=n_epoch, batch_size=batch_size,
                 data_type=data_type, log_dir=log_dir, save_dir=save_dir,
-                model_dir=model_dir, load_model=load_model, print_freq=100)
+                model_dir=model_dir, load_model=load_model, print_freq=500)
     runner.run_experiment()
