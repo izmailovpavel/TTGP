@@ -50,7 +50,7 @@ Z = kmeans.cluster_centers_
 
 # Kernel and model
 batch_size = 200
-kern = GPflow.kernels.RBF(4, 1)
+kern = GPflow.kernels.RBF(4, variance=0.7, lengthscales=0.3)
 m = GPflow.svgp.SVGP(x_tr, y_tr, kern, GPflow.likelihoods.Gaussian(), Z, 
                     minibatch_size=batch_size)
 
