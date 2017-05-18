@@ -9,8 +9,8 @@ from gptt_embed.gpc_runner import GPCRunner
 
 with tf.Graph().as_default():
     data_dir = "data/"
-    n_inputs = 20
-    mu_ranks = 15
+    n_inputs = 10
+    mu_ranks = 10
     D = 8
     projector = Identity(D=D)
     C = 2

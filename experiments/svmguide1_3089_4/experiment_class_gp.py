@@ -9,7 +9,7 @@ from gptt_embed.gpc_runner import GPCRunner
 
 with tf.Graph().as_default():
     data_dir = "data/"
-    n_inputs = 20
+    n_inputs = 15
     mu_ranks = 15
     D = 4
     projector = Identity(D=D)
@@ -19,7 +19,7 @@ with tf.Graph().as_default():
 
     lr = 1e-2
     decay = (10, 0.2)
-    n_epoch = 200
+    n_epoch = 30
     batch_size = 100
     data_type = 'numpy'
     log_dir = 'log'

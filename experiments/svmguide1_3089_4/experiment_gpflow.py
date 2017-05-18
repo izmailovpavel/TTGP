@@ -36,7 +36,7 @@ x_tr = scaler_x.fit_transform(x_tr)
 x_te = scaler_x.transform(x_te)
 
 # Inducing Inputs
-M = 200
+M = 1000
 kmeans = KMeans(n_clusters=M)
 kmeans.fit(x_tr)
 Z = kmeans.cluster_centers_
