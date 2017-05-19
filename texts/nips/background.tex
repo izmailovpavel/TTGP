@@ -72,12 +72,11 @@
     q(f) = \N\left(f | \Knm \Kmm^{-1} \mu, \Knn + \Knm \Kmm^{-1} (\Sigma - \Kmm) \Kmm^{-1} \Kmn\right).
   \]
   We can then rewrite (\ref{standard_elbo}) as
-
-  \begin{equation}
-  \label{main_elbo}
-    \log p(y) \ge \sum_{i=1}^n \E_{q(f_i)} \log p(y_i | f_i) - \KL(q(u) || p(u)).
-  \end{equation}
-  Note that the lower bound (\ref{main_elbo}) factorizes over observations and
+\begin{equation}
+\label{main_elbo}
+  \log p(y) \ge \sum_{i=1}^n \E_{q(f_i)} \log p(y_i | f_i) - \KL(q(u) || p(u)).
+\end{equation}
+  Note, that the lower bound (\ref{main_elbo}) factorizes over observations and
   thus stochastic optimization can be applied to maximize this bound with respect
   to both kernel hyper-parameters $\theta$ and variational parameters $\mu$ and
   $\Sigma$. In case of regression we can rewrite (\ref{main_elbo}) in the closed
@@ -125,7 +124,7 @@
   \label{prod_kernel}
     k(x, x') = k_1(x^1, x'^1)\cdot k_2(x^2, x'^2)\cdot \ldots\cdot k_D(x^D, x'^D).
   \end{equation}
-  Note, that many popular covariance functions, including RBF, belong to this class.
+  Note, that many popular covariance functions, including RBF -- even when used after a neural embedding -- belong to this class.
   Kronecker structure of covariance matrices allows to perform efficient inference
   for full Gaussian processes with inputs $X$ on a grid.
 
@@ -167,19 +166,19 @@
     w_i = w_i^1 \otimes w_i^2 \otimes \ldots \otimes w_i^D,~~~~~w_i \in \R^{m_i}~~~\forall i = 1, 2, \ldots, D.
   \]
   \citet{wilson2015} combine these ideas with SOR (\citet{silverman1985})
-  in the KISS-GP method with $\bigO(n + D m^{1 + 1/D})$ computational
+  in the KISS-GP method yielding $\bigO(n + D m^{1 + 1/D})$ computational
   complexity. This complexity allows to use KISS-GP with a large number (possibly
   greater than $n$) of inducing points. Note, however, that $m$ grows
-  exponentially with the dimensionality $D$ of the feature space, and the
-  method becomes impractical when $D \gg 4$.
+  exponentially with the dimensionality $D$ of the feature space and the
+  method becomes impractical when $D > 4$.
 
 \subsection{Tensor Train Decomposition}
 \label{tensor_train}
 
   Tensor Train (TT) decomposition, proposed in \citet{oseledets2011}, allows to
-  efficiently store tensors (multidimensional arrays of data), large matrices and
-  vectors. For matrices and vectors in TT-format linear algebra operations
-  can be implemented efficiently. TT format was successfully applied for
+  efficiently store tensors (multidimensional arrays of data), large matrices, and
+  vectors. For matrices and vectors in the TT-format linear algebra operations
+  can be implemented efficiently. The TT format was successfully applied for
   different machine learning tasks (see \citet{novikov2014}, \citet{novikov2015}).
 
   Consider a $D$-dimensional tensor $\mathcal A \in \R^{k_1 \times k_2 \times \ldots \times k_D}$.
