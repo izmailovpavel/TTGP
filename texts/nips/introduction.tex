@@ -1,4 +1,4 @@
-Gaussian processes (GP) provide a prior over functions and allow finding complex
+Gaussian processes (GPs) provide a prior over functions and allow finding complex
 regularities in data. The ability of GPs to adjust the complexity of the model
 to the size of the data makes them appealing to use for big datasets.
 Unfortunately, standard methods for GP regression and classification scale as
@@ -26,9 +26,9 @@ of the feature space. Note however, that $m$ is the number of points in a
 $D$-dimensional grid and grows exponentially with $D$, which makes the method
 inapplicable when the number of features $D$ is larger than $4$.
 
-In this paper we propose a method TT-GP, that can use billions of inducing
-inputs and is applicable to high-dimensional feature spaces. We achieve
-this by combining kernel interpolation and Kronecker algebra of KISS-GP with
+In this paper, we propose a method TT-GP, that can use billions of inducing
+inputs and is applicable to high-dimensional feature spaces.
+We achieve this by combining kernel interpolation and Kronecker algebra of KISS-GP with
 a scalable variational inference procedure. We restrict the family of
 variational distributions from \citet{hensman2013} to have parameters in
 special formats. Specifically, we use Kronecker product format for the
@@ -36,7 +36,7 @@ covariance matrix $\Sigma$ and Tensor Train format (\citet{oseledets2011}) for t
 expectation $\mu$ of the variational distribution over the values $u$ of the
 process at inducing inputs $Z$.
 
-The proposed TT-GP method naturally allows to train expressive kernel functions
+The proposed TT-GP method allows to train expressive kernel functions
 on big datasets. \citet{wilson2016deep} and \citet{wilson2016stochastic}
 demonstrated the efficiency of Gaussian processes with kernels based on deep
 neural networks. They used subsets of the outputs of a neural network as
