@@ -2,8 +2,11 @@ We proposed TT-GP method for scalable inference in Gaussian process models
 for regression and classification.  The proposed method is capable of using
 billions of inducing inputs, which is impossible for existing methods. This allows us to improve the
 performance over state-of-the-art both with standard and deep kernels
-on several benchmark datasets. Further, we believe that our model provides a more natural and straightforward
-way of learning deep kernel functions than the existing approaches.
+on several benchmark datasets.
+Further, we believe that our model provides a more natural way of learning deep
+kernel functions than the existing approaches since it makes several hacky tricks
+unnecessary, such as a specific form of pretraining or using architectures
+bottlenecked with 1-dimensional embedding.
 
 Our preliminary experiments showed that TT-GP is inferior in terms of
 uncertainty quantification compared to existing methods. We suspect that the
