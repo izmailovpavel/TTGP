@@ -15,7 +15,7 @@ Airline dataset, that is popular for testing scalable GP models
 
 For SVI-GP and KLSP-GP we used the implementations provided in GPfLow
 (\citet{GPflow2016}). For Airline dataset we provide results reported in
-the original paper (\citet{hensman2015}). For our experiments we use a cluster of Intel Xeon E5-2698B v3 CPUs having $16$ cores and $230$ GB
+the original paper (\citet{hensman2015}). For our experiments, we use a cluster of Intel Xeon E5-2698B v3 CPUs having $16$ cores and $230$ GB
 of RAM.
 
 For YearPred, EEG and covtype datasets we used a $d$-dimensional linear embedding inside the RBF kernel for TT-GP, as the number $D$ of features makes it
@@ -28,7 +28,7 @@ impractical to set inducing inputs on a grid in a $D$-dimensional space in this 
           $m$ is the number of inducing inputs, $r$ is TT-ranks of $\mu$ for TT-GP; $t$ is the time per one pass over
           the data (epoch) in seconds; where provided, $d$ is the dimensionality of linear embedding.\\
           $^*$ for KLSP-GP on Airline we provide results from the original
-          article where the accuracy is given as a plot, and detailed
+          paper where the accuracy is given as a plot, and detailed
           information about experiment setup is not available.
           }
   \label{se_results}
@@ -196,8 +196,8 @@ embedding, which makes it practical for a wide range of datasets.
   with DNN kernel and SV-DKL. Note, that the comparison
   is not absolutely fair on CIFAR-10 and MNIST datasets, as we didn't use
   the same exact architecture and preprocessing as \citet{wilson2016stochastic}.
-  On Airline we used the same exact architecture and preprocessing as
-  SV-DKL, and TT-GP achieves a higher accuracy on this dataset.
+  On Airline dataset we used the same exact architecture and preprocessing as
+  SV-DKL and TT-GP achieves a higher accuracy on this dataset.
 
   We also provide results of stand-alone DNNs for comparison. We used the
   same networks that were used in TT-GP kernels with the last linear layers replaced
