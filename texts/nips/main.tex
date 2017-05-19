@@ -1,0 +1,124 @@
+\documentclass{article}
+
+% if you need to pass options to natbib, use, e.g.:
+% \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading nips_2017
+%
+% to avoid loading the natbib package, add option nonatbib:
+% \usepackage[nonatbib]{nips_2017}
+
+\PassOptionsToPackage{numbers}{natbib}
+%\usepackage[final]{nips_2017}
+\usepackage{nips_2017}
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+% \usepackage[final]{nips_2017}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{subfig}
+
+\newcommand{\bigO}{\mathcal{O}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Knn}{K_{nn}}
+\newcommand{\Knm}{K_{nm}}
+\newcommand{\Kmn}{K_{mn}}
+\newcommand{\Kmm}{K_{mm}}
+\newcommand{\ki}{k_{i}}
+\newcommand{\KL}{\mbox{KL}}
+\newcommand{\tr}{\mbox{tr}}
+%\renewcommand{\baselinestretch}{0.95}
+%\parskip .35pc  % original size - .5pc
+
+\title{Scalable Gaussian Processes with Billions of Inducing Inputs via Tensor Train 
+      Decomposition}
+
+% The \author macro works with any number of authors. There are two
+% commands used to separate the names and addresses of multiple
+% authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to
+% break the lines. Using \AND forces a line break at that point. So,
+% if LaTeX puts 3 of 4 authors names on the first line, and the last
+% on the second line, try using \AND instead of \And before the third
+% author name.
+
+\author{
+  Pavel A.~Izmailov \\
+  Lomonosov Moscow State University\\
+  \texttt{izmailovpavel@gmail.com} \\
+  %% examples of more authors
+  \And
+  Alexander Novikov\\
+  \texttt{email} \\
+  \AND
+  Dmitry A.~Kropotov \\
+  Lomonosov Moscow State University\\
+  \texttt{dmitry.kropotov@gmail.com} \\
+  %% \And
+  %% Coauthor \\
+  %% Affiliation \\
+  %% Address \\
+  %% \texttt{email} \\
+  %% \And
+  %% Coauthor \\
+  %% Affiliation \\
+  %% Address \\
+  %% \texttt{email} \\
+}
+
+\begin{document}
+% \nipsfinalcopy is no longer used
+
+\maketitle
+
+\begin{abstract}
+  We propose a new method (TT-GP) for approximate inference in Gaussian process 
+  models. We build on previous results on scalable GPs including stochastic 
+  variational inference based on inducing inputs, kernel interpolation and 
+  structure exploiting algebra. We also utilize the Tensor Train decomposition
+  which allows us to efficiently train GP models with billions of 
+  inducing inputs and improve the results of previous GP models on several
+  benchmark datasets. Further, our approach allows us to train kernels based on
+  deep neural networks without any modifications of the underlying GP model. 
+  Our model allows end-to-end training of both GP and Neural Network parameters
+  without pretraining through maximization of GP marginal likelihood. In this 
+  approach DNN learns a multidimensional embedding for the data, which is
+  used by the GP to make the final prediction. We show the efficiency of the
+  proposed approach on several widely used classification benchmark datasets 
+  including CIFAR10, MNIST and Airline.
+
+\end{abstract}
+
+\section{Introduction}
+  \input{introduction}
+
+\section {Background}
+  \input{background}
+\section{TT-GP}
+  \input{ttgp}
+
+\section{Experiments}
+  \input{experiments}
+
+%\section{Related Work}
+%  \input{related_work}
+
+\section{Discussion}
+  \input{discussion}
+
+
+%\nocite{*}
+\bibliography{bib/biblio}
+\bibliographystyle{plainnat}
+\end{document}

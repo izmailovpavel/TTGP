@@ -1,0 +1,23 @@
+We proposed TT-GP method for scalable inference in Gaussian process models
+for regression and classification.  The proposed method is capable of using 
+billions of inducing
+inputs, which is impossible for existing method. This allows us to improve the 
+performance over state-of-the-art methods both with standard and deep kernels 
+on several important benchmark datasets. 
+Further, we believe, that our model provides a more natural and straightforward
+way of learning deep kernel functions, than the existing approaches.
+
+Our preliminary experiments showed, that TT-GP is inferior in terms of 
+uncertainty quatification compared to existing methods. We suspect that the 
+reason for this is that we use covariance matrices $\Sigma$ represented as
+Kronecker products over dimensions, which is rather restricting. We hope to 
+alleviate this limitation by using Tensor Train format for $\Sigma$, and using 
+approximations to compute it's inverse and determinant.
+
+As a promissing direction for future work we also consider training TT-GP
+with deep kernels incrementally, using the variational approximation
+of posterior distribution as a prior for new data. We also find it interesting
+to try using the low-dimensional (compared to embeddings learned by standard DNNs)
+embeddings learned by our model for transfer learning. Finally, we want to
+explore the performance of our model in different practical applications
+including hyper-parameter optimization.

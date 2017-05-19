@@ -1,0 +1,245 @@
+In this section we evaluate the proposed TT-GP method in different settings
+and compare it with existing approaches. We first compare our method with 
+SVI-GP (\citet{hensman2013}) on regression tasks and KLSP-GP 
+(\citet{hensman2015}) on binary classification tasks using standard RBF kernel
+functions. 
+Then, we test the ability of our method to learn 
+expressive deep kernel functions and compare it with SV-DKL 
+(\citet{wilson2016stochastic}). For TT-GP we use our implementation availible at
+\url{https://anonimized-link}.
+
+\subsection{Standard Kernels}
+
+For testing our method with standard covariance functions we used a range of
+classification and regression tasks from UCI and LIBSVM archives and the 
+Airline dataset, that is popular for testing scalable GP models 
+(\citet{hensman2013}, \citet{hensman2015}, \citet{wilson2016stochastic},
+\citet{cutajar2016})
+.
+
+To obtain the Airline dataset we used the scripts\footnote{\url{https://people.orie.cornell.edu/andrew/code/\#SVDKL}}
+provided with \citet{wilson2016stochastic}. In UCI and LIBSVM datasets we randomly split
+the data with $80$:$20$ proportions for train and test samples, unless test data
+is availible explicitly. 
+For all datasets we first normalize the features $X$. For regression we also
+normalize the target variables $y$. 
+
+For SVI-GP and KLSP-GP we used the implementations provided in GPfLow  
+(\citet{GPflow2016}). For Airline dataset we provide results reported in
+the original paper (\citet{hensman2015}). 
+
+For our experiments we use
+a cluster of Intel Xeon E5-2698B v3 CPUs having $16$ cores and $230$ GB
+of RAM.
+
+For YearPred, EEG and covtype datasets we used
+a $d$-dimensional linear embedding inside the RBF kernel for TT-GP, as the number $D$ of features makes it
+impractical to set inducing inputs on a grid in a $D$-dimensional space in this 
+case. On all other datasets we used the RBF kernel on initial features.
+For KLSP-GP and SVI-GP we used RBF kernel in all cases.
+
+\begin{table}[t]
+  \caption[]{Results of experiments with UCI, LIBSVM and Airline datasets.
+          In the table acc. stands for $r^2$ for regression and accuracy
+          for classification tasks. Here and below $n$ is the size of the 
+          training set, and $D$ is the dimensionality of the feature space;
+          $m$ is the number of inducing inputs used by the methods, $r$ is
+          TT-ranks of $\mu$ for TT-GP; $t$ is the time per one pass over
+          the data (epoch) in seconds; where provided, $d$ is the dimensionality
+          of linear embedding.\\
+          $^*$ for KLSP-GP on Airline we provide results from the original 
+          article where the accuracy is given as a plot, and detailed
+          information about experiment setup is not availible.
+          }
+  \label{se_results}
+  \centering
+  \begin{tabular}{lll l cll l cllll}
+    \toprule
+    \multicolumn{3}{c}{Dataset} && \multicolumn{3}{c}{SVI-GP / KLSP-GP} && \multicolumn{5}{c}{TT-GP} \\
+    \cmidrule{1-3}
+    \cmidrule{5-7}
+    \cmidrule{9-13}
+    
+    Name & $n$ & $D$ &&
+    acc. & $m$ & $t$ (s) &&
+    acc. & $m$ & $r$ & $d$ & $t$ (s)\\
+    \midrule
+
+    Powerplant & $7654$ & $4$ && 
+    $0.94$ & $200$ & $10$ &&
+    $0.95$ & $35^4$ & $30$ & - & $5$ \\
+
+    Protein & $36584$ & $9$ && 
+    $0.50$ & $200$ & $45$ &&
+    $0.56$ & $30^9$ & $25$ & - & $40$ \\
+    
+    YearPred & $463K$ & $90$ && 
+    $0.30$ & $1000$ & $597$ &&
+    $0.32$ & $10^6$ & $10$ & $6$ & $105$ \\
+
+    \midrule 
+    Airline & $6M$ & $8$ && 
+    $0.665^*$ & - & - &&
+    $0.694$ & $20^8$ & $15$ & - & $5200$ \\
+
+    svmguide1 & 3089 & 4 &&
+    $0.967$ & $200$ & $4$ &&
+    $0.969$ & $20^4$ & $15$ & - & $1$\\
+
+    EEG & 11984 & 14 && 
+    $0.915$ & $1000$ & $18$ &&
+    $0.908$ & $12^{10}$ & $15$ & $10$ & $10$\\
+
+    covtype bin & 465K & 54 && 
+    $0.817$ & $1000$ & $320$ &&
+    $0.852$ & $10^6$ & $10$ & $6$ & $172$\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Table \ref{se_results} shows the results on different regression and
+classification tasks. We can see, that TT-GP is able to achieve better
+predictive quality on all datasets except EEG. We also note that the
+method is able to achieve good predictive performance with linear 
+embedding, which makes it practical for a wide range of datasets.
+
+\subsection{Deep Kernels}
+
+  \subsubsection{Representation learning}
+  We first explore the representation our model learns for data on the small
+  Digits\footnote{\url{http://scikit-learn.org/stable/auto_examples/datasets/plot_digits_last_image.html}} 
+  dataset containing $n = 1797$ $8 \times 8$ images of handwritten digits. We
+  used a TT-GP with a kernel based on a small fully-connected neural network 
+  with two hidden layers with $50$ neurons each and $d = 2$ neurons in the output
+  layer to obtain a $2$-dimensional embedding. We trained the model to classify 
+  the digits to $10$ classes corresponding to different digits.
+  Fig. \ref{tt_gp_embed} shows the learned embedding. We also trained the same
+  network standalone, adding another layer with $10$ outputs and softmax 
+  activations. The embedding for this network is shown in fig. \ref{dnn_embed}.
+  
+%  \begin{figure}[!h]
+%    \begin{center}
+%    \includegraphics[width=0.7\linewidth]{pics/embedding_2}
+%    \end{center}
+%    \caption{Learned representation for Digits dataset}
+%    \label{digits_embedding}
+%  \end{figure}
+
+  \begin{figure}[!h]
+    \begin{center}
+    \subfloat[DNN with TT-GP]{
+        \label{tt_gp_embed}
+    	\includegraphics[width=0.35\linewidth]{pics/embedding_ttgp}
+    } 
+    \subfloat[Plain DNN]{
+        \label{dnn_embed}
+    	\includegraphics[width=0.3\linewidth]{pics/embedding_dnn}
+    } 
+    \end{center}
+    \caption{Learned representation for Digits dataset}
+    \label{digits_embedding}
+  \end{figure}
+  
+  We can see that the stand-alone DNN with linear classifiers is unable
+  to learn a good $2$-dimensional embedding.
+  On the other hand, using a flexible GP classifier our
+  model learns to group objects of the same class into compact regions.
+
+
+  \subsubsection{Classification tasks}
+  
+  To test our model with deep kernels we used Airline,
+  CIFAR10 (\citet{krizhevsky2009}) and
+  MNIST (\citet{lecun1998}) datasets.
+
+  We will use the following notation to describe DNN architecture. fc($h$) means
+  a fully-connected layer with $h$ neurons; conv($h{\times}w$, $f$) means a 
+  convolutional layer with $f$ $h{\times}w$ filters; maxpool($h{\times}w$) means
+  max-pooling with $h{\times}w$ kernel; ReLU means rectified linear unit 
+  activation function; BN means batch normalization (\citet{ioffe2015}).
+
+  For the Airline dataset we used a DNN with $5$ fully-connected layers 
+  with architecture
+  fc($1000$)-ReLU-fc($1000$)-ReLU-fc($500$)-ReLU-fc($50$)-ReLU-fc($2$).
+  The same 
+  architecture was used in \citet{wilson2016stochastic} on this task. 
+  
+  On MNIST we used a convolutional DNN with the following architecture:
+  conv($5{\times}5$, $32$)-ReLU-maxpool($2{\times}2$)-conv($5{\times}5$, $64$)-ReLU-maxpool($2{\times}2$)-fc($1024$)-ReLU-fc($4$).
+
+  On CIFAR10 we used an $9$-layer convolutional neural network with the
+  following architecture: 
+  conv($3{\times}3$, 128)-BN-ReLU-conv($3{\times}3$, 128)-BN-ReLU-maxpool($3{\times}3$)-conv($3{\times}3$, 256)-BN-ReLU-conv($3{\times}3$, 256)-BN-ReLU-maxpool($3{\times}3$)-conv($3{\times}3$, 256)-BN-ReLU-conv($3{\times}3$, 256)-BN-ReLU-maxpool($3{\times}3$)-fc($1536$)-BN-ReLU-fc($512$)-BN-ReLU-fc($9$).
+  We also use standard data augmentation
+  techniques on this dataset with random cropping of $24 \times 24$
+  parts  of the image, horizontal flipping, randomly adjusting brightness
+  and contrast.
+
+  In all experiments we also add a BN without trainable mean and 
+  variance after the DNN output layer to project the outputs into the region
+  where inducing inputs are placed. We use $m_0 = 10$ inducing inputs
+  per dimension and set TT-ranks of $\mu$ to $r = 10$ for all three datasets.
+  
+  For experiments with convolutional neural networks (on MNIST and CIFAR10), we 
+  used Nvidia Tesla K80 GPUs to train the model.
+
+  Table \ref{deep_results} shows the results of the experiments for our TT-GP
+  with DNN kernel and SV-DKL. Note, that the comparison
+  is not absolutely fair on CIFAR10 and MNIST datasets, as we didn't use
+  the same exact architecture and preprocessing as \citet{wilson2016stochastic}.
+  On Airline we used the same exact architecture and preprocessing as 
+  SV-DKL, and TT-GP achieves a higher accuracy on this dataset.
+
+  We also provide results of stand-alone DNNs for comparison. We used the 
+  same networks that were used in TT-GP kernels with the last linear layers replaced
+  by layers with $C$ outputs and softmax activations. Overall, we can see, that 
+  our model is able to achieve good predictive performance,
+  improving the results of standalone DNN on Airline and MNIST.
+  
+  \begin{table}[h]
+    \caption{Results of experimetns with deep kernels. Here acc. is classification
+            accuracy; $C$ is the number of classes; $d$ is the dimensionality
+            of embedding learned by the model; $t$ is the time per one pass over
+            data (epoch) in seconds.}
+    \label{deep_results}
+    \centering
+    \begin{tabular}{llll ll llll lll}
+      \toprule
+      \multicolumn{4}{c}{Dataset}  && SV-DKL && 
+      \multicolumn{2}{c}{DNN} &&
+      \multicolumn{3}{c}{TT-GP}\\
+      
+      \cmidrule{1-4}
+      \cmidrule{6-6}
+      \cmidrule{8-9}
+      \cmidrule{11-13}
+      
+      Name & $n$ & $D$ & $C$ &&
+      acc. && acc. & $t$ (s) &&
+      acc. & $d$ & $t$ (s)
+      \\
+      \midrule
+
+
+      %\cmidrule{9-10}
+      %\cmidrule{12-13}
+      
+      Airline & $6M$ & $8$ & $2$ && 
+      $0.781$ && $0.780$ & $1055$ &&  
+      $0.784$ & $2$ & $1375$\\
+      
+      CIFAR10 & $50K$ & $32{\times}32{\times}3$ & $10$ && 
+      $0.770$ && $0.915$ & $166$ && 
+      $0.909$ & $9$ & $220$\\
+      
+      MNIST & $60K$ & $28{\times}28$ & $10$ && 
+      $0.992$ && $0.993$ & $23$ && 
+      $0.994$ & $10$ & $64$\\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+
+  We train all the models from random initialization without pretraining. We also
+  tried using pretrained DNNs as initialization for our TT-GP model's kernel,
+  which sometimes leads to faster convergence, but does not improve the final
+  accuracy.
