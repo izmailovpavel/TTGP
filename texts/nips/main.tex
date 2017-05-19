@@ -60,7 +60,7 @@
   %% examples of more authors
   \And
   Alexander Novikov\\
-  \texttt{sasha.v.novikov@gmail.com} \\
+  \texttt{novikov@bayesgroup.ru} \\
   National Research University Higher School of Economics\\
   \AND
   Dmitry A.~Kropotov \\
@@ -84,20 +84,21 @@
 \maketitle
 
 \begin{abstract}
-  We propose a new method (TT-GP) for approximate inference in Gaussian process
-  models. We build on previous results on scalable GPs including stochastic
-  variational inference based on inducing inputs, kernel interpolation and
-  structure exploiting algebra. We also utilize the Tensor Train decomposition
-  which allows us to efficiently train GP models with billions of
-  inducing inputs and improve the results of previous GP models on several
-  benchmark datasets. Further, our approach allows us to train kernels based on
+  We propose an approximate inference method for Gaussian Processes (GPs) that
+  scales to large datasets and input dimensions.
+  We build on top of previous results on scalable GPs including stochastic
+  variational inference based on inducing inputs, kernel interpolation, and
+  structure exploiting algebra. The key idea of the proposed method is to utilize
+  the Tensor Train decomposition for variational parameters, which allows us to train
+  GP with billions of inducing inputs and to achieve state-of-the-art results
+  on several benchmark datasets. Further, our approach allows us to train kernels based on
   deep neural networks without any modifications of the underlying GP model.
   Our model allows end-to-end training of both GP and Neural Network parameters
   without pretraining through maximization of GP marginal likelihood. In this
-  approach DNN learns a multidimensional embedding for the data, which is
+  approach a Neural Network learns a multidimensional embedding for the data, which is
   used by the GP to make the final prediction. We show the efficiency of the
   proposed approach on several widely used classification benchmark datasets
-  including CIFAR10, MNIST and Airline.
+  including MNIST, CIFAR 10, and Airline.
 
 \end{abstract}
 
