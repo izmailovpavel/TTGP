@@ -85,19 +85,19 @@
 
 \begin{abstract}
   We propose an approximate inference method for Gaussian Processes (GPs) that
-  scales to large datasets and input dimensions.
-  We build on top of previous results on scalable GPs including stochastic
-  variational inference based on inducing inputs, kernel interpolation, and
-  structure exploiting algebra. The key idea of the proposed method is to utilize
+  scales to large datasets and to higher input dimensionalities than prior work.
+  We build on top of stochastic variational inference based on inducing inputs,
+  kernel interpolation, and structure exploiting algebra.
+  The key idea of the our method is to utilize
   the Tensor Train decomposition for variational parameters, which allows us to train
-  GP with billions of inducing inputs and to achieve state-of-the-art results
-  on several benchmark datasets. Further, our approach allows us to train kernels based on
+  GPs with billions of inducing inputs and to achieve state-of-the-art results
+  on several benchmarks. Further, our approach allows us to train kernels based on
   deep neural networks without any modifications of the underlying GP model.
-  Our model allows end-to-end training of both GP and Neural Network parameters
+  Our model allows end-to-end training of both GP and neural network parameters
   without pretraining through maximization of GP marginal likelihood. In this
-  approach a Neural Network learns a multidimensional embedding for the data, which is
+  approach a neural network learns a multidimensional embedding for the data, which is
   used by the GP to make the final prediction. We show the efficiency of the
-  proposed approach on several widely used classification benchmark datasets
+  proposed approach on several classification benchmark datasets
   including MNIST, CIFAR 10, and Airline.
 
 \end{abstract}
