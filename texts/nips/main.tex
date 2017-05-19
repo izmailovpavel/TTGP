@@ -84,10 +84,10 @@
 \maketitle
 
 \begin{abstract}
-  We propose an approximate inference method for Gaussian Processes (GPs) that
-  scales to large datasets and to higher input dimensionalities than prior work.
-  We build on top of stochastic variational inference based on inducing inputs,
-  kernel interpolation, and structure exploiting algebra.
+  We propose a method (TT-GP) for approximate inference in Gaussian Process (GP) 
+  models. We build on previous results on scalable GPs including stochastic 
+  variational inference based on inducing inputs, kernel interpolation and 
+  structure exploiting algebra.
   The key idea of our method is to utilize
   the Tensor Train decomposition for variational parameters, which allows us to train
   GPs with billions of inducing inputs and to achieve state-of-the-art results
