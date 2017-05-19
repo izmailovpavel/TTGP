@@ -40,7 +40,7 @@
 %\renewcommand{\baselinestretch}{0.95}
 %\parskip .35pc  % original size - .5pc
 
-\title{Scalable Gaussian Processes with Billions of Inducing Inputs via Tensor Train 
+\title{Scalable Gaussian Processes with Billions of Inducing Inputs via Tensor Train
       Decomposition}
 
 % The \author macro works with any number of authors. There are two
@@ -60,7 +60,8 @@
   %% examples of more authors
   \And
   Alexander Novikov\\
-  \texttt{email} \\
+  \texttt{sasha.v.novikov@gmail.com} \\
+  National Research University Higher School of Economics\\
   \AND
   Dmitry A.~Kropotov \\
   Lomonosov Moscow State University\\
@@ -83,19 +84,19 @@
 \maketitle
 
 \begin{abstract}
-  We propose a new method (TT-GP) for approximate inference in Gaussian process 
-  models. We build on previous results on scalable GPs including stochastic 
-  variational inference based on inducing inputs, kernel interpolation and 
+  We propose a new method (TT-GP) for approximate inference in Gaussian process
+  models. We build on previous results on scalable GPs including stochastic
+  variational inference based on inducing inputs, kernel interpolation and
   structure exploiting algebra. We also utilize the Tensor Train decomposition
-  which allows us to efficiently train GP models with billions of 
+  which allows us to efficiently train GP models with billions of
   inducing inputs and improve the results of previous GP models on several
   benchmark datasets. Further, our approach allows us to train kernels based on
-  deep neural networks without any modifications of the underlying GP model. 
+  deep neural networks without any modifications of the underlying GP model.
   Our model allows end-to-end training of both GP and Neural Network parameters
-  without pretraining through maximization of GP marginal likelihood. In this 
+  without pretraining through maximization of GP marginal likelihood. In this
   approach DNN learns a multidimensional embedding for the data, which is
   used by the GP to make the final prediction. We show the efficiency of the
-  proposed approach on several widely used classification benchmark datasets 
+  proposed approach on several widely used classification benchmark datasets
   including CIFAR10, MNIST and Airline.
 
 \end{abstract}
