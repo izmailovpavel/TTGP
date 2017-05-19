@@ -86,18 +86,19 @@
 \begin{abstract}
   We propose a method (TT-GP) for approximate inference in Gaussian Process (GP) 
   models. We build on previous results on scalable GPs including stochastic 
-  variational inference based on inducing inputs, kernel interpolation and 
+  variational inference based on inducing inputs, kernel interpolation, and 
   structure exploiting algebra.
-  The key idea of our method is to utilize
+  The key idea of our method is to use
   the Tensor Train decomposition for variational parameters, which allows us to train
   GPs with billions of inducing inputs and to achieve state-of-the-art results
-  on several benchmarks. Further, our approach allows us to train kernels based on
-  deep neural networks without any modifications of the underlying GP model.
-  Our model allows end-to-end training of both GP and neural network parameters
-  without pretraining through maximization of GP marginal likelihood. In this
-  approach, a neural network learns a multidimensional embedding for the data, which is
-  used by the GP to make the final prediction. We show the efficiency of the
-  proposed approach on several classification benchmark datasets
+  on several benchmarks. Further, our approach allows for training kernels based on
+  deep neural networks without any modifications to the underlying GP model.
+  A neural network learns a multidimensional embedding for the data, which is
+  used by the GP to make the final prediction.
+  We train GP and neural network parameters in the end-to-end manner
+  without pretraining through maximization of GP marginal likelihood.
+  We show the efficiency of the
+  proposed approach on several regression and classification benchmark datasets
   including MNIST, CIFAR-10, and Airline.
 
 \end{abstract}
