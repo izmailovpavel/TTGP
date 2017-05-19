@@ -1,10 +1,10 @@
 In the previous section we described several methods for GP regression and
-classification. All these methods have different limitations. Standard methods
-can not be applied for big datasets, KISS-GP requires small dimensionality of
-the feature space and other methods based on inducing points are limited to use
-a small number $m$ of these points. In this section we propose the TT-GP method
+classification. All these methods have different limitations: standard methods
+are limited to small-scale datasets, KISS-GP requires small dimensionality of
+the feature space, and the methods based on inducing points are limited to use
+a small number $m$ of these points. In this section, we propose the TT-GP method
 that can be used with big datasets and can incorporate billions of inducing
-inputs. TT-GP can naturally be used for training expressive deep kernels to work
+inputs. Additionally, TT-GP allows for training expressive deep kernels to work
 with structured data (e.g. images).
 
 \subsection{Variational Parameters Approximation}
@@ -12,11 +12,8 @@ with structured data (e.g. images).
   \citet{hensman2013}. We will place the inducing inputs $Z$ on a
   multidimensional grid in the feature space and we will assume the
   covariance function satisfies (\ref{prod_kernel}). Let the number
-  of inducing points in each dimension be $m_0$. Then
-  \[
-    m = m_0^D.
-  \]
-  As shown in section \ref{kiss_gp},
+  of inducing points in each dimension be $m_0$. Then the total number of induced points is $m = m_0^D$.
+  As shown in Section \ref{kiss_gp},
   in this case $\Kmm$ matrix can be rewritten as a Kronecker product over
   dimensions. Substituting the approximation (\ref{kernel_interpolation}) into
   the lower bound (\ref{elbo_reg}), we obtain
@@ -43,17 +40,17 @@ with structured data (e.g. images).
   are those containing variational parameters $\mu$ and $\Sigma$.
 
   Let us restrict the family of variational distributions (\ref{var_family}). Let $\Sigma$ be
-  a Kronecker product over dimensions, and $\mu$ be in TT-format with TT-ranks
-  not greater than $r$. Then, according to section \ref{tensor_train}, we can
+  a Kronecker product over dimensions, and $\mu$ be in the TT-format which TT-rank $r$
+  is a hyper-parameter of our method. Then, according to section \ref{tensor_train}, we can
   compute the lower bound~\eqref{kissgp_elbo} with
   $\bigO(nDm_0 r^2 + D m_0 r^3 + Dm_0^3) =
-  \bigO(nD m^{1/D} r^2 + D m^{1/D} r^3 + D m^{3/D}).$
+  \bigO(nD m^{1/D} r^2 + D m^{1/D} r^3 + D m^{3/D})$ complexity.
 
-  Thus, the proposed TT-GP method has linear complexity with respect to dimensionality
+  The proposed TT-GP method has linear complexity with respect to dimensionality
   $D$ of the feature space, despite the exponential growth of the number of
   inducing inputs. Lower bound  (\ref{kissgp_elbo})
   can be maximized with respect to kernel hyper-parameters $\theta$, TT-cores
-  of $\mu$ and Kronecker multipliers of $\Sigma$. Note that stochastic optimization
+  of $\mu$, and Kronecker multipliers of $\Sigma$. Note that stochastic optimization
   can be applied, as the bound (\ref{kissgp_elbo}) factorizes over data points.
 
 \subsection{Classification}
