@@ -123,7 +123,7 @@ embedding, which makes it practical for a wide range of datasets.
 
       Airline & F($1000$)-ReLU-F($1000$)-ReLU-F($500$)-ReLU-F($50$)-ReLU-F($2$)\\
 
-      CIFAR10 & C($3{\times}3$, 128)-BN-ReLU-C($3{\times}3$, 128)-BN-ReLU-P($3{\times}3$)-C($3{\times}3$, 256)-BN-ReLU-\\
+      CIFAR-10 & C($3{\times}3$, 128)-BN-ReLU-C($3{\times}3$, 128)-BN-ReLU-P($3{\times}3$)-C($3{\times}3$, 256)-BN-ReLU-\\
        & C($3{\times}3$, 256)-BN-ReLU-P($3{\times}3$)-C($3{\times}3$, 256)-BN-ReLU-\\
        & C($3{\times}3$, 256)-BN-ReLU-P($3{\times}3$)-F($1536$)-BN-ReLU-F($512$)-BN-ReLU-F($9$)\\
 
@@ -165,7 +165,7 @@ embedding, which makes it practical for a wide range of datasets.
       $0.781$ && $0.780$ & $1055$ &&
       $0.784$ & $2$ & $1375$\\
 
-      CIFAR10 & $50K$ & $32{\times}32{\times}3$ & $10$ &&
+      CIFAR-10 & $50K$ & $32{\times}32{\times}3$ & $10$ &&
       $0.770$ && $0.915$ & $166$ &&
       $0.909$ & $9$ & $220$\\
 
@@ -184,8 +184,8 @@ embedding, which makes it practical for a wide range of datasets.
 
   \subsubsection{Classification tasks}
   To test our model with deep kernels we used Airline,
-  CIFAR10 (\citet{krizhevsky2009}) and
-  MNIST (\citet{lecun1998}) datasets. The corresponding DNN architecture is shown in Table~\ref{deep_architecture}. For CIFAR dataset we also use standard data augmentation techniques with random cropping of $24 \times 24$
+  CIFAR-10 (\citet{krizhevsky2009}) and
+  MNIST (\citet{lecun1998}) datasets. The corresponding DNN architecture is shown in Table~\ref{deep_architecture}. For CIFAR-10 dataset we also use standard data augmentation techniques with random cropping of $24 \times 24$
   parts of the image, horizontal flipping, randomly adjusting brightness and contrast. In all experiments we also add a BN without trainable mean and
   variance after the DNN output layer to project the outputs into the region
   where inducing inputs are placed. We use $m_0 = 10$ inducing inputs
@@ -194,7 +194,7 @@ embedding, which makes it practical for a wide range of datasets.
 
   Table~\ref{deep_results} shows the results of the experiments for our TT-GP
   with DNN kernel and SV-DKL. Note, that the comparison
-  is not absolutely fair on CIFAR10 and MNIST datasets, as we didn't use
+  is not absolutely fair on CIFAR-10 and MNIST datasets, as we didn't use
   the same exact architecture and preprocessing as \citet{wilson2016stochastic}.
   On Airline we used the same exact architecture and preprocessing as
   SV-DKL, and TT-GP achieves a higher accuracy on this dataset.
