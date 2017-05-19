@@ -24,7 +24,7 @@
   points $X_*$. As the joint distribution of $y$ and $f_*$ is Gaussian, we can analytically
   compute the conditional distribution $p(f_* | y, X, X_*) = \N(f_*|\hat{m},\hat{K})$ with analytical formulas for $\hat{m}$ and $\hat{K}$. The complexity of this calculation is $\bigO(n^3)$ since it involves calculation of the inverse of the covariance matrix $K$.
   
-  Popular covariance functions usually have a set of hyper-parameters $\theta$. For example, the RBF kernel
+  Covariance functions usually have a set of hyper-parameters $\theta$. For example, the RBF kernel
   \[
     k_{\mbox{\scriptsize RBF}} (x, x') = \sigma_f^2 \exp\left(- 0.5 \Vert x - x'\Vert^2 / l^2 \right)
   \]

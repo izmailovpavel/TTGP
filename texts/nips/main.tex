@@ -40,7 +40,7 @@
 %\renewcommand{\baselinestretch}{0.95}
 %\parskip .45pc  % original size - .5pc
 
-\title{Scalable Gaussian Processes with Billions of Inducing Inputs via Tensor Train 
+\title{Scalable Gaussian Processes with Billions of Inducing Inputs via Tensor Train
       Decomposition}
 
 % The \author macro works with any number of authors. There are two
@@ -59,8 +59,9 @@
   \texttt{izmailovpavel@gmail.com} \\
   %% examples of more authors
   \And
-  Alexander Novikov\\
-  \texttt{email} \\
+  Alexander V.~Novikov\\
+  National Research University Higher School of Economics \\
+  \texttt{novikov@bayesgroup.ru} \\
   \AND
   Dmitry A.~Kropotov \\
   Lomonosov Moscow State University\\
@@ -83,20 +84,21 @@
 \maketitle
 
 \begin{abstract}
-  We propose a new method (TT-GP) for approximate inference in Gaussian process 
+  We propose a method (TT-GP) for approximate inference in Gaussian Process (GP) 
   models. We build on previous results on scalable GPs including stochastic 
   variational inference based on inducing inputs, kernel interpolation and 
-  structure exploiting algebra. We also utilize the Tensor Train decomposition
-  which allows us to efficiently train GP models with billions of 
-  inducing inputs and improve the results of previous GP models on several
-  benchmark datasets. Further, our approach allows us to train kernels based on
-  deep neural networks without any modifications of the underlying GP model. 
-  Our model allows end-to-end training of both GP and Neural Network parameters
-  without pretraining through maximization of GP marginal likelihood. In this 
-  approach DNN learns a multidimensional embedding for the data, which is
+  structure exploiting algebra.
+  The key idea of our method is to utilize
+  the Tensor Train decomposition for variational parameters, which allows us to train
+  GPs with billions of inducing inputs and to achieve state-of-the-art results
+  on several benchmarks. Further, our approach allows us to train kernels based on
+  deep neural networks without any modifications of the underlying GP model.
+  Our model allows end-to-end training of both GP and neural network parameters
+  without pretraining through maximization of GP marginal likelihood. In this
+  approach, a neural network learns a multidimensional embedding for the data, which is
   used by the GP to make the final prediction. We show the efficiency of the
-  proposed approach on several widely used classification benchmark datasets 
-  including CIFAR10, MNIST and Airline.
+  proposed approach on several classification benchmark datasets
+  including MNIST, CIFAR 10, and Airline.
 
 \end{abstract}
 
