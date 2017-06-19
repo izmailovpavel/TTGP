@@ -12,7 +12,8 @@ from t3f import ops
 from t3f import TensorTrain
 from t3f import TensorTrainBatch
 from t3f import batch_ops
-from tf.contrib import crf
+from tf.contrib.crf import crf_sequence_score
+from tf.contrib.crf import crf_log_norm
 
 from gptt_embed.misc import _kron_tril
 from gptt_embed.misc import _kron_logdet
@@ -106,39 +107,6 @@ class TTGPstruct:
     """Returns covariance matrices computed at inducing inputs for all labels. 
     """
     return self.cov.kron_cov(self.inputs_dists, eig_correction)
-
-  def _sample_f(self, m_un, S_un, m_bin, S_bin):
-    """Samples a value from all the processes.
-
-    Args:
-      A tuple containing 4 `tf.Tensors`.
-      m_un: a `tf.Tensor` of shape  `n_labels` x `batch_size` x `max_seq_len`;
-        the expectations of the unary potentials.
-      S_un: a `tf.Tensor` of shape 
-        `n_labels` x `batch_size` x `max_seq_len` x `max_seq_len`; the
-        covariance matrix of unary potentials.
-      m_bin: a `tf.Tensor` of shape `max_seq_len`^2; the expectations
-        of binary potentials.
-      S_bin: a `tf.Tensor` of shape `max_seq_len`^2 x `max_seq_len`^2; the
-        covariance matrix of binary potentials.
-    """
-    # TODO: check
-    
-    eps_un = tf.random_normal(m_un.get_shape())
-    eps_bin = tf.random_normal(m_bin.get_shape())
-
-    S_un_l = tf.cholesky(S_un)
-    S_bin_l = tf.cholesky(S_bin)
-
-    f_un = m_un + tf.einsum('lsij,lsj->lsi', S_un_l, eps_un)
-    f_bin = m_bin + tf.matmul(S_bin_l, eps_bin)
-
-    n_labels, batch_size, max_seq_len = m_un.get_shape()
-    print('_sample_f/f_un', f_un.get_shape(), '=',
-        n_labels, batch_size, max_seq_len)
-    print('_sample_f/f_bin', f_bin.get_shape(), '=',
-        max_seq_len**2)
-    return f_un, f_bin
 
   def _binary_complexity_penalty(self):
     """Computes the complexity penalty for binary potentials.
@@ -236,9 +204,9 @@ class TTGPstruct:
       `S_bin`: a `tf.Tensor` of shape `max_seq_len`^2 x `max_seq_len`^2; the
         covariance matrix of binary potentials.
     """
-    # TODO: add max_seq_len 
+    # TODO: check
     d, max_len, batch_size  = x.get_shape()
-    mask = tf.sequence_mask(seq_lens)
+    mask = tf.sequence_mask(seq_lens, maxlen=max_len)
     indices = tf.where(sequence_mask)
     
     x_flat = tf.gather_nd(x, indices)
@@ -269,30 +237,40 @@ class TTGPstruct:
     S_bin = tf.matmul(self.bin_sigma_l, tf.transpose(self.bin_sigma_l))
     return m_un, S_un, m_bin, m_un
 
-#  def _predict_process_values(self, x, with_variance=False, test=False):
-#    """Computes the parameters of the distributions of the latent variables.
-#
-#    Args:
-#      x: `tf.Tensor` of shape `batch_size` x `max_seq_len` x D; 
-#      sequences of features for the current batch.
-#      seq_lens: `tf.Tensor` of shape `bach_size`; lenghts of input sequences.
-#    """
-#    w = self.inputs.interpolate_on_batch(self.cov.project(x, test=test))
-#
-#    mean = batch_ops.pairwise_flat_inner(w, self.mus)
-#    if not with_variance:
-#        return mean
-#    K_mms = self._K_mms()
-#
-#    sigma_ls = _kron_tril(self.sigma_ls)
-#    variances = []
-#    sigmas = ops.tt_tt_matmul(sigma_ls, ops.transpose(sigma_ls))
-#    variances = pairwise_quadratic_form(sigmas, w, w)
-#    variances -= pairwise_quadratic_form(K_mms, w, w)
-#    variances += self.cov.cov_0()[None, :]
-#    return mean, variances
+  def _sample_f(self, m_un, S_un, m_bin, S_bin):
+    """Samples a value from all the processes.
 
-  def elbo(self, x, y, seq_lens, name=None):
+    Args:
+      A tuple containing 4 `tf.Tensors`.
+      m_un: a `tf.Tensor` of shape  `n_labels` x `batch_size` x `max_seq_len`;
+        the expectations of the unary potentials.
+      S_un: a `tf.Tensor` of shape 
+        `n_labels` x `batch_size` x `max_seq_len` x `max_seq_len`; the
+        covariance matrix of unary potentials.
+      m_bin: a `tf.Tensor` of shape `max_seq_len`^2; the expectations
+        of binary potentials.
+      S_bin: a `tf.Tensor` of shape `max_seq_len`^2 x `max_seq_len`^2; the
+        covariance matrix of binary potentials.
+    """
+    # TODO: check
+    
+    eps_un = tf.random_normal(m_un.get_shape())
+    eps_bin = tf.random_normal(m_bin.get_shape())
+
+    S_un_l = tf.cholesky(S_un)
+    S_bin_l = tf.cholesky(S_bin)
+
+    f_un = m_un + tf.einsum('lsij,lsj->lsi', S_un_l, eps_un)
+    f_bin = m_bin + tf.matmul(S_bin_l, eps_bin)
+
+    n_labels, batch_size, max_seq_len = m_un.get_shape()
+    print('_sample_f/f_un', f_un.get_shape(), '=',
+        n_labels, batch_size, max_seq_len)
+    print('_sample_f/f_bin', f_bin.get_shape(), '=',
+        max_seq_len**2)
+    return f_un, f_bin
+
+  def elbo(self, x, y, seq_lens):
     '''Evidence lower bound.
     
     A doubly stochastic procedure based on reparametrization trick is used to 
@@ -309,32 +287,28 @@ class TTGPstruct:
       A scalar `tf.Tensor` containing a stochastic approximation of the evidence
       lower bound.
     '''
-    # TODO: implement 
-    means, variances = self._predict_process_values(x, with_variance=True)
+    # TODO: check
 
-    l = tf.cast(tf.shape(y)[0], tf.float64) # batch size
-    N = tf.cast(self.N, dtype=tf.float64) 
+    m_un, S_un, m_bin, S_bin = self._latent_vars_distribution(x, seq_lens)
+    f_un, f_bin = self._sample(m_un, S_un, m_bin, S_bin)
 
-    y = tf.reshape(y, [-1, 1])
-    indices = tf.concat([tf.range(tf.cast(l, tf.int64))[:, None], y], axis=1)
+#    l = tf.cast(tf.shape(y)[0], tf.float64) # batch size
+    batch_size = tf.shape(y)[0]
+#    N = tf.cast(self.N, dtype=tf.float64) 
+    N = self.N 
 
-    # means for true classes
-    means_c = tf.gather_nd(means, indices)
-    print('GPC/elbo/means_c', means_c.get_shape())
+    unnormalized_log_likelihood = crf_sequence_score(
+        tf.transpose(m_un, [1, 2, 0]), y, seq_lens, 
+        tf.transpose(m_bin, [self.n_labels, self.n_labels]))
+    log_partition_estimate = crf_log_norm(
+        tf.transpose(f_un, [1, 2, 0]), seq_lens, 
+        tf.transpose(f_bin, [self.n_labels, self.n_labels]))
     
     # Likelihood
     elbo = 0
-    elbo += tf.reduce_sum(means_c)
-
-    # Log-partition function expectation estimate
-    sample_unary, sample_binary = self.sample_potentials(x)
-    log_Z = crf.crf_log_norm(sample_unary, seq_lens, sample_binary)
-
-    log_sum_exp_bound = tf.log(tf.reduce_sum(tf.exp(means + variances/2),
-                                                                axis=1))
-    print('GPC/elbo/log_sum_exp_bound', log_sum_exp_bound.get_shape())
-    elbo -= tf.reduce_sum(log_sum_exp_bound)
-    elbo /= l
+    elbo += unnormalized_log_likelihood
+    elbo -= log_partition_estimate
+    elbo /= batch_size
     
     print('GPC/elbo/complexity_penalty', self._unary_complexity_penalty().get_shape())
     print('GPC/elbo/complexity_penalty', self._complexity_penalty_inducing_inputs().get_shape())
