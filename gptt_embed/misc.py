@@ -127,3 +127,41 @@ def pairwise_quadratic_form(A, b, c):
                     curr_core_b, res)
 
   return tf.squeeze(res)
+
+def _kron_sequence_pairwise_quadratic_form(mat, vec, seq_lens, max_seq_len):
+  """Computes the pairwise quadratic form `vec.T` `mat` `vec` for sequence data.
+
+  This function is implemented for computing the variational covariance matrix 
+  for binary potentials in GPstruct model.
+
+  Args:
+    mat: a kronecker (all TT-ranks equal to 1) `t3f.TensorTrainBatch` of shape 
+      `n_labels` x `M` x `M`.
+    vec: a kronecker (all TT-ranks equal to 1) `t3f.TensorTrainBatch` of shape 
+      `sum_lens` x `M`, where `sum_lens` is the sum of `seq_lens`.
+    seq_lens: lengths of sequences.
+    max_seq_len: a number, maximum length of a sequence in the batch.
+
+  Return:
+    a `tf.Tensor` of shape 
+    `n_labels` x `batch_size` x `max_seq_len` x `max_seq_len`.
+  """
+  # TODO: check this
+  mask = tf.sequence_mask(seq_lens, maxlen=max_seq_lens)
+  indices = tf.where(sequence_mask)
+  n_labels = mat.ndims()
+  batch_size = len(seq_lens)
+  result = tf.zeros([n_labels, batch_size, max_seq_len, max_seq_len])
+  for core_idx in range(1, ndims):
+    cur_core_mat = mat.tt_cores[core_idx][:, 0, :, :, 0]
+    cur_core_vec = vec.tt_cores[core_idx][:, 0, :, 0]
+    cur_core_vec = tf.scatter_nd(indices, cur_core_vec)
+    print('_kron_sequence_pairwise_quadratic_form/cur_core_vec', 
+        cur_core_vec.get_shape(), '= batch_size x max_seq_len x m0')
+    core_res = tf.einsum('sia,lab,sjb->lsij', 
+        cur_core_vec, cur_core_mat, cur_core_vec) 
+    result *= core_res
+    print('_kron_sequence_pairwise_quadratic_form/cur_core_vec', 
+        core_res.get_shape(), '=' n_labels, batch_size, max_seq_len, max_seq_len)
+    
+  return result

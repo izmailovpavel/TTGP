@@ -8,10 +8,16 @@ import numpy as np
 
 import t3f
 import t3f.kronecker as kron
-from t3f import ops, TensorTrain, TensorTrainBatch, batch_ops
+from t3f import ops
+from t3f import TensorTrain
+from t3f import TensorTrainBatch
+from t3f import batch_ops
 from tf.contrib import crf
 
-from gptt_embed.misc import _kron_tril, _kron_logdet, pairwise_quadratic_form
+from gptt_embed.misc import _kron_tril
+from gptt_embed.misc import _kron_logdet
+from gptt_embed.misc import pairwise_quadratic_form
+from gptt_embed.misc import _kron_sequence_pairwise_quadratic_form
 
 class TTGPstruct:
 
@@ -101,12 +107,38 @@ class TTGPstruct:
     """
     return self.cov.kron_cov(self.inputs_dists, eig_correction)
 
-  def _sample_f(self, mus, sigmas):
+  def _sample_f(self, m_un, S_un, m_bin, S_bin):
     """Samples a value from all the processes.
+
+    Args:
+      A tuple containing 4 `tf.Tensors`.
+      m_un: a `tf.Tensor` of shape  `n_labels` x `batch_size` x `max_seq_len`;
+        the expectations of the unary potentials.
+      S_un: a `tf.Tensor` of shape 
+        `n_labels` x `batch_size` x `max_seq_len` x `max_seq_len`; the
+        covariance matrix of unary potentials.
+      m_bin: a `tf.Tensor` of shape `max_seq_len`^2; the expectations
+        of binary potentials.
+      S_bin: a `tf.Tensor` of shape `max_seq_len`^2 x `max_seq_len`^2; the
+        covariance matrix of binary potentials.
     """
-    # TODO: implement 
-    #eps = tf.random_normal([self.nlabels])
-    pass
+    # TODO: check
+    
+    eps_un = tf.random_normal(m_un.get_shape())
+    eps_bin = tf.random_normal(m_bin.get_shape())
+
+    S_un_l = tf.cholesky(S_un)
+    S_bin_l = tf.cholesky(S_bin)
+
+    f_un = m_un + tf.einsum('lsij,lsj->lsi', S_un_l, eps_un)
+    f_bin = m_bin + tf.matmul(S_bin_l, eps_bin)
+
+    n_labels, batch_size, max_seq_len = m_un.get_shape()
+    print('_sample_f/f_un', f_un.get_shape(), '=',
+        n_labels, batch_size, max_seq_len)
+    print('_sample_f/f_bin', f_bin.get_shape(), '=',
+        max_seq_len**2)
+    return f_un, f_bin
 
   def _binary_complexity_penalty(self):
     """Computes the complexity penalty for binary potentials.
@@ -184,42 +216,58 @@ class TTGPstruct:
     dists = 2 * x_norms - scalar_products
     return dists
 
-#  def _latent_vars_distribution(self, x, seq_lens):
-#    """Computes the parameters of the variational distribution over potentials.
-#
-#    Args:
-#      x: `tf.Tensor` of shape `batch_size` x `max_seq_len` x d; 
-#      sequences of features for the current batch.
-#      seq_lens: `tf.Tensor` of shape `bach_size`; lenghts of input sequences.
-#
-#    Returns:
-#      A tuple containing 4 `tf.Tensors`.
-#      `m_un`: a `tf.Tensor` of shape `batch_size` x `max_seq_len` x `n_labels`;
-#        the expectations of the unary potentials.
-#      `K_un`: a `tf.Tensor` of shape 
-#        `batch_size` x `max_seq_len` x `max_seq_len` x `n_labels`; the
-#        covariance matrix of unary potentials.
-#      `m_bin`: a `tf.Tensor` of shape `max_seq_len`^2; the expectations
-#        of binary potentials.
-#      `K_bin`: a `tf.Tensor` of shape `max_seq_len`^2 x `max_seq_len`^2; the
-#        covariance matrix of binary potentials.
-#    """
-#    # TODO: add max_seq_len 
-#    d, max_len, batch_size  = x.get_shape()
-#    mask = tf.sequence_mask(seq_lens)
-#    indices = tf.where(sequence_mask)
-#    
-#    x_flat = tf.gather_nd(x, indices)
-#    print('_latent_vars_distribution/x_flat', x_flat.get_shape(), '=',
-#        '?', 'x', d)
-#
-#    w = self.inputs.interpolate_on_batch(self.cov.project(x_flat))
-#    m_un_flat = batch_ops.pairwise_flat_inner(w, self.mu_s)
-#    print('_latent_vars_distribution/m_un_flat', m_un_flat.get_shape(), '=',
-#        '?', 'x', n_labels)
-#    m_un = tf.scatter_nd(indices, m_un_flat)
-#
-#    K_un = 
+  def _latent_vars_distribution(self, x, seq_lens):
+   """Computes the parameters of the variational distribution over potentials.
+
+    Args:
+      x: `tf.Tensor` of shape `batch_size` x `max_seq_len` x d; 
+      sequences of features for the current batch.
+      seq_lens: `tf.Tensor` of shape `bach_size`; lenghts of input sequences.
+
+    Returns:
+      A tuple containing 4 `tf.Tensors`.
+      `m_un`: a `tf.Tensor` of shape  `n_labels` x `batch_size` x `max_seq_len`;
+        the expectations of the unary potentials.
+      `S_un`: a `tf.Tensor` of shape 
+        `n_labels` x `batch_size` x `max_seq_len` x `max_seq_len`; the
+        covariance matrix of unary potentials.
+      `m_bin`: a `tf.Tensor` of shape `max_seq_len`^2; the expectations
+        of binary potentials.
+      `S_bin`: a `tf.Tensor` of shape `max_seq_len`^2 x `max_seq_len`^2; the
+        covariance matrix of binary potentials.
+    """
+    # TODO: add max_seq_len 
+    d, max_len, batch_size  = x.get_shape()
+    mask = tf.sequence_mask(seq_lens)
+    indices = tf.where(sequence_mask)
+    
+    x_flat = tf.gather_nd(x, indices)
+    print('_latent_vars_distribution/x_flat', x_flat.get_shape(), '=',
+        '?', 'x', d)
+
+    w = self.inputs.interpolate_on_batch(self.cov.project(x_flat))
+    m_un_flat = batch_ops.pairwise_flat_inner(w, self.mu_s)
+    print('_latent_vars_distribution/m_un_flat', m_un_flat.get_shape(), '=',
+        '?', 'x', n_labels)
+    m_un = tf.scatter_nd(indices, m_un_flat)
+
+    dists = self._compute_pairwise_dists(x)
+    sigma_f = self.cov.noise_variance()
+    K_nn = self.cov.cov_for_squared_dists(dists) 
+    K_nn += sigma_f**2 * tf.eye(max_len, batch_shape=[batch_size])
+    print('_latent_vars_distribution/K_nn', K_nn.get_shape(), '=',
+        n_labels, 'x', batch_size, 'x', max_len, 'x', max_len)
+    
+    sigmas = ops.tt_tt_matmul(self.sigma_l, self.sigma_l)
+    K_mms = self._K_mms()
+
+    S_un = K_nn
+    S_un += _kron_sequence_pairwise_quadratic_form(sigmas, w, seq_lens, max_len)
+    S_un -= _kron_sequence_pairwise_quadratic_form(K_mms, w, seq_lens, max_len)
+
+    m_bin = self.bin_mu
+    S_bin = tf.matmul(self.bin_sigma_l, tf.transpose(self.bin_sigma_l))
+    return m_un, S_un, m_bin, m_un
 
 #  def _predict_process_values(self, x, with_variance=False, test=False):
 #    """Computes the parameters of the distributions of the latent variables.

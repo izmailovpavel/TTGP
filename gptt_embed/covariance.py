@@ -175,11 +175,20 @@ class SE_multidim:
       eig_correction: eigenvalue correction for numerical stability.
 
     Returns:
-      A `tf.Tensor` of shape ... x N x M; two innermost dimenstions contain
-      covariance matrices.
+      A `tf.Tensor` of shape `ndim` x... x N x M ; two innermost dimenstions 
+      contain covariance matrices.
     """
     # TODO: check this
-    cov = self.sigma_f ** 2 * tf.exp(-sq_dists / (2 * self.l**2))
+    n_extra_dims = len(sq_dists.get_shape())
+    sigma_f = self.sigma_f
+    l = self.l
+    for i in range(n_extra_dims):
+      sigma_f = sigma_f[:, None]
+      l = l[:, None]
+    sq_dists = sq_dists[None, :]
+    cov = sigma_f ** 2 * tf.exp(-sq_dists / (2 * l**2))
+    print('cov_for_squared_dists/cov', cov.get_shape(), '=', 
+        self.ndims + sq_dists.get_shape())
     return cov
 
   def get_params(self):
