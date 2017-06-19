@@ -132,22 +132,23 @@ def _kron_sequence_pairwise_quadratic_form(mat, vec, seq_lens, max_seq_len):
     a `tf.Tensor` of shape 
     `n_labels` x `batch_size` x `max_seq_len` x `max_seq_len`.
   """
-  # TODO: check this
-  mask = tf.sequence_mask(seq_lens, maxlen=max_seq_lens)
-  indices = tf.where(sequence_mask)
-  n_labels = mat.ndims()
+  mask = tf.sequence_mask(seq_lens, maxlen=max_seq_len)
+  indices = tf.where(mask)
+  n_labels = mat.batch_size
   batch_size = len(seq_lens)
-  result = tf.zeros([n_labels, batch_size, max_seq_len, max_seq_len])
-  for core_idx in range(1, ndims):
+  result = tf.ones([n_labels, batch_size, max_seq_len, max_seq_len])
+
+  if mat.ndims() != vec.ndims():
+    raise ValueError('`mat` and `vec` should have the same ndims')
+
+  for core_idx in range(mat.ndims()):
     cur_core_mat = mat.tt_cores[core_idx][:, 0, :, :, 0]
     cur_core_vec = vec.tt_cores[core_idx][:, 0, :, 0]
-    cur_core_vec = tf.scatter_nd(indices, cur_core_vec)
-    print('_kron_sequence_pairwise_quadratic_form/cur_core_vec', 
-        cur_core_vec.get_shape(), '= batch_size x max_seq_len x m0')
+    dim = cur_core_vec.get_shape()[-1].value
+    cur_core_vec = tf.scatter_nd(indices, cur_core_vec, 
+        tf.constant([batch_size, max_seq_len, dim], dtype=tf.int64))
     core_res = tf.einsum('sia,lab,sjb->lsij', 
         cur_core_vec, cur_core_mat, cur_core_vec) 
     result *= core_res
-    print('_kron_sequence_pairwise_quadratic_form/cur_core_vec', 
-        core_res.get_shape(), '=' n_labels, batch_size, max_seq_len, max_seq_len)
     
   return result
