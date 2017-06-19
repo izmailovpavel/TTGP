@@ -32,10 +32,23 @@ class TTGPstruct:
     self.sigma_ls = self._get_sigma_ls()
     self.mus = self._get_mus(mu_ranks, x_init, y_init)
     self.N = 0 # Size of the training set
+    self.bin_mu, self.bin_sigma_l = self._get_bin_vars()
+
+  def _get_bin_vars(self):
+    """Initializes binary potential variational parameters.
+    """
+    # TODO: check 
+    init_mu = tf.zeros([self.n_labels])
+    init_sigma_l = tf.eye(self.n_labels) # Should this be diagonal?
+    bin_mu = tf.get_variable('bin_mu', initializee=init_mu, dtype=tf.float64)
+    bin_sigma_l = tf.get_variable('bin_sigma_l', initializee=init_sigma_l, 
+        dtype=tf.float64)
+    return bin_mu, bin_sigma_l
 
   def _get_mus(self, ranks, x_init, y_init):
     """Initialization of mus.
     """
+    # TODO: check 
     w = self.inputs.interpolate_on_batch(self.cov.project(x_init))
     Sigma = ops.tt_tt_matmul(self.sigma_ls[0], ops.transpose(self.sigma_ls[0]))
     temp = ops.tt_tt_matmul(w, y_init)        
@@ -57,6 +70,7 @@ class TTGPstruct:
   def _get_sigma_ls(self):
     """Initialization of sigmas.
     """
+    # TODO: check 
     cov = self.cov
     inputs_dists = self.inputs_dists
     K_mm = cov.kron_cov(inputs_dists)    
@@ -71,33 +85,51 @@ class TTGPstruct:
     self.cov.initialize(sess)
     sess.run(tf.variables_initializer(self.sigma_ls.tt_cores))
     sess.run(tf.variables_initializer(self.mus.tt_cores))
+    sess.run(tf.variables_initializer([self.bin_mu, self.bin_sigma]))
 
   def get_params(self):
     """Returns a list of all the parameters of the model.
     """
-    gp_var_params = list(self.mus.tt_cores + self.sigma_ls.tt_cores)
+    bin_var_params = list(self.bin_mu_l + self.bin_sigma_l)
+    un_var_params = list(self.mus.tt_cores + self.sigma_ls.tt_cores)
+    var_params = bin_var_params + un_var_params
     cov_params = self.cov.get_params()
     return cov_params + gp_var_params
 
-  def _K_mms(self, eig_correction=1e-2):
-    """Returns covariance matrix computed at inducing inputs. 
-    """
-    return self.cov.kron_cov(self.inputs_dists, eig_correction)
+#  def _K_mms(self, eig_correction=1e-2):
+#    """Returns covariance matrix computed at inducing inputs. 
+#    """
+#    return self.cov.kron_cov(self.inputs_dists, eig_correction)
 
   def _sample_f(self, mus, sigmas):
     """Samples a value from all the processes.
     """
+    # TODO: implement 
     #eps = tf.random_normal([self.nlabels])
     pass
-
 
   def _binary_complexity_penalty(self):
     """Computes the complexity penalty for binary potentials.
 
-    This function computes KL-divergence between prior and variational 
-    distribution over binary potentials.
+    This function computes negative KL-divergence between variational 
+    distribution and prior over binary potentials.
     """
-    pass
+    # TODO: implement 
+    # TODO: should we use other kernels for binary potentials?
+    K_bin = tf.eye(self.n_labels * self.n_labels)
+    K_bin_log_det = tf.zeros([1])
+    K_bin_inv = tf.eye(self.n_labels * self.n_labels)
+
+    S_bin_l = self.bin_sigma_l
+    S_bin = tf.matmul(S_bin_l, tf.transpose(S_bin_l))
+    S_bin_logdet = _kron_logdet(S_bin_l)
+    mu_bin = self.bin_mu
+    
+    KL = K_bin_logdet - S_bin_logdet
+    KL += tf.einsum('ij,ji->i', K_bin_inv, S_bin)
+    KL += tf.matmul(mu_bin, tf.transpose(tf.matmul(K_bin_inv, mu_bin))
+    KL = KL / 2
+    return -KL
 
   def _unary_complexity_inducing_inputs(self):
     """Computes the complexity penalty for unary potentials.
@@ -108,6 +140,7 @@ class TTGPstruct:
     Returns:
       A scalar `tf.Tensor` containing the complexity penalty for the processes.
     """
+    # TODO: implement 
     mus = self.mus
     sigma_ls = _kron_tril(self.sigma_ls)
     sigmas = ops.tt_tt_matmul(sigma_ls, ops.transpose(sigma_ls))
@@ -125,6 +158,28 @@ class TTGPstruct:
                            ops.tt_tt_matmul(K_mms_inv, mus))
     return tf.reduce_sum(penalty) / 2
       
+  def _predict_process_values(self, x, with_variance=False, test=False):
+    """Computes the parameters of the distributions of the latent variables.
+
+    Args:
+      x: `tf.Tensor` of shape `batch_size` x `max_seq_len` x D; 
+      sequences of features for the current batch.
+      seq_lens: `tf.Tensor` of shape `bach_size`; lenghts of input sequences.
+    """
+    w = self.inputs.interpolate_on_batch(self.cov.project(x, test=test))
+
+    mean = batch_ops.pairwise_flat_inner(w, self.mus)
+    if not with_variance:
+        return mean
+    K_mms = self._K_mms()
+
+    sigma_ls = _kron_tril(self.sigma_ls)
+    variances = []
+    sigmas = ops.tt_tt_matmul(sigma_ls, ops.transpose(sigma_ls))
+    variances = pairwise_quadratic_form(sigmas, w, w)
+    variances -= pairwise_quadratic_form(K_mms, w, w)
+    variances += self.cov.cov_0()[None, :]
+    return mean, variances
 
   def elbo(self, x, y, seq_lens, name=None):
     '''Evidence lower bound.
@@ -143,6 +198,7 @@ class TTGPstruct:
       A scalar `tf.Tensor` containing a stochastic approximation of the evidence
       lower bound.
     '''
+    # TODO: implement 
     means, variances = self._predict_process_values(x, with_variance=True)
 
     l = tf.cast(tf.shape(y)[0], tf.float64) # batch size
@@ -188,6 +244,7 @@ class TTGPstruct:
       lr: learning rate for the optimization method.
       global_step: global step tensor.
     """
+    # TODO: check 
     self.N = N
     fun = self.elbo(x, y)
     optimizer = tf.train.AdamOptimizer(learning_rate=lr)
@@ -206,4 +263,5 @@ class TTGPstruct:
       seq_lens: `tf.Tensor` of shape `bach_size`; lenghts of input sequences.
       n_samples: number of samples used to estimate the optimal labels.
     '''
+    # TODO: implement 
     pass
