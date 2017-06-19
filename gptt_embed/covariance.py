@@ -9,187 +9,204 @@ from t3f import ops, TensorTrain, TensorTrainBatch
 
 class SE:
 
-    def __init__(self, sigma_f, l, sigma_n, projector, trainable=True, 
-                name_append=''):
-        """Squared Exponential kernel.
-        Args:
-            sigma_f: process variance
-            l: process length scale
-            sigma_n: noise variance
-            projector: `FeatureTransformer` object
-            trainable: Bool, parameters are trainable iff True
-        """
-        with tf.name_scope('SE'+name_append):
-            self.sigma_f = tf.get_variable('Process_variance'+name_append, [1], 
-                                initializer=tf.constant_initializer(sigma_f), 
-                                dtype=tf.float64, trainable=trainable)
-            self.l = tf.get_variable('Process_lengthscale'+name_append, [1], 
-                                initializer=tf.constant_initializer(l), 
-                                dtype=tf.float64, trainable=trainable)
-            self.sigma_n = tf.get_variable('Noise_variance'+name_append, [1], 
-                                initializer=tf.constant_initializer(sigma_n), 
-                                dtype=tf.float64, trainable=trainable)
-        self.projector = projector
+  def __init__(self, sigma_f, l, sigma_n, projector, trainable=True, 
+              name_append=''):
+      """Squared Exponential kernel.
+      Args:
+        sigma_f: process variance
+        l: process length scale
+        sigma_n: noise variance
+        projector: `FeatureTransformer` object
+        trainable: Bool, parameters are trainable iff True
+      """
+      with tf.name_scope('SE'+name_append):
+        self.sigma_f = tf.get_variable('Process_variance'+name_append, [1], 
+                            initializer=tf.constant_initializer(sigma_f), 
+                            dtype=tf.float64, trainable=trainable)
+        self.l = tf.get_variable('Process_lengthscale'+name_append, [1], 
+                            initializer=tf.constant_initializer(l), 
+                            dtype=tf.float64, trainable=trainable)
+        self.sigma_n = tf.get_variable('Noise_variance'+name_append, [1], 
+                            initializer=tf.constant_initializer(sigma_n), 
+                            dtype=tf.float64, trainable=trainable)
+      self.projector = projector
 
-    def project(self, x, name=None):
-        """Transforms the features of x with projector.
-        Args:
-            x: batch of data to be transformed through the projector.
-        """
-        with tf.name_scope(name, 'SE_project', [x]):
-            return self.projector.transform(x)
+  def project(self, x, name=None):
+      """Transforms the features of x with projector.
+      Args:
+        x: batch of data to be transformed through the projector.
+      """
+      with tf.name_scope(name, 'SE_project', [x]):
+        return self.projector.transform(x)
 
-    def kron_cov(self, kron_dists, eig_correction=1e-2, name=None):
-        """Computes the covariance matrix, given a kronecker product 
-        representation of distances.
+  def kron_cov(self, kron_dists, eig_correction=1e-2, name=None):
+      """Computes the covariance matrix, given a kronecker product 
+      representation of distances.
 
-        Args:
-            kron_dists: kronecker product representation of pairwise
-                distances.
-            eig_correction: eigenvalue correction for numerical stability.
-            name: name for the op.
-        """
-        with tf.name_scope(name, 'SE_kron_cov', [kron_dists]):
-            res_cores = []
-            for core_idx in range(kron_dists.ndims()):
-                core = kron_dists.tt_cores[core_idx]
-                cov_core = (self.sigma_f**(2./ kron_dists.ndims())* 
-                            tf.exp(-core/(2. * (self.l**2.))))
-                cov_core += tf.reshape(eig_correction *
-                            tf.eye(core.get_shape()[1].value, dtype=tf.float64),
-                            core.get_shape())
-                res_cores.append(cov_core)
-            res_shape = kron_dists.get_raw_shape()
-            res_ranks = kron_dists.get_tt_ranks()
-            return TensorTrain(res_cores, res_shape, res_ranks)
+      Args:
+        kron_dists: kronecker product representation of pairwise
+            distances.
+        eig_correction: eigenvalue correction for numerical stability.
+        name: name for the op.
+      """
+      with tf.name_scope(name, 'SE_kron_cov', [kron_dists]):
+        res_cores = []
+        for core_idx in range(kron_dists.ndims()):
+          core = kron_dists.tt_cores[core_idx]
+          cov_core = (self.sigma_f**(2./ kron_dists.ndims())* 
+                      tf.exp(-core/(2. * (self.l**2.))))
+          cov_core += tf.reshape(eig_correction *
+                      tf.eye(core.get_shape()[1].value, dtype=tf.float64),
+                      core.get_shape())
+          res_cores.append(cov_core)
+        res_shape = kron_dists.get_raw_shape()
+        res_ranks = kron_dists.get_tt_ranks()
+        return TensorTrain(res_cores, res_shape, res_ranks)
 
-#    def __call__(self, x1, x2, name=None):
-#        return self.cov(x1, x2, name)
+#  def __call__(self, x1, x2, name=None):
+#      return self.cov(x1, x2, name)
 
-    def get_params(self):
-        cov_params = [self.sigma_f, self.l, self.sigma_n]
-        projector_params = self.projector.get_params()
-        return cov_params + projector_params
+  def get_params(self):
+    cov_params = [self.sigma_f, self.l, self.sigma_n]
+    projector_params = self.projector.get_params()
+    return cov_params + projector_params
 
-    def initialize(self, sess):
-        """Runs the initializers for kernel parameters.
+  def initialize(self, sess):
+    """Runs the initializers for kernel parameters.
 
-        Args:
-            sess: `tf.Session` object
-        """
-        self.projector.initialize(sess)
-        sess.run(tf.variables_initializer([self.sigma_f, self.l, self.sigma_n]))
+    Args:
+      sess: `tf.Session` object
+    """
+    self.projector.initialize(sess)
+    sess.run(tf.variables_initializer([self.sigma_f, self.l, self.sigma_n]))
 
-    def feature_dim(self):
-        """Returns the dimensionality of feature space used.
-        """
-        return self.projector.out_dim()
+  def feature_dim(self):
+    """Returns the dimensionality of feature space used.
+    """
+    return self.projector.out_dim()
 
-    def noise_variance(self):
-        """Returns the noise variance of the process.
-        """
-        return self.sigma_n
+  def noise_variance(self):
+    """Returns the noise variance of the process.
+    """
+    return self.sigma_n
 
-    def cov_0(self):
-        """Returns covariance between a point and itself.
-        """
-        return self.sigma_n**2 + self.sigma_f**2
+  def cov_0(self):
+    """Returns covariance between a point and itself.
+    """
+    return self.sigma_n**2 + self.sigma_f**2
 
 
 class SE_multidim:
-    """Multidimensional SE kernel.
+  """Multidimensional SE kernel.
 
-    This class is meant to be used in multiclass gp classification.
+  This class is meant to be used in multiclass gp classification.
+  """
+  # TODO: merge this class with SE
+
+  def __init__(self, n_dims, sigma_f, l, sigma_n, projector, trainable=True):
+      """Squared Exponential kernel.
+      Args:
+        n_dims: number of dimensions
+        sigma_f: process variance
+        l: process length scale
+        sigma_n: noise variance
+        projector: `FeatureTransformer` object
+        trainable: Bool, parameters are trainable iff True
+      """
+      with tf.name_scope('SE_multidim'):
+        sigma_f_init = tf.cast(tf.fill([n_dims], sigma_f), dtype=tf.float64)
+        l_init = tf.cast(tf.fill([n_dims], l), dtype=tf.float64) 
+        sigma_n_init = tf.cast(tf.fill([n_dims], sigma_n), dtype=tf.float64)
+        self.sigma_f = tf.get_variable('Process_variance',  
+                            initializer=sigma_f_init, 
+                            dtype=tf.float64, trainable=trainable)
+        self.l = tf.get_variable('Process_lengthscale', 
+                            initializer=l_init, 
+                            dtype=tf.float64, trainable=trainable)
+        self.sigma_n = tf.get_variable('Noise_variance', 
+                            initializer=sigma_n_init, 
+                            dtype=tf.float64, trainable=trainable)
+      self.projector = projector
+      self.ndim = n_dims
+
+  def project(self, x, test=False, name=None):
+      """Transforms the features of x with projector.
+      Args:
+        x: batch of data to be transformed through the projector.
+      """
+      with tf.name_scope(name, 'SE_project', [x]):
+        return self.projector.transform(x, test=test)
+
+  def kron_cov(self, kron_dists, eig_correction=1e-2, name=None):
+    """Computes the covariance matrix, given a kronecker product 
+    representation of distances.
+
+    Args:
+      kron_dists: kronecker product representation of pairwise
+          distances.
+      eig_correction: eigenvalue correction for numerical stability.
+      name: name for the op.
     """
-    # TODO: merge this class with SE
+    with tf.name_scope(name, 'SE_kron_cov', [kron_dists]):
+      res_cores = []
+      sigma_f = self.sigma_f[:, None, None, None, None]
+      l = self.l[:, None, None, None, None]
+      sigma_n = self.sigma_n[:, None, None, None, None]
+      for core_idx in range(kron_dists.ndims()):
+        core = kron_dists.tt_cores[core_idx][None, :]
+        cov_core = (sigma_f**(2./ kron_dists.ndims()) * 
+                    tf.exp(-core/(2. * l**2.)))
+        cov_core += tf.tile(eig_correction *
+                    tf.eye(core.get_shape()[2].value, dtype=tf.float64)
+                    [None, None, :, :, None],
+                    [self.ndim, 1, 1, 1, 1])
+        res_cores.append(cov_core)
+      res_shape = kron_dists.get_raw_shape()
+      res_ranks = kron_dists.get_tt_ranks()
+      return TensorTrainBatch(res_cores, res_shape, res_ranks)
 
-    def __init__(self, n_dims, sigma_f, l, sigma_n, projector, trainable=True):
-        """Squared Exponential kernel.
-        Args:
-            n_dims: number of dimensions
-            sigma_f: process variance
-            l: process length scale
-            sigma_n: noise variance
-            projector: `FeatureTransformer` object
-            trainable: Bool, parameters are trainable iff True
-        """
-        with tf.name_scope('SE'):
-            sigma_f_init = tf.cast(tf.fill([n_dims], sigma_f), dtype=tf.float64)
-            l_init = tf.cast(tf.fill([n_dims], l), dtype=tf.float64) 
-            sigma_n_init = tf.cast(tf.fill([n_dims], sigma_n), dtype=tf.float64)
-            self.sigma_f = tf.get_variable('Process_variance',  
-                                initializer=sigma_f_init, 
-                                dtype=tf.float64, trainable=trainable)
-            self.l = tf.get_variable('Process_lengthscale', 
-                                initializer=l_init, 
-                                dtype=tf.float64, trainable=trainable)
-            self.sigma_n = tf.get_variable('Noise_variance', 
-                                initializer=sigma_n_init, 
-                                dtype=tf.float64, trainable=trainable)
-        self.projector = projector
-        self.ndim = n_dims
+  def cov_for_squared_dists(self, sq_dists, eig_correction=1e-2): 
+    """Computes the covariance matrix given distances between objects.
 
-    def project(self, x, test=False, name=None):
-        """Transforms the features of x with projector.
-        Args:
-            x: batch of data to be transformed through the projector.
-        """
-        with tf.name_scope(name, 'SE_project', [x]):
-            return self.projector.transform(x, test=test)
+    Note that this function doesn't add noise variance. 
+    Args:
+      sq_dists: `tf.Tensor` of shape ... x N x M; two innermost dimensions
+        contain matrices of pairwisesquared distances.
+      eig_correction: eigenvalue correction for numerical stability.
 
-    def kron_cov(self, kron_dists, eig_correction=1e-2, name=None):
-        """Computes the covariance matrix, given a kronecker product 
-        representation of distances.
+    Returns:
+      A `tf.Tensor` of shape ... x N x M; two innermost dimenstions contain
+      covariance matrices.
+    """
+    # TODO: check this
+    cov = self.sigma_f ** 2 * tf.exp(-sq_dists / (2 * self.l**2))
+    return cov
 
-        Args:
-            kron_dists: kronecker product representation of pairwise
-                distances.
-            eig_correction: eigenvalue correction for numerical stability.
-            name: name for the op.
-        """
-        with tf.name_scope(name, 'SE_kron_cov', [kron_dists]):
-            res_cores = []
-            sigma_f = self.sigma_f[:, None, None, None, None]
-            l = self.l[:, None, None, None, None]
-            sigma_n = self.sigma_n[:, None, None, None, None]
-            for core_idx in range(kron_dists.ndims()):
-                core = kron_dists.tt_cores[core_idx][None, :]
-                cov_core = (sigma_f**(2./ kron_dists.ndims()) * 
-                            tf.exp(-core/(2. * l**2.)))
-                cov_core += tf.tile(eig_correction *
-                            tf.eye(core.get_shape()[2].value, dtype=tf.float64)
-                            [None, None, :, :, None],
-                            [self.ndim, 1, 1, 1, 1])
-                res_cores.append(cov_core)
-            res_shape = kron_dists.get_raw_shape()
-            res_ranks = kron_dists.get_tt_ranks()
-            return TensorTrainBatch(res_cores, res_shape, res_ranks)
+  def get_params(self):
+    cov_params = [self.sigma_f, self.l, self.sigma_n]
+    projector_params = self.projector.get_params()
+    return cov_params + projector_params
 
-    def get_params(self):
-        cov_params = [self.sigma_f, self.l, self.sigma_n]
-        projector_params = self.projector.get_params()
-        return cov_params + projector_params
+  def initialize(self, sess):
+    """Runs the initializers for kernel parameters.
 
-    def initialize(self, sess):
-        """Runs the initializers for kernel parameters.
+    Args:
+      sess: `tf.Session` object
+    """
+    self.projector.initialize(sess)
+    sess.run(tf.variables_initializer([self.sigma_f, self.l, self.sigma_n]))
 
-        Args:
-            sess: `tf.Session` object
-        """
-        self.projector.initialize(sess)
-        sess.run(tf.variables_initializer([self.sigma_f, self.l, self.sigma_n]))
+  def feature_dim(self):
+    """Returns the dimensionality of feature space used.
+    """
+    return self.projector.out_dim()
 
-    def feature_dim(self):
-        """Returns the dimensionality of feature space used.
-        """
-        return self.projector.out_dim()
+  def noise_variance(self):
+    """Returns the noise variance of the process.
+    """
+    return self.sigma_n
 
-    def noise_variance(self):
-        """Returns the noise variance of the process.
-        """
-        return self.sigma_n
-
-    def cov_0(self):
-        """Returns covariance between a point and itself.
-        """
-        return self.sigma_n**2 + self.sigma_f**2
+  def cov_0(self):
+    """Returns covariance between a point and itself.
+    """
+    return self.sigma_n**2 + self.sigma_f**2
