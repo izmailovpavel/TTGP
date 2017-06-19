@@ -96,10 +96,10 @@ class TTGPstruct:
     cov_params = self.cov.get_params()
     return cov_params + gp_var_params
 
-#  def _K_mms(self, eig_correction=1e-2):
-#    """Returns covariance matrix computed at inducing inputs. 
-#    """
-#    return self.cov.kron_cov(self.inputs_dists, eig_correction)
+  def _K_mms(self, eig_correction=1e-2):
+    """Returns covariance matrices computed at inducing inputs for all labels. 
+    """
+    return self.cov.kron_cov(self.inputs_dists, eig_correction)
 
   def _sample_f(self, mus, sigmas):
     """Samples a value from all the processes.
@@ -113,8 +113,10 @@ class TTGPstruct:
 
     This function computes negative KL-divergence between variational 
     distribution and prior over binary potentials.
+    Returns:
+      A scalar `tf.Tensor` containing the complexity penalty for the variational
+      distribution over binary potentials.
     """
-    # TODO: implement 
     # TODO: should we use other kernels for binary potentials?
     K_bin = tf.eye(self.n_labels * self.n_labels)
     K_bin_log_det = tf.zeros([1])
@@ -138,9 +140,9 @@ class TTGPstruct:
     distribution over the values of GPs at inducing inputs.
 
     Returns:
-      A scalar `tf.Tensor` containing the complexity penalty for the processes.
+      A scalar `tf.Tensor` containing the complexity penalty for GPs 
+      determining unary potentials.
     """
-    # TODO: implement 
     mus = self.mus
     sigma_ls = _kron_tril(self.sigma_ls)
     sigmas = ops.tt_tt_matmul(sigma_ls, ops.transpose(sigma_ls))
@@ -158,28 +160,89 @@ class TTGPstruct:
                            ops.tt_tt_matmul(K_mms_inv, mus))
     return tf.reduce_sum(penalty) / 2
       
-  def _predict_process_values(self, x, with_variance=False, test=False):
-    """Computes the parameters of the distributions of the latent variables.
+  @staticmethod
+  def _compute_pairwise_dists(x):
+    """Computes pairwise distances in feature space for a batch of sequences.
 
     Args:
-      x: `tf.Tensor` of shape `batch_size` x `max_seq_len` x D; 
+      x: `tf.Tensor` of shape `batch_size` x `max_seq_len` x d; 
       sequences of features for the current batch.
-      seq_lens: `tf.Tensor` of shape `bach_size`; lenghts of input sequences.
+
+    Returns:
+      A `tf.Tensor` of shape `batch_size` x `max_seq_len` x `max_seq_len`; for
+      each sequence in the batch it contains a matrix of pairwise distances
+      between it's elements in the feature space.
     """
-    w = self.inputs.interpolate_on_batch(self.cov.project(x, test=test))
+    x_norms = tf.reduce_sum(x**2, axis=2)[:, :, None]
+    x_norms = x_norms + tf.transpose(x_norms, [0, 2, 1])
+    batch_size, max_len, d = x.get_shape()
+    print('_compute_pairwise_dists/x_norms', x_norms.get_shape(), '=', 
+      batch_size, max_len, max_len)
+    scalar_products = tf.einsum('bid,bjd->bij', x, x)
+    print('_compute_pairwise_dists/scalar_products', 
+        scalar_products.get_shape(), '=', batch_size, max_len, max_len)
+    dists = 2 * x_norms - scalar_products
+    return dists
 
-    mean = batch_ops.pairwise_flat_inner(w, self.mus)
-    if not with_variance:
-        return mean
-    K_mms = self._K_mms()
+#  def _latent_vars_distribution(self, x, seq_lens):
+#    """Computes the parameters of the variational distribution over potentials.
+#
+#    Args:
+#      x: `tf.Tensor` of shape `batch_size` x `max_seq_len` x d; 
+#      sequences of features for the current batch.
+#      seq_lens: `tf.Tensor` of shape `bach_size`; lenghts of input sequences.
+#
+#    Returns:
+#      A tuple containing 4 `tf.Tensors`.
+#      `m_un`: a `tf.Tensor` of shape `batch_size` x `max_seq_len` x `n_labels`;
+#        the expectations of the unary potentials.
+#      `K_un`: a `tf.Tensor` of shape 
+#        `batch_size` x `max_seq_len` x `max_seq_len` x `n_labels`; the
+#        covariance matrix of unary potentials.
+#      `m_bin`: a `tf.Tensor` of shape `max_seq_len`^2; the expectations
+#        of binary potentials.
+#      `K_bin`: a `tf.Tensor` of shape `max_seq_len`^2 x `max_seq_len`^2; the
+#        covariance matrix of binary potentials.
+#    """
+#    # TODO: add max_seq_len 
+#    d, max_len, batch_size  = x.get_shape()
+#    mask = tf.sequence_mask(seq_lens)
+#    indices = tf.where(sequence_mask)
+#    
+#    x_flat = tf.gather_nd(x, indices)
+#    print('_latent_vars_distribution/x_flat', x_flat.get_shape(), '=',
+#        '?', 'x', d)
+#
+#    w = self.inputs.interpolate_on_batch(self.cov.project(x_flat))
+#    m_un_flat = batch_ops.pairwise_flat_inner(w, self.mu_s)
+#    print('_latent_vars_distribution/m_un_flat', m_un_flat.get_shape(), '=',
+#        '?', 'x', n_labels)
+#    m_un = tf.scatter_nd(indices, m_un_flat)
+#
+#    K_un = 
 
-    sigma_ls = _kron_tril(self.sigma_ls)
-    variances = []
-    sigmas = ops.tt_tt_matmul(sigma_ls, ops.transpose(sigma_ls))
-    variances = pairwise_quadratic_form(sigmas, w, w)
-    variances -= pairwise_quadratic_form(K_mms, w, w)
-    variances += self.cov.cov_0()[None, :]
-    return mean, variances
+#  def _predict_process_values(self, x, with_variance=False, test=False):
+#    """Computes the parameters of the distributions of the latent variables.
+#
+#    Args:
+#      x: `tf.Tensor` of shape `batch_size` x `max_seq_len` x D; 
+#      sequences of features for the current batch.
+#      seq_lens: `tf.Tensor` of shape `bach_size`; lenghts of input sequences.
+#    """
+#    w = self.inputs.interpolate_on_batch(self.cov.project(x, test=test))
+#
+#    mean = batch_ops.pairwise_flat_inner(w, self.mus)
+#    if not with_variance:
+#        return mean
+#    K_mms = self._K_mms()
+#
+#    sigma_ls = _kron_tril(self.sigma_ls)
+#    variances = []
+#    sigmas = ops.tt_tt_matmul(sigma_ls, ops.transpose(sigma_ls))
+#    variances = pairwise_quadratic_form(sigmas, w, w)
+#    variances -= pairwise_quadratic_form(K_mms, w, w)
+#    variances += self.cov.cov_0()[None, :]
+#    return mean, variances
 
   def elbo(self, x, y, seq_lens, name=None):
     '''Evidence lower bound.
