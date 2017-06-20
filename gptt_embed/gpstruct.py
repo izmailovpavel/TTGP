@@ -193,7 +193,7 @@ class TTGPstruct:
     scalar_products = tf.einsum('bid,bjd->bij', x, x)
     print('_compute_pairwise_dists/scalar_products', 
         scalar_products.get_shape(), '=', batch_size, max_len, max_len)
-    dists = x_norms - scalar_products
+    dists = x_norms - 2 * scalar_products
     return dists
 
   def _latent_vars_distribution(self, x, seq_lens):
