@@ -43,9 +43,9 @@ class TTGPstruct:
   def _get_bin_vars(self):
     """Initializes binary potential variational parameters.
     """
-    # TODO: check 
-    init_mu = tf.zeros([self.n_labels], dtype=tf.float64)
-    init_sigma_l = tf.eye(self.n_labels, dtype=tf.float64) # Should this be diagonal?
+    init_mu = tf.zeros([self.n_labels**2], dtype=tf.float64)
+    # TODO: Should we use diagonal variational covariance?
+    init_sigma_l = tf.eye(self.n_labels**2, dtype=tf.float64)
     bin_mu = tf.get_variable('bin_mu', initializer=init_mu, dtype=tf.float64)
     bin_sigma_l = tf.get_variable('bin_sigma_l', initializer=init_sigma_l, 
         dtype=tf.float64)
@@ -57,9 +57,8 @@ class TTGPstruct:
     Args:
       mu_ranks: TT-ranks of mus.
     """
-    # TODO: check 
 
-    print('_get_mus/mu_ranks, d', mu_ranks, self.d)
+    # TODO: is this a good initialization?
     x_init = tf.random_normal([mu_ranks, self.d], dtype=tf.float64)
     y_init = tf.random_normal([mu_ranks], dtype=tf.float64)
 
@@ -83,24 +82,23 @@ class TTGPstruct:
         initializer=TensorTrainBatch(mu_cores, res.get_raw_shape(), mu_ranks))
 
   def _get_sigma_ls(self):
-    """Initialization of sigmas.
+    """Initialize covariance matrix of var distribution over unary potentials.
     """
-    # TODO: check 
     cov = self.cov
     inputs_dists = self.inputs_dists
     K_mm = cov.kron_cov(inputs_dists)    
     return t3f.get_variable('sigma_ls', initializer=kron.cholesky(K_mm))
 
   def initialize(self, sess):
-    """Initializes variational and covariance parameters.
+    """Initialize variational and covariance parameters.
 
     Args:
-        sess: a `Session` instance
+        sess: a `tf.Session` instance.
     """
     self.cov.initialize(sess)
     sess.run(tf.variables_initializer(self.sigma_ls.tt_cores))
     sess.run(tf.variables_initializer(self.mus.tt_cores))
-    sess.run(tf.variables_initializer([self.bin_mu, self.bin_sigma]))
+    sess.run(tf.variables_initializer([self.bin_mu, self.bin_sigma_l]))
 
   def get_params(self):
     """Returns a list of all the parameters of the model.
@@ -113,6 +111,9 @@ class TTGPstruct:
 
   def _K_mms(self, eig_correction=1e-2):
     """Returns covariance matrices computed at inducing inputs for all labels. 
+
+    Args:
+      eig_correction: eigenvalue correction for numerical stability.
     """
     return self.cov.kron_cov(self.inputs_dists, eig_correction)
 
