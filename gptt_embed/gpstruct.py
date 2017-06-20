@@ -126,6 +126,7 @@ class TTGPstruct:
       A scalar `tf.Tensor` containing the complexity penalty for the variational
       distribution over binary potentials.
     """
+    # TODO: test this
     # TODO: should we use other kernels for binary potentials?
     K_bin = tf.eye(self.n_labels * self.n_labels)
     K_bin_log_det = tf.zeros([1])
@@ -142,7 +143,7 @@ class TTGPstruct:
     KL = KL / 2
     return -KL
 
-  def _unary_complexity_inducing_inputs(self):
+  def _unary_complexity_penalty(self):
     """Computes the complexity penalty for unary potentials.
 
     This function computes KL-divergence between prior and variational 
@@ -152,6 +153,7 @@ class TTGPstruct:
       A scalar `tf.Tensor` containing the complexity penalty for GPs 
       determining unary potentials.
     """
+    # TODO: test this
     mus = self.mus
     sigma_ls = _kron_tril(self.sigma_ls)
     sigmas = ops.tt_tt_matmul(sigma_ls, ops.transpose(sigma_ls))
@@ -182,6 +184,7 @@ class TTGPstruct:
       each sequence in the batch it contains a matrix of pairwise distances
       between it's elements in the feature space.
     """
+    # TODO: test this
     x_norms = tf.reduce_sum(x**2, axis=2)[:, :, None]
     x_norms = x_norms + tf.transpose(x_norms, [0, 2, 1])
     batch_size, max_len, d = x.get_shape()
@@ -190,7 +193,7 @@ class TTGPstruct:
     scalar_products = tf.einsum('bid,bjd->bij', x, x)
     print('_compute_pairwise_dists/scalar_products', 
         scalar_products.get_shape(), '=', batch_size, max_len, max_len)
-    dists = 2 * x_norms - scalar_products
+    dists = x_norms - scalar_products
     return dists
 
   def _latent_vars_distribution(self, x, seq_lens):
@@ -320,7 +323,7 @@ class TTGPstruct:
     elbo /= batch_size
     
     print('GPC/elbo/complexity_penalty', self._unary_complexity_penalty().get_shape())
-    print('GPC/elbo/complexity_penalty', self._complexity_penalty_inducing_inputs().get_shape())
+    print('GPC/elbo/complexity_penalty', self._binary_complexity_penalty().get_shape())
     elbo += self._unary_complexity_penalty() / N #is this right?
     elbo += self._complexity_penalty_inducing_inputs() / N
     return -elbo
@@ -358,4 +361,5 @@ class TTGPstruct:
       n_samples: number of samples used to estimate the optimal labels.
     '''
     # TODO: implement 
+    # How do we do this?
     pass
