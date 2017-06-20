@@ -12,8 +12,8 @@ from t3f import ops
 from t3f import TensorTrain
 from t3f import TensorTrainBatch
 from t3f import batch_ops
-from tf.contrib.crf import crf_sequence_score
-from tf.contrib.crf import crf_log_norm
+from tensorflow.contrib.crf import crf_sequence_score
+from tensorflow.contrib.crf import crf_log_norm
 
 from gptt_embed.misc import _kron_tril
 from gptt_embed.misc import _kron_logdet
@@ -22,55 +22,63 @@ from gptt_embed.misc import _kron_sequence_pairwise_quadratic_form
 
 class TTGPstruct:
 
-  def __init__(self, cov, inputs, x_init, y_init, mu_ranks):
+  def __init__(self, cov, inputs, mu_ranks):
     """Creates a `TTGPstruct` object for structured GP prediction.
 
     Args:
-      cov:
+      cov: covarianse object.
       inputs: `InputsGrid` object.
-      x_init: features for initialization.
-      y_init: target values for initialization.
       mu_ranks: TT-ranks of means of the proceses at inducing inputs mu.
     """
     self.inputs = inputs
     self.inputs_dists = inputs.kron_dists()
     self.n_labels = cov.ndim
     self.cov = cov
-    self.sigma_ls = self._get_sigma_ls()
-    self.mus = self._get_mus(mu_ranks, x_init, y_init)
+    self.d = self.cov.projector.out_dim()
     self.N = 0 # Size of the training set
     self.bin_mu, self.bin_sigma_l = self._get_bin_vars()
+    self.sigma_ls = self._get_sigma_ls()
+    self.mus = self._get_mus(mu_ranks)
 
   def _get_bin_vars(self):
     """Initializes binary potential variational parameters.
     """
     # TODO: check 
-    init_mu = tf.zeros([self.n_labels])
-    init_sigma_l = tf.eye(self.n_labels) # Should this be diagonal?
-    bin_mu = tf.get_variable('bin_mu', initializee=init_mu, dtype=tf.float64)
-    bin_sigma_l = tf.get_variable('bin_sigma_l', initializee=init_sigma_l, 
+    init_mu = tf.zeros([self.n_labels], dtype=tf.float64)
+    init_sigma_l = tf.eye(self.n_labels, dtype=tf.float64) # Should this be diagonal?
+    bin_mu = tf.get_variable('bin_mu', initializer=init_mu, dtype=tf.float64)
+    bin_sigma_l = tf.get_variable('bin_sigma_l', initializer=init_sigma_l, 
         dtype=tf.float64)
     return bin_mu, bin_sigma_l
 
-  def _get_mus(self, ranks, x_init, y_init):
-    """Initialization of mus.
+  def _get_mus(self, mu_ranks):
+    """Initialize expectations of var distribution over unary potentials.
+       
+    Args:
+      mu_ranks: TT-ranks of mus.
     """
     # TODO: check 
+
+    print('_get_mus/mu_ranks, d', mu_ranks, self.d)
+    x_init = tf.random_normal([mu_ranks, self.d], dtype=tf.float64)
+    y_init = tf.random_normal([mu_ranks], dtype=tf.float64)
+
     w = self.inputs.interpolate_on_batch(self.cov.project(x_init))
+    y_init_cores = [tf.reshape(y_init, (-1, 1, 1, 1, 1))]
+    for core_idx in range(1, w.ndims()):
+      y_init_cores += [tf.ones((mu_ranks, 1, 1, 1, 1), dtype=tf.float64)]
+      y_init = t3f.TensorTrainBatch(y_init_cores)
+
     Sigma = ops.tt_tt_matmul(self.sigma_ls[0], ops.transpose(self.sigma_ls[0]))
-    temp = ops.tt_tt_matmul(w, y_init)        
-    anc = ops.tt_tt_matmul(Sigma, temp) 
-    res = TensorTrain([core[0, :, :, :, :] for core in anc.tt_cores], 
-            tt_ranks=[1]*(anc.ndims()+1))
-    res = res
-    for i in range(1, anc.get_shape()[0]):
-        elem = TensorTrain([core[i, :, :, :, :] for core in anc.tt_cores],
-                tt_ranks=[1]*(anc.ndims()+1))
-        res = ops.add(res, elem)
-    mu_ranks = [1] + [ranks] * (res.ndims() - 1) + [1]
+    res_batch = t3f.tt_tt_matmul(Sigma, t3f.tt_tt_matmul(w, y_init))
+    res = res_batch[0]
+    for i in range(1, mu_ranks):
+      res = res + res_batch[i]
+
+    mu_ranks = [1] + [mu_ranks] * (res.ndims() - 1) + [1]
     mu_cores = []
     for core in res.tt_cores:
-        mu_cores.append(tf.tile(core[None, ...], [self.n_class, 1, 1, 1, 1]))
+        mu_cores.append(tf.tile(core[None, ...], [self.n_labels, 1, 1, 1, 1]))
     return t3f.get_variable('tt_mus', 
         initializer=TensorTrainBatch(mu_cores, res.get_raw_shape(), mu_ranks))
 
@@ -129,7 +137,7 @@ class TTGPstruct:
     
     KL = K_bin_logdet - S_bin_logdet
     KL += tf.einsum('ij,ji->i', K_bin_inv, S_bin)
-    KL += tf.matmul(mu_bin, tf.transpose(tf.matmul(K_bin_inv, mu_bin))
+    KL += tf.matmul(mu_bin, tf.transpose(tf.matmul(K_bin_inv, mu_bin)))
     KL = KL / 2
     return -KL
 
@@ -185,7 +193,7 @@ class TTGPstruct:
     return dists
 
   def _latent_vars_distribution(self, x, seq_lens):
-   """Computes the parameters of the variational distribution over potentials.
+    """Computes the parameters of the variational distribution over potentials.
 
     Args:
       x: `tf.Tensor` of shape `batch_size` x `max_seq_len` x d; 
