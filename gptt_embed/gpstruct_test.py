@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 import t3f
+from scipy.spatial.distance import cdist
 
 from gptt_embed.gpstruct import TTGPstruct
 from gptt_embed import grid
@@ -27,9 +28,11 @@ class TTGPstructTest(tf.test.TestCase):
     projector = Identity(n_dims)
     cov = SE_multidim(n_labels, .7, .3, .1, projector)
     gp = TTGPstruct(cov, inputs, mu_ranks)
-    ans = gp._unary_complexity_penalty()
+    ans_ = gp._unary_complexity_penalty()
     with self.test_session() as sess:
       gp.initialize(sess)
+      ans = sess.run(ans_)
+
       Kmm = sess.run(t3f.full(gp._K_mms()))
       mu = sess.run(t3f.full(gp.mus))
       sigma = sess.run(t3f.full(t3f.tt_tt_matmul(
@@ -38,13 +41,38 @@ class TTGPstructTest(tf.test.TestCase):
       ans_np = 0
       for i in range(mu.shape[0]):
         ans_np += KL(mu[i], sigma[i], mu_prior[i], Kmm[i])
-      self.assertAllClose(-ans_np[0, 0], sess.run(ans))
+      self.assertAllClose(-ans_np[0, 0], ans)
   
   def test_pairwise_dists(self):
     """Tests `_compute_pairwise_dists` method.
     """
+    max_seq_len = 5
+    n_seq = 4
+    seq_lens = [2, 4, 3, 2]
+    n_dims = 3
+    n_labels = 2
 
-    pass
+    x = np.random.randn(n_seq, max_seq_len, n_dims) / 3
+    y = np.random.randint(low=0, high=n_labels, size=(n_seq, max_seq_len))
+    x, y = tf.constant(x), tf.constant(y)
+
+    inputs = grid.InputsGrid(n_dims, left=-1., right=1., npoints=5)
+    mu_ranks = 5
+    projector = Identity(n_dims)
+    cov = SE_multidim(n_labels, .7, .3, .1, projector)
+    gp = TTGPstruct(cov, inputs, mu_ranks)
+
+    ans_ = gp._compute_pairwise_dists(x)
+    with self.test_session() as sess:
+      gp.initialize(sess)
+      ans = sess.run(ans_)
+
+      x_np = sess.run(x)
+      ans_np = []
+      for i in range(x_np.shape[0]):
+        ans_np.append(cdist(x_np[i], x_np[i])[None, :, :])
+      ans_np = np.vstack(ans_np)**2
+      self.assertAllClose(ans_np, ans)
 
   def test_latent_vars_distribution(self):
     """Tests `_latent_vars_distribution` method.
