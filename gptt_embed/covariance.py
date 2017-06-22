@@ -151,7 +151,7 @@ class SE_multidim:
       res_cores = []
       sigma_f = self.sigma_f[:, None, None, None, None]
       l = self.l[:, None, None, None, None]
-      sigma_n = self.sigma_n[:, None, None, None, None]
+#      sigma_n = self.sigma_n[:, None, None, None, None]
       for core_idx in range(kron_dists.ndims()):
         core = kron_dists.tt_cores[core_idx][None, :]
         cov_core = (sigma_f**(2./ kron_dists.ndims()) * 
@@ -188,7 +188,7 @@ class SE_multidim:
     sq_dists = sq_dists[None, :]
     cov = sigma_f ** 2 * tf.exp(-sq_dists / (2 * l**2))
     print('cov_for_squared_dists/cov', cov.get_shape(), '=', 
-        self.ndims + sq_dists.get_shape())
+        [self.ndim] + sq_dists.get_shape().as_list()[1:])
     return cov
 
   def get_params(self):

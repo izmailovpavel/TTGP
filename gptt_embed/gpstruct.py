@@ -187,11 +187,7 @@ class TTGPstruct:
     x_norms = tf.reduce_sum(x**2, axis=2)[:, :, None]
     x_norms = x_norms + tf.transpose(x_norms, [0, 2, 1])
     batch_size, max_len, d = x.get_shape()
-    print('_compute_pairwise_dists/x_norms', x_norms.get_shape(), '=', 
-      batch_size, max_len, max_len)
     scalar_products = tf.einsum('bid,bjd->bij', x, x)
-    print('_compute_pairwise_dists/scalar_products', 
-        scalar_products.get_shape(), '=', batch_size, max_len, max_len)
     dists = x_norms - 2 * scalar_products
     return dists
 
@@ -216,30 +212,30 @@ class TTGPstruct:
         covariance matrix of binary potentials.
     """
     # TODO: check
-    batch_size, max_len, d = x.get_shape()
+    batch_size, max_len, d = x.get_shape().as_list()
     sequence_mask = tf.sequence_mask(seq_lens, maxlen=max_len)
     indices = tf.cast(tf.where(sequence_mask), tf.int32)
-#    shape = tf.concat([[tf.reduce_sum(seq_lens)], [d.value]], axis=0)
+    shape = tf.concat([[tf.reduce_sum(seq_lens)], [d]], axis=0)
     
     x_flat = tf.gather_nd(x, indices)
     print('_latent_vars_distribution/x_flat', x_flat.get_shape(), '=',
-        '?', 'x', d)
+        'sum_len', 'x', d)
 
     w = self.inputs.interpolate_on_batch(self.cov.project(x_flat))
-    return w
-    m_un_flat = batch_ops.pairwise_flat_inner(w, self.mu_s)
+    m_un_flat = batch_ops.pairwise_flat_inner(w, self.mus)
     print('_latent_vars_distribution/m_un_flat', m_un_flat.get_shape(), '=',
-        '?', 'x', n_labels)
-    m_un = tf.scatter_nd(indices, m_un_flat)
+        'sum_len', 'x', self.n_labels)
+    m_un = tf.scatter_nd(indices, m_un_flat, shape)
 
     dists = self._compute_pairwise_dists(x)
     sigma_n = self.cov.noise_variance()
     K_nn = self.cov.cov_for_squared_dists(dists) 
-    K_nn += sigma_n**2 * tf.eye(max_len, batch_shape=[batch_size])
+    I = tf.eye(max_len, batch_shape=[batch_size], dtype=tf.float64)
+    K_nn += sigma_n[:, None, None, None]**2 * I[None, :]
     print('_latent_vars_distribution/K_nn', K_nn.get_shape(), '=',
-        n_labels, 'x', batch_size, 'x', max_len, 'x', max_len)
+        self.n_labels, 'x', batch_size, 'x', max_len, 'x', max_len)
     
-    sigmas = ops.tt_tt_matmul(self.sigma_l, self.sigma_l)
+    sigmas = ops.tt_tt_matmul(self.sigma_ls, t3f.transpose(self.sigma_ls))
     K_mms = self._K_mms()
 
     S_un = K_nn

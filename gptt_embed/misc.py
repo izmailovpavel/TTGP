@@ -125,28 +125,32 @@ def _kron_sequence_pairwise_quadratic_form(mat, vec, seq_lens, max_seq_len):
       `n_labels` x `M` x `M`.
     vec: a kronecker (all TT-ranks equal to 1) `t3f.TensorTrainBatch` of shape 
       `sum_lens` x `M`, where `sum_lens` is the sum of `seq_lens`.
-    seq_lens: lengths of sequences.
+    seq_lens: `tf.Tensor` of shape `bach_size`; lenghts of input sequences.
     max_seq_len: a number, maximum length of a sequence in the batch.
 
   Return:
     a `tf.Tensor` of shape 
     `n_labels` x `batch_size` x `max_seq_len` x `max_seq_len`.
   """
-  mask = tf.sequence_mask(seq_lens, maxlen=max_seq_len)
-  indices = tf.where(mask)
+  sequence_mask = tf.sequence_mask(seq_lens, maxlen=max_seq_len)
+  indices = tf.cast(tf.where(sequence_mask), tf.int32)
   n_labels = mat.batch_size
-  batch_size = len(seq_lens)
-  result = tf.ones([n_labels, batch_size, max_seq_len, max_seq_len])
+  dtype = mat.dtype
+  #batch_size = len(seq_lens)
+  batch_size = tf.shape(seq_lens)[0]
+  result = tf.ones([n_labels, batch_size, max_seq_len, max_seq_len], 
+      dtype=dtype)
 
   if mat.ndims() != vec.ndims():
     raise ValueError('`mat` and `vec` should have the same ndims')
 
   for core_idx in range(mat.ndims()):
     cur_core_mat = mat.tt_cores[core_idx][:, 0, :, :, 0]
-    cur_core_vec = vec.tt_cores[core_idx][:, 0, :, 0]
-    dim = cur_core_vec.get_shape()[-1].value
-    cur_core_vec = tf.scatter_nd(indices, cur_core_vec, 
-        tf.constant([batch_size, max_seq_len, dim], dtype=tf.int64))
+    cur_core_vec = vec.tt_cores[core_idx][:, 0, :, 0, 0]
+    dim = tf.shape(cur_core_vec)[-1]
+    cur_shape = tf.concat([[batch_size], [max_seq_len], [dim]], axis=0)
+    cur_shape = tf.cast(cur_shape, dtype=tf.int32)
+    cur_core_vec = tf.scatter_nd(indices, cur_core_vec, cur_shape)
     core_res = tf.einsum('sia,lab,sjb->lsij', 
         cur_core_vec, cur_core_mat, cur_core_vec) 
     result *= core_res
