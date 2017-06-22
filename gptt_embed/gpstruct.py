@@ -184,7 +184,6 @@ class TTGPstruct:
       each sequence in the batch it contains a matrix of pairwise distances
       between it's elements in the feature space.
     """
-    # TODO: test this
     x_norms = tf.reduce_sum(x**2, axis=2)[:, :, None]
     x_norms = x_norms + tf.transpose(x_norms, [0, 2, 1])
     batch_size, max_len, d = x.get_shape()
@@ -217,24 +216,26 @@ class TTGPstruct:
         covariance matrix of binary potentials.
     """
     # TODO: check
-    d, max_len, batch_size  = x.get_shape()
-    mask = tf.sequence_mask(seq_lens, maxlen=max_len)
-    indices = tf.where(sequence_mask)
+    batch_size, max_len, d = x.get_shape()
+    sequence_mask = tf.sequence_mask(seq_lens, maxlen=max_len)
+    indices = tf.cast(tf.where(sequence_mask), tf.int32)
+#    shape = tf.concat([[tf.reduce_sum(seq_lens)], [d.value]], axis=0)
     
     x_flat = tf.gather_nd(x, indices)
     print('_latent_vars_distribution/x_flat', x_flat.get_shape(), '=',
         '?', 'x', d)
 
     w = self.inputs.interpolate_on_batch(self.cov.project(x_flat))
+    return w
     m_un_flat = batch_ops.pairwise_flat_inner(w, self.mu_s)
     print('_latent_vars_distribution/m_un_flat', m_un_flat.get_shape(), '=',
         '?', 'x', n_labels)
     m_un = tf.scatter_nd(indices, m_un_flat)
 
     dists = self._compute_pairwise_dists(x)
-    sigma_f = self.cov.noise_variance()
+    sigma_n = self.cov.noise_variance()
     K_nn = self.cov.cov_for_squared_dists(dists) 
-    K_nn += sigma_f**2 * tf.eye(max_len, batch_shape=[batch_size])
+    K_nn += sigma_n**2 * tf.eye(max_len, batch_shape=[batch_size])
     print('_latent_vars_distribution/K_nn', K_nn.get_shape(), '=',
         n_labels, 'x', batch_size, 'x', max_len, 'x', max_len)
     
