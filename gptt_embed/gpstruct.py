@@ -213,9 +213,9 @@ class TTGPstruct:
     """
     # TODO: check
     batch_size, max_len, d = x.get_shape().as_list()
+    n_labels = self.n_labels
     sequence_mask = tf.sequence_mask(seq_lens, maxlen=max_len)
     indices = tf.cast(tf.where(sequence_mask), tf.int32)
-    shape = tf.concat([[tf.reduce_sum(seq_lens)], [d]], axis=0)
     
     x_flat = tf.gather_nd(x, indices)
     print('_latent_vars_distribution/x_flat', x_flat.get_shape(), '=',
@@ -225,7 +225,9 @@ class TTGPstruct:
     m_un_flat = batch_ops.pairwise_flat_inner(w, self.mus)
     print('_latent_vars_distribution/m_un_flat', m_un_flat.get_shape(), '=',
         'sum_len', 'x', self.n_labels)
+    shape = tf.concat([[batch_size], [max_len], [n_labels]], axis=0)
     m_un = tf.scatter_nd(indices, m_un_flat, shape)
+    m_un = tf.transpose(m_un, [2, 0, 1])
 
     dists = self._compute_pairwise_dists(x)
     sigma_n = self.cov.noise_variance()
@@ -244,7 +246,7 @@ class TTGPstruct:
 
     m_bin = self.bin_mu
     S_bin = tf.matmul(self.bin_sigma_l, tf.transpose(self.bin_sigma_l))
-    return m_un, S_un, m_bin, m_un
+    return m_un, S_un, m_bin, S_bin
 
   def _sample_f(self, m_un, S_un, m_bin, S_bin):
     """Samples a value from all the processes.
