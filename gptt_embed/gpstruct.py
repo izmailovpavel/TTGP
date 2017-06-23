@@ -211,6 +211,7 @@ class TTGPstruct:
         self.n_labels, 'x', batch_size, 'x', max_len, 'x', max_len)
     return K_nn
 
+
   def _latent_vars_distribution(self, x, seq_lens):
     """Computes the parameters of the variational distribution over potentials.
 
@@ -231,7 +232,6 @@ class TTGPstruct:
       `S_bin`: a `tf.Tensor` of shape `max_seq_len`^2 x `max_seq_len`^2; the
         covariance matrix of binary potentials.
     """
-    # TODO: check
     batch_size, max_len, d = x.get_shape().as_list()
     n_labels = self.n_labels
     sequence_mask = tf.sequence_mask(seq_lens, maxlen=max_len)
@@ -257,10 +257,34 @@ class TTGPstruct:
     S_un = K_nn
     S_un += _kron_sequence_pairwise_quadratic_form(sigmas, w, seq_lens, max_len)
     S_un -= _kron_sequence_pairwise_quadratic_form(K_mms, w, seq_lens, max_len)
+    S_un = self._remove_extra_elems(seq_lens, S_un)
 
     m_bin = self.bin_mu
     S_bin = tf.matmul(self.bin_sigma_l, tf.transpose(self.bin_sigma_l))
     return m_un, S_un, m_bin, S_bin
+
+  @staticmethod
+  def _remove_extra_elems(seq_lens, cov_mat):
+    """Fills the padding elements of `cov_mat` with zeros.
+
+    This function is meant to be used for `S_un` covariance matrix between the 
+    unary potentials in order to get correct samples in `_sample_f`.
+
+    Args:
+      cov_mat: a `tf.Tensor` of shape 
+        `n_labels` x `batch_size` x `max_seq_len` x `max_seq_len`;
+      seq_lens: `tf.Tensor` of shape `bach_size`; lenghts of input sequences.
+
+    Returns:
+      A new matrix that is the same as `cov_mat` for all the elements that are
+      meaningfull in  `cov_mat` and 0 otherwise.
+    """
+    n_labels, batch_size, max_len, _ = cov_mat.get_shape().as_list()
+    sequence_mask = tf.sequence_mask(seq_lens, maxlen=max_len)
+    sequence_mask = tf.cast(sequence_mask, tf.float64)
+    new_cov_mat = tf.einsum('lsij,si->lsij', cov_mat, sequence_mask)
+    new_cov_mat = tf.einsum('lsij,sj->lsij', new_cov_mat, sequence_mask)
+    return new_cov_mat
 
   def _sample_f(self, m_un, S_un, m_bin, S_bin):
     """Samples a value from all the processes.

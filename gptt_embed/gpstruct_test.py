@@ -130,14 +130,15 @@ class TTGPstructTest(tf.test.TestCase):
         cur_cov = w_cur.dot(Sigma.dot(w_cur.T))
         cur_cov -= w_cur.dot(K_mm[label].dot(w_cur.T))
         S_un_np[label, seq, :seq_len, :seq_len] += cur_cov
+        S_un_np[label, seq, seq_len:, :] = 0
+        S_un_np[label, seq, :, seq_len:] = 0
 
-        self.assertAllClose(S_un_np[label, seq, :seq_len, :seq_len],
-            S_un_tf[label, seq, :seq_len, :seq_len])  
         prev_seq_len += seq_len
     
     m_bin_np = mu_bin
     S_bin_np = Sigma_bin_l.dot(Sigma_bin_l.T)
 
+    self.assertAllClose(S_un_tf, S_un_np)
     self.assertAllClose(m_un_tf, m_un_np)
     self.assertAllClose(m_bin_tf, m_bin_np)
     self.assertAllClose(S_bin_tf, S_bin_np)
