@@ -109,14 +109,6 @@ class TTGPstruct:
     cov_params = self.cov.get_params()
     return cov_params + gp_var_params
 
-  def _K_mms(self, eig_correction=1e-2):
-    """Returns covariance matrices computed at inducing inputs for all labels. 
-
-    Args:
-      eig_correction: eigenvalue correction for numerical stability.
-    """
-    return self.cov.kron_cov(self.inputs_dists, eig_correction)
-
   def _binary_complexity_penalty(self):
     """Computes the complexity penalty for binary potentials.
 
@@ -171,6 +163,14 @@ class TTGPstruct:
                            ops.tt_tt_matmul(K_mms_inv, mus))
     return tf.reduce_sum(penalty) / 2
       
+  def _K_mms(self, eig_correction=1e-2):
+    """Returns covariance matrices computed at inducing inputs for all labels. 
+
+    Args:
+      eig_correction: eigenvalue correction for numerical stability.
+    """
+    return self.cov.kron_cov(self.inputs_dists, eig_correction)
+
   @staticmethod
   def _compute_pairwise_dists(x):
     """Computes pairwise distances in feature space for a batch of sequences.
@@ -190,6 +190,26 @@ class TTGPstruct:
     scalar_products = tf.einsum('bid,bjd->bij', x, x)
     dists = x_norms - 2 * scalar_products
     return dists
+
+  def _K_nns(self, x):
+    """Returns the prior covariances for the unary potentials at given points.
+
+    Args:
+      x: `tf.Tensor` of shape `batch_size` x `max_seq_len` x d; 
+
+    Returns:
+      A `tf.Tensor` of shape `n_labels` x `batch_size` x `max_seq_len` x 
+      `max_seq_len`;
+    """
+    dists = self._compute_pairwise_dists(x)
+    sigma_n = self.cov.noise_variance()
+    K_nn = self.cov.cov_for_squared_dists(dists) 
+#    I = tf.eye(max_len, batch_shape=[batch_size], dtype=tf.float64)
+#    K_nn += sigma_n[:, None, None, None]**2 * I[None, :]
+    batch_size, max_len, d = x.get_shape().as_list()
+    print('_Knns/K_nn', K_nn.get_shape(), '=',
+        self.n_labels, 'x', batch_size, 'x', max_len, 'x', max_len)
+    return K_nn
 
   def _latent_vars_distribution(self, x, seq_lens):
     """Computes the parameters of the variational distribution over potentials.
@@ -229,17 +249,11 @@ class TTGPstruct:
     m_un = tf.scatter_nd(indices, m_un_flat, shape)
     m_un = tf.transpose(m_un, [2, 0, 1])
 
-    dists = self._compute_pairwise_dists(x)
-    sigma_n = self.cov.noise_variance()
-    K_nn = self.cov.cov_for_squared_dists(dists) 
-    I = tf.eye(max_len, batch_shape=[batch_size], dtype=tf.float64)
-    K_nn += sigma_n[:, None, None, None]**2 * I[None, :]
-    print('_latent_vars_distribution/K_nn', K_nn.get_shape(), '=',
-        self.n_labels, 'x', batch_size, 'x', max_len, 'x', max_len)
     
     sigmas = ops.tt_tt_matmul(self.sigma_ls, t3f.transpose(self.sigma_ls))
     K_mms = self._K_mms()
 
+    K_nn = self._K_nns(x)
     S_un = K_nn
     S_un += _kron_sequence_pairwise_quadratic_form(sigmas, w, seq_lens, max_len)
     S_un -= _kron_sequence_pairwise_quadratic_form(K_mms, w, seq_lens, max_len)

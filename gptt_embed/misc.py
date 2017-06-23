@@ -136,7 +136,6 @@ def _kron_sequence_pairwise_quadratic_form(mat, vec, seq_lens, max_seq_len):
   indices = tf.cast(tf.where(sequence_mask), tf.int32)
   n_labels = mat.batch_size
   dtype = mat.dtype
-  #batch_size = len(seq_lens)
   batch_size = tf.shape(seq_lens)[0]
   result = tf.ones([n_labels, batch_size, max_seq_len, max_seq_len], 
       dtype=dtype)

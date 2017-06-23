@@ -218,4 +218,5 @@ class SE_multidim:
   def cov_0(self):
     """Returns covariance between a point and itself.
     """
+    # TODO: check this!
     return self.sigma_n**2 + self.sigma_f**2
