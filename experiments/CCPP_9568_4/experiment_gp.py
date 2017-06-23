@@ -10,14 +10,14 @@ from gptt_embed.gp_runner import GPRunner
 
 with tf.Graph().as_default():
     data_dir = "data/"
-#    n_inputs = 30
-#    mu_ranks = 25
+#    n_inputs = 10
+#    mu_ranks = 10
     n_inputs = 35
     mu_ranks = 30
     D = 4
 
     projector = Identity(D=D)
-    cov = SE(0.7, 0.2, 0.1, projector)
+    cov = SE(0.4, 0.2, 0.1, projector)
 
     lr = 1e-3
     decay = (10, 0.2)

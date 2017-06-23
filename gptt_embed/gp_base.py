@@ -128,12 +128,8 @@ class _TTGPbase:
         mean = ops.tt_tt_flat_inner(w, mu)
         if not with_variance:
             return mean
-        # TODO: must check this
         K_mm = self.K_mm()
         variance = self.cov.cov_0() 
-#        sigma_l = _kron_tril(self.sigma_l)
-#        sigma = ops.tt_tt_matmul(sigma_l, ops.transpose(sigma_l))
-#        variance +=  ops.tt_tt_flat_inner(w, ops.tt_tt_matmul(sigma, w))
         sigma_l_w = ops.tt_tt_matmul(ops.transpose(self.sigma_l), w)
         variance += ops.tt_tt_flat_inner(sigma_l_w, sigma_l_w)
         variance -= ops.tt_tt_flat_inner(w, ops.tt_tt_matmul(K_mm, w))

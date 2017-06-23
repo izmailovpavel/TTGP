@@ -117,7 +117,7 @@ class GPRunner:
             elbo_summary = tf.summary.scalar('elbo_batch', elbo)
 
             # prediction and r2_score on test data
-            pred = gp.predict(x_te, with_variance=False)
+            pred, var = gp.predict(x_te, with_variance=True)
             r2_te = r2(pred, y_te)
             mse_te = mse(pred, y_te)
             r2_summary = tf.summary.scalar('r2_test', r2_te)
@@ -151,14 +151,18 @@ class GPRunner:
                         print('Epoch', i/iter_per_epoch, ', lr=', lr.eval(), ':')
                         if i != 0:
                             print('\tEpoch took:', time.time() - start_epoch)
-                        r2_summary_val, r2_val, mse_val = sess.run(
-                                [r2_summary, r2_te, mse_te])
+                        r2_summary_val, r2_val, mse_val, var_val = sess.run(
+                                [r2_summary, r2_te, mse_te, var])
                         writer.add_summary(r2_summary_val, i/iter_per_epoch)
                         writer.flush()
                         print('\tr_2 on test set:', r2_val)
                         print('\tmse on test set:', mse_val)
                         print('\trmse on test set:', np.sqrt(mse_val))
                         print('\taverage elbo:', batch_elbo / iter_per_epoch)
+#                        print('\tvariance estimate', np.mean(var_val))
+#                        print('\tvariance estimate', np.min(var_val), np.max(var_val))
+#                        print('\tvariance estimate', sess.run(gp.gp.cov.noise_variance()))
+#                        print('\tvariance estimate', sess.run(gp.gp.cov.sigma_f))
                         batch_elbo = 0
                         start_epoch = time.time()
 

@@ -36,7 +36,7 @@ class TTGPR:
     """
     return self.gp.get_params()        
 
-  def predict(self, x, with_variance=False, name=None):
+  def predict(self, x, with_variance=False):
     '''Predicts the value of the process x points.
 
     Args:
@@ -44,7 +44,12 @@ class TTGPR:
         with_variance: wether or not to return prediction variance
       name: name of the op.
     '''
-    return self.gp.predict_process_value(x, with_variance=with_variance)
+    if with_variance:
+      mean, var = self.gp.predict_process_value(x, with_variance=with_variance)
+      sigma_n = self.gp.cov.noise_variance() 
+      return mean, var# + sigma_n**2
+    else:
+      return self.gp.predict_process_value(x, with_variance=with_variance)
 
   def elbo(self, w, y):
     '''Evidence lower bound.
@@ -71,9 +76,6 @@ class TTGPR:
     tilde_K_ii -= tf.reduce_sum(ops.tt_tt_flat_inner(w, 
                                          ops.tt_tt_matmul(K_mm, w)))
 
-    
-
-    # Likelihood
     elbo = 0
     elbo -= tf.reduce_sum(tf.square(y - ops.tt_tt_flat_inner(w, mu)))
     elbo -= tilde_K_ii 
