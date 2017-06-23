@@ -118,20 +118,21 @@ class TTGPstruct:
       A scalar `tf.Tensor` containing the complexity penalty for the variational
       distribution over binary potentials.
     """
-    # TODO: test this
+    # TODO: test this!
     # TODO: should we use other kernels for binary potentials?
-    K_bin = tf.eye(self.n_labels * self.n_labels)
-    K_bin_log_det = tf.zeros([1])
-    K_bin_inv = tf.eye(self.n_labels * self.n_labels)
+    K_bin = tf.eye(self.n_labels * self.n_labels, dtype=tf.float64)
+    K_bin_logdet = tf.zeros([1], dtype=tf.float64)
+    K_bin_inv = tf.eye(self.n_labels * self.n_labels, dtype=tf.float64)
 
     S_bin_l = self.bin_sigma_l
     S_bin = tf.matmul(S_bin_l, tf.transpose(S_bin_l))
-    S_bin_logdet = _kron_logdet(S_bin_l)
+    S_bin_logdet = tf.reduce_sum(tf.log(tf.abs(tf.matrix_diag_part(S_bin_l))))
     mu_bin = self.bin_mu
     
     KL = K_bin_logdet - S_bin_logdet
-    KL += tf.einsum('ij,ji->i', K_bin_inv, S_bin)
-    KL += tf.matmul(mu_bin, tf.transpose(tf.matmul(K_bin_inv, mu_bin)))
+    KL += tf.einsum('ij,ji->', K_bin_inv, S_bin)
+    KL += tf.einsum('i,i->', mu_bin, 
+        tf.einsum('ij,j->i', K_bin_inv, mu_bin))
     KL = KL / 2
     return -KL
 
@@ -259,7 +260,7 @@ class TTGPstruct:
     S_un -= _kron_sequence_pairwise_quadratic_form(K_mms, w, seq_lens, max_len)
     S_un = self._remove_extra_elems(seq_lens, S_un)
 
-    m_bin = self.bin_mu
+    m_bin = tf.identity(self.bin_mu)
     S_bin = tf.matmul(self.bin_sigma_l, tf.transpose(self.bin_sigma_l))
     return m_un, S_un, m_bin, S_bin
 
@@ -315,17 +316,30 @@ class TTGPstruct:
     return self._remove_extra_elems(seq_lens, chol)
     
 
-  def _sample_f(self, x, seq_lens):
+  def _sample_f(self, m_un, S_un, m_bin, S_bin, seq_lens):
     """Samples potentials for the given input sequences.
 
     Args:
-      x: `tf.Tensor` of shape `batch_size` x `max_seq_len` x d; 
-        sequences of features for the current batch.
+      `m_un`: `tf.Tensor` of shape  `n_labels` x `batch_size` x `max_seq_len`;
+        the expectations of the unary potentials.
+      `S_un`: `tf.Tensor` of shape 
+        `n_labels` x `batch_size` x `max_seq_len` x `max_seq_len`; the
+        covariance matrix of unary potentials.
+      `m_bin`: `tf.Tensor` of shape `max_seq_len`^2; the expectations
+        of binary potentials.
+      `S_bin`: `tf.Tensor` of shape `max_seq_len`^2 x `max_seq_len`^2; the
+        covariance matrix of binary potentials.
       seq_lens: `tf.Tensor` of shape `bach_size`; lenghts of input sequences.
+
+    Returns:
+      A tuple containing two `tf.Tensors`;
+      `f_un`: `tf.Tensor` of shape `n_labels` x `batch_size` x `max_seq_len`;
+        a sample of unary potentials.
+      `f_bin`: `tf.Tensor` of shape `max_seq_len`^2; a sample of binary 
+      potentials.
     """
-    # TODO: check
+    # TODO: test this?
     
-    m_un, S_un, m_bin, S_bin = self._latent_vars_distribution(x, seq_lens)
     eps_un = tf.random_normal(m_un.get_shape(), dtype=tf.float64)
     eps_bin = tf.random_normal(m_bin.get_shape(), dtype=tf.float64)
 
@@ -360,32 +374,42 @@ class TTGPstruct:
       lower bound.
     '''
     # TODO: check
+    y = tf.cast(y, tf.int32)
+    
 
-    f_un, f_bin = self._sample(x, seq_lens)
+    m_un, S_un, m_bin, S_bin = self._latent_vars_distribution(x, seq_lens)
+    f_un, f_bin = self._sample_f(m_un, S_un, m_bin, S_bin, seq_lens)
 
-#    l = tf.cast(tf.shape(y)[0], tf.float64) # batch size
     batch_size = tf.shape(y)[0]
-#    N = tf.cast(self.N, dtype=tf.float64) 
     N = self.N 
+
+    bin_shape = tf.constant([self.n_labels, self.n_labels])
+  
+    # TODO: add _cast_list function?
+    m_un = tf.cast(m_un, tf.float32)
+    m_bin = tf.cast(m_bin, tf.float32)
+    f_un = tf.cast(f_un, tf.float32)
+    f_bin = tf.cast(f_bin, tf.float32)
+    N = tf.cast(N, tf.float64)
+    batch_size = tf.cast(batch_size, tf.float32)
 
     unnormalized_log_likelihood = crf_sequence_score(
         tf.transpose(m_un, [1, 2, 0]), y, seq_lens, 
-        tf.transpose(m_bin, [self.n_labels, self.n_labels]))
+        tf.reshape(m_bin, bin_shape))
     log_partition_estimate = crf_log_norm(
         tf.transpose(f_un, [1, 2, 0]), seq_lens, 
-        tf.transpose(f_bin, [self.n_labels, self.n_labels]))
+        tf.reshape(f_bin, bin_shape))
     
     # Likelihood
     elbo = 0
-    elbo += unnormalized_log_likelihood
-    elbo -= log_partition_estimate
+    elbo += tf.reduce_sum(unnormalized_log_likelihood)
+    elbo -= tf.reduce_sum(log_partition_estimate)
     elbo /= batch_size
+    elbo = tf.cast(elbo, tf.float64)
     
-    print('GPC/elbo/complexity_penalty', self._unary_complexity_penalty().get_shape())
-    print('GPC/elbo/complexity_penalty', self._binary_complexity_penalty().get_shape())
     elbo += self._unary_complexity_penalty() / N #is this right?
-    elbo += self._complexity_penalty_inducing_inputs() / N
-    return -elbo
+    elbo += self._binary_complexity_penalty() / N
+    return -elbo[0]
   
   def fit(self, x, y, seq_lens, N, lr, global_step):
     """Fit the model.
