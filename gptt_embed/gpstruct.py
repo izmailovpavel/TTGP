@@ -217,7 +217,7 @@ class TTGPstruct:
 
     Args:
       x: `tf.Tensor` of shape `batch_size` x `max_seq_len` x d; 
-      sequences of features for the current batch.
+        sequences of features for the current batch.
       seq_lens: `tf.Tensor` of shape `bach_size`; lenghts of input sequences.
 
     Returns:
@@ -286,37 +286,60 @@ class TTGPstruct:
     new_cov_mat = tf.einsum('lsij,sj->lsij', new_cov_mat, sequence_mask)
     return new_cov_mat
 
-  def _sample_f(self, m_un, S_un, m_bin, S_bin):
-    """Samples a value from all the processes.
+  @classmethod
+  def _compute_chol(self, seq_lens, cov_mat):
+    """Computes the Cholesky factor for the covariance of unary potentials.
+
+    This function is meant to be used to compute the Cholesky decomposition of 
+    the covariance matrix of the unary potentials. We can't use `tf.cholesky`
+    for it as it is padded with zeros.
 
     Args:
-      A tuple containing 4 `tf.Tensors`.
-      m_un: a `tf.Tensor` of shape  `n_labels` x `batch_size` x `max_seq_len`;
-        the expectations of the unary potentials.
-      S_un: a `tf.Tensor` of shape 
-        `n_labels` x `batch_size` x `max_seq_len` x `max_seq_len`; the
-        covariance matrix of unary potentials.
-      m_bin: a `tf.Tensor` of shape `max_seq_len`^2; the expectations
-        of binary potentials.
-      S_bin: a `tf.Tensor` of shape `max_seq_len`^2 x `max_seq_len`^2; the
-        covariance matrix of binary potentials.
+      cov_mat: a `tf.Tensor` of shape 
+        `n_labels` x `batch_size` x `max_seq_len` x `max_seq_len`;
+      seq_lens: `tf.Tensor` of shape `bach_size`; lenghts of input sequences.
+
+    Returns:
+      A new matrix that contains Cholesky factors for each covariance matrix in
+      `cov_mat` padded with zeros.
+    """
+    # NOTE: UGLY!
+    # TODO: test?
+    n_labels, batch_size, max_len, _ = cov_mat.get_shape().as_list()
+    sequence_mask = tf.logical_not(tf.sequence_mask(seq_lens, maxlen=max_len))
+    sequence_mask = tf.cast(sequence_mask, tf.float64)
+    I = tf.eye(max_len, batch_shape=[n_labels, batch_size], dtype=tf.float64)
+    # We add ones on diagonals in the meaningless dimensions of covs.
+    new_cov_mat = cov_mat + tf.einsum('lsij,si->lsij', I, sequence_mask)
+    chol = tf.cholesky(new_cov_mat)
+    return self._remove_extra_elems(seq_lens, chol)
+    
+
+  def _sample_f(self, x, seq_lens):
+    """Samples potentials for the given input sequences.
+
+    Args:
+      x: `tf.Tensor` of shape `batch_size` x `max_seq_len` x d; 
+        sequences of features for the current batch.
+      seq_lens: `tf.Tensor` of shape `bach_size`; lenghts of input sequences.
     """
     # TODO: check
     
-    eps_un = tf.random_normal(m_un.get_shape())
-    eps_bin = tf.random_normal(m_bin.get_shape())
+    m_un, S_un, m_bin, S_bin = self._latent_vars_distribution(x, seq_lens)
+    eps_un = tf.random_normal(m_un.get_shape(), dtype=tf.float64)
+    eps_bin = tf.random_normal(m_bin.get_shape(), dtype=tf.float64)
 
-    S_un_l = tf.cholesky(S_un)
+    S_un_l = self._compute_chol(seq_lens, S_un)
     S_bin_l = tf.cholesky(S_bin)
 
     f_un = m_un + tf.einsum('lsij,lsj->lsi', S_un_l, eps_un)
-    f_bin = m_bin + tf.matmul(S_bin_l, eps_bin)
+    f_bin = m_bin + tf.einsum('ij,j->i', S_bin_l, eps_bin)
 
-    n_labels, batch_size, max_seq_len = m_un.get_shape()
+    n_labels, batch_size, max_seq_len = m_un.get_shape().as_list()
     print('_sample_f/f_un', f_un.get_shape(), '=',
         n_labels, batch_size, max_seq_len)
     print('_sample_f/f_bin', f_bin.get_shape(), '=',
-        max_seq_len**2)
+        n_labels**2)
     return f_un, f_bin
 
   def elbo(self, x, y, seq_lens):
@@ -338,8 +361,7 @@ class TTGPstruct:
     '''
     # TODO: check
 
-    m_un, S_un, m_bin, S_bin = self._latent_vars_distribution(x, seq_lens)
-    f_un, f_bin = self._sample(m_un, S_un, m_bin, S_bin)
+    f_un, f_bin = self._sample(x, seq_lens)
 
 #    l = tf.cast(tf.shape(y)[0], tf.float64) # batch size
     batch_size = tf.shape(y)[0]
