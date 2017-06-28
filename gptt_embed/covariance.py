@@ -220,4 +220,5 @@ class SE_multidim:
     """Returns covariance between a point and itself.
     """
     # TODO: check this!
+#    return self.sigma_n**2 + self.sigma_f**2
     return self.sigma_n**2 + self.sigma_f**2

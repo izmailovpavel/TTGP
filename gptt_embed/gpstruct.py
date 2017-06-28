@@ -411,7 +411,7 @@ class TTGPstruct:
     elbo += self._binary_complexity_penalty() / N
     return -elbo[0]
   
-  def fit(self, x, y, seq_lens, N, lr, global_step):
+  def fit(self, x, y, seq_lens, N, lr, global_step=None):
     """Fit the model.
 
     Args:
@@ -426,7 +426,7 @@ class TTGPstruct:
     """
     # TODO: check 
     self.N = N
-    fun = self.elbo(x, y)
+    fun = self.elbo(x, y, seq_lens)
     optimizer = tf.train.AdamOptimizer(learning_rate=lr)
     return fun, optimizer.minimize(fun, global_step=global_step)
 
