@@ -14,6 +14,7 @@ from t3f import TensorTrainBatch
 from t3f import batch_ops
 from tensorflow.contrib.crf import crf_sequence_score
 from tensorflow.contrib.crf import crf_log_norm
+from tensorflow.contrib.crf import viterbi_decode
 
 from gptt_embed.misc import _kron_tril
 from gptt_embed.misc import _kron_logdet
@@ -430,19 +431,36 @@ class TTGPstruct:
     optimizer = tf.train.AdamOptimizer(learning_rate=lr)
     return fun, optimizer.minimize(fun, global_step=global_step)
 
-  def predict(self, x, seq_lens, n_samples, test=False):
+  def predict(self, x, seq_lens, sess):
     '''Predicts the labels for the given sequences.
 
-    Approximately finds the configuration of the graphical model which has
-    the lowest expected energy based on sampling.
+    Predicts the labels for `x` sequences.
+
     Args:
       x: `tf.Tensor` of shape `batch_size` x `max_seq_len` x D; 
-      sequences of features for the current batch.
-      y: `tf.Tensor` of shape `batch_size` x `max_seq_len`; target values for 
-      the current batch.
+        sequences of features for the current batch.
       seq_lens: `tf.Tensor` of shape `bach_size`; lenghts of input sequences.
-      n_samples: number of samples used to estimate the optimal labels.
+      sess: `tf.Session` istance; this is required as CRF implementation does
+        not implement Vitterbi algorithm in tf.
+    
+    Returns:
+      A `numpy.ndarray` of shape `batch_size` x `max_seq_len` containing the
+      predicted labels.
     '''
-    # TODO: implement 
-    # How do we do this?
-    pass
+    m_un, S_un, m_bin, S_bin = self._latent_vars_distribution(x, seq_lens)
+    bin_shape = tf.constant([self.n_labels, self.n_labels])
+    m_bin = tf.reshape(m_bin, bin_shape)
+    m_un = tf.transpose(m_un, [1, 2, 0])
+    
+    x_arr, m_un_arr, m_bin_arr, seq_lens_arr  = sess.run([x, m_un, m_bin, 
+      seq_lens])
+    n_seq = x_arr.shape[0]
+    seq_lens_arr = seq_lens_arr.astype(int)
+    y = []
+    for seq in range(n_seq):
+      seq_len = seq_lens_arr[seq]
+      cur_m_un = m_un_arr[seq][:seq_len]
+      y_ = viterbi_decode(cur_m_un, m_bin_arr)[0]
+      y.append(y_)
+    y = np.array(y)
+    return y
