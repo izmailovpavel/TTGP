@@ -13,7 +13,7 @@ with tf.Graph().as_default():
     n_inputs = 10
     mu_ranks = 10
     C = 4#10
-    d = 4
+    d = 2
     D = 64
 
     projector = LinearProjector(d=d, D=D)

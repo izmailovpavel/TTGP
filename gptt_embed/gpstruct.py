@@ -63,7 +63,7 @@ class TTGPstruct:
     x_init = tf.random_normal([mu_ranks, self.d], dtype=tf.float64)
     y_init = tf.random_normal([mu_ranks], dtype=tf.float64)
 
-    w = self.inputs.interpolate_on_batch(self.cov.project(x_init))
+    w = self.inputs.interpolate_on_batch(x_init)
     y_init_cores = [tf.reshape(y_init, (-1, 1, 1, 1, 1))]
     for core_idx in range(1, w.ndims()):
       y_init_cores += [tf.ones((mu_ranks, 1, 1, 1, 1), dtype=tf.float64)]
