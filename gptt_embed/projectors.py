@@ -66,6 +66,9 @@ class LinearProjector(FeatureTransformer):
     def out_dim(self):
         return self.P.get_shape()[0].value
 
+    def save_weights(self, sess):
+      np.save('P', sess.run(self.P))
+
 class Identity(FeatureTransformer):
     """Identity transform.
 
