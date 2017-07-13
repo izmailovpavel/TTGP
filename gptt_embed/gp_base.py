@@ -30,8 +30,8 @@ class _TTGPbase:
     self.cov = cov
     self.inputs = inputs
     self.inputs_dists = inputs.kron_dists()
-    self.sigma_l = self._get_sigma_l(name_append)
-    self.mu = self._get_mu(mu_ranks, x_init, y_init, name_append)
+    self.sigma_l = self._get_sigma_l()
+    self.mu = self._get_mu(mu_ranks, x_init, y_init)
 
   def initialize(self, sess):
     """Initializes the variational and covariance parameters.
@@ -53,7 +53,7 @@ class _TTGPbase:
     return cov_params + gp_var_params
 
 
-  def _get_mu(self, ranks, x, y, name_append):
+  def _get_mu(self, ranks, x, y):
     """Initializes latent inputs expectations mu.
 
     Either loads pretrained values of tt-cores of mu, or initializes it
@@ -77,17 +77,17 @@ class _TTGPbase:
               tt_ranks=[1]*(anc.ndims()+1))
       res = ops.add(res, elem)
     mu_ranks = [1] + [ranks] * (res.ndims() - 1) + [1]
-    return t3f.get_variable('tt_mu'+name_append, initializer=TensorTrain(res.tt_cores, 
+    return t3f.get_variable('tt_mu', initializer=TensorTrain(res.tt_cores, 
                                 res.get_raw_shape(), mu_ranks))
 
-  def _get_sigma_l(self, name_append):
+  def _get_sigma_l(self):
     """Initializes latent inputs covariance Sigma_l.
     """
-     shapes = self.inputs.npoints
+    shapes = self.inputs.npoints
     cov = self.cov
     inputs_dists = self.inputs_dists
     K_mm = cov.kron_cov(inputs_dists)    
-    return t3f.get_variable('sigma_l'+name_append, initializer=kron.cholesky(K_mm))
+    return t3f.get_variable('sigma_l', initializer=kron.cholesky(K_mm))
 
   def complexity_penalty(self):
     """Returns the complexity penalty term for ELBO of different GP models. 
@@ -126,7 +126,7 @@ class _TTGPbase:
 
     mean = ops.tt_tt_flat_inner(w, mu)
     if not with_variance:
-        return mean
+      return mean
     K_mm = self.K_mm()
     variance = self.cov.cov_0() 
     sigma_l_w = ops.tt_tt_matmul(ops.transpose(self.sigma_l), w)

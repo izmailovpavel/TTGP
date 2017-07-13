@@ -41,7 +41,7 @@ class TTGPR:
 
     Args:
       x: data features.
-        with_variance: wether or not to return prediction variance
+      with_variance: wether or not to return prediction variance
       name: name of the op.
     '''
     if with_variance:
@@ -79,10 +79,13 @@ class TTGPR:
     elbo = 0
     elbo -= tf.reduce_sum(tf.square(y - ops.tt_tt_flat_inner(w, mu)))
     elbo -= tilde_K_ii 
-    elbo -= ops.tt_tt_flat_inner(w, ops.tt_tt_matmul(sigma, w))
+    # TODO: wtf?
+#    elbo -= ops.tt_tt_flat_inner(w, ops.tt_tt_matmul(sigma, w))
+    elbo -= tf.reduce_sum(ops.tt_tt_flat_inner(w, ops.tt_tt_matmul(sigma, w)))
     elbo /= 2 * sigma_n**2 * l
     elbo += self.gp.complexity_penalty() / N
-    elbo -=  tf.log(tf.abs(sigma_n))  
+    # TODO: wtf?
+#    elbo -=  tf.log(tf.abs(sigma_n))  
     return -elbo[0]
   
   def fit(self, x, y, N, lr, global_step):
