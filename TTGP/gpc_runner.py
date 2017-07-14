@@ -2,14 +2,13 @@ import tensorflow as tf
 import numpy as np
 import os
 import time
-
-from gptt_embed.input import prepare_data, make_tensor
-#from gptt_embed.gpc import TTGPC
-from gptt_embed.gpc_alt import TTGPC
-from gptt_embed import grid
 import t3f
+
+from TTGP.input import prepare_data, make_tensor
+from TTGP.gpc import TTGPC
+from TTGP import grid
+from TTGP.misc import accuracy, num_correct
 from t3f import TensorTrain, TensorTrainBatch
-from gptt_embed.misc import accuracy, num_correct
 
 
 class GPCRunner:
