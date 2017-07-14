@@ -16,10 +16,10 @@ from tensorflow.contrib.crf import crf_sequence_score
 from tensorflow.contrib.crf import crf_log_norm
 from tensorflow.contrib.crf import viterbi_decode
 
-from gptt_embed.misc import _kron_tril
-from gptt_embed.misc import _kron_logdet
-from gptt_embed.misc import pairwise_quadratic_form
-from gptt_embed.misc import _kron_sequence_pairwise_quadratic_form
+from TTGP.misc import _kron_tril
+from TTGP.misc import _kron_logdet
+from TTGP.misc import pairwise_quadratic_form
+from TTGP.misc import _kron_sequence_pairwise_quadratic_form
 
 class TTGPstruct:
 
@@ -313,6 +313,12 @@ class TTGPstruct:
     I = tf.eye(max_len, batch_shape=[n_labels, batch_size], dtype=tf.float64)
     # We add ones on diagonals in the meaningless dimensions of covs.
     new_cov_mat = cov_mat + tf.einsum('lsij,si->lsij', I, sequence_mask)
+    
+    # NOTE: if same word (x) is repeated the matrix becomes singular
+    # ugly solution
+    new_cov_mat = new_cov_mat + 0.1 * I
+    new_cov_mat = tf.maximum(new_cov_mat, 0.)
+
     chol = tf.cholesky(new_cov_mat)
     return self._remove_extra_elems(seq_lens, chol)
     
