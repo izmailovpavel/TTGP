@@ -222,3 +222,28 @@ class SE_multidim:
     # TODO: check this!
 #    return self.sigma_n**2 + self.sigma_f**2
     return self.sigma_n**2 + self.sigma_f**2
+
+
+class BinaryKernel:
+  def __init__(self, n_labels, alpha, trainable=True):
+    """Kernel for binary potentials in GPstruct.
+
+    The covariance matrices for this kernel are of the form `alpha**2 I`, 
+    where `I` is the identity matrix.
+    Args:
+      alpha: Scale parameter.
+      trainable: Bool, parameters are trainable iff True.
+    """
+    self.alpha = tf.Variable(initial_value=alpha, dtype=tf.float64)
+    self.n_labels = n_labels
+
+  def cov(self):
+    """Returns the covariance matrix.
+    """
+    return self.alpha**2 * tf.eye(self.n_labels**2, dtype=tf.float64)
+
+  def cov_logdet(self):
+    """Returns the covariance logdet.
+    """
+    # TODO: check
+    return 2 * self.n_labels**2 * tf.log(tf.abs(self.alpha))

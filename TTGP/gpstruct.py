@@ -23,11 +23,12 @@ from TTGP.misc import _kron_sequence_pairwise_quadratic_form
 
 class TTGPstruct:
 
-  def __init__(self, cov, inputs, mu_ranks):
+  def __init__(self, cov, bin_cov, inputs, mu_ranks):
     """Creates a `TTGPstruct` object for structured GP prediction.
 
     Args:
       cov: covarianse object.
+      bin_cov: binary covarianse object.
       inputs: `InputsGrid` object.
       mu_ranks: TT-ranks of means of the proceses at inducing inputs mu.
     """
@@ -35,6 +36,7 @@ class TTGPstruct:
     self.inputs_dists = inputs.kron_dists()
     self.n_labels = cov.ndim
     self.cov = cov
+    self.bin_cov = bin_cov
     self.d = self.cov.projector.out_dim()
     self.N = 0 # Size of the training set
     self.bin_mu, self.bin_sigma_l = self._get_bin_vars()
@@ -121,9 +123,12 @@ class TTGPstruct:
     """
     # TODO: test this!
     # TODO: should we use other kernels for binary potentials?
-    K_bin = tf.eye(self.n_labels * self.n_labels, dtype=tf.float64)
-    K_bin_logdet = tf.zeros([1], dtype=tf.float64)
-    K_bin_inv = tf.eye(self.n_labels * self.n_labels, dtype=tf.float64)
+#    K_bin = tf.eye(self.n_labels * self.n_labels, dtype=tf.float64)
+#    K_bin_logdet = tf.zeros([1], dtype=tf.float64)
+#    K_bin_inv = tf.eye(self.n_labels * self.n_labels, dtype=tf.float64)
+    K_bin = self.bin_cov.cov()
+    K_bin_logdet = tf.log(tf.matrix_determinant(K_bin))
+    K_bin_inv = tf.matrix_inverse(K_bin)
 
     S_bin_l = self.bin_sigma_l
     S_bin = tf.matmul(S_bin_l, tf.transpose(S_bin_l))
@@ -206,8 +211,6 @@ class TTGPstruct:
     dists = self._compute_pairwise_dists(x)
     sigma_n = self.cov.noise_variance()
     K_nn = self.cov.cov_for_squared_dists(dists) 
-#    I = tf.eye(max_len, batch_shape=[batch_size], dtype=tf.float64)
-#    K_nn += sigma_n[:, None, None, None]**2 * I[None, :]
     batch_size, max_len, d = x.get_shape().as_list()
     print('_Knns/K_nn', K_nn.get_shape(), '=',
         self.n_labels, 'x', batch_size, 'x', max_len, 'x', max_len)
@@ -416,7 +419,7 @@ class TTGPstruct:
     
     elbo += self._unary_complexity_penalty() / N #is this right?
     elbo += self._binary_complexity_penalty() / N
-    return -elbo[0]
+    return -elbo
   
   def fit(self, x, y, seq_lens, N, lr, global_step=None):
     """Fit the model.
