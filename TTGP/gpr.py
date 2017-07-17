@@ -5,8 +5,8 @@ import t3f
 import t3f.kronecker as kron
 from t3f import ops, TensorTrain, TensorTrainBatch
 
-from gptt_embed.misc import _kron_tril, _kron_logdet
-from gptt_embed.gp_base import _TTGPbase
+from TTGP.misc import _kron_tril, _kron_logdet
+from TTGP.gp_base import _TTGPbase
 
 class TTGPR:
 

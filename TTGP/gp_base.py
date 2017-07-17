@@ -5,7 +5,7 @@ import t3f
 import t3f.kronecker as kron
 from t3f import ops, TensorTrain, TensorTrainBatch
 
-from gptt_embed.misc import _kron_tril, _kron_logdet
+from TTGP.misc import _kron_tril, _kron_logdet
 
 class _TTGPbase:
   """A class representing Gaussian Process.
