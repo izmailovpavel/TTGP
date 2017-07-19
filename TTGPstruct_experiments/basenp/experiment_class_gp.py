@@ -13,8 +13,8 @@ with tf.Graph().as_default():
     n_inputs = 10
     mu_ranks = 10
     C = 3
-    d = 4
-    D = 132
+    d = 5
+    D = 6438
 
     projector = LinearProjector(d=d, D=D)
     cov = SE_multidim(C, 0.7, 0.2, 0.1, projector)
