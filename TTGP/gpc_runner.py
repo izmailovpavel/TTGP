@@ -4,7 +4,7 @@ import os
 import time
 import t3f
 
-from TTGP.input import prepare_data, make_tensor
+from TTGP.io import prepare_data
 from TTGP.gpc import TTGPC
 from TTGP import grid
 from TTGP.misc import accuracy, num_correct

@@ -2,12 +2,12 @@ import tensorflow as tf
 import numpy as np
 import os
 import time
+import t3f
 
-from gptt_embed.input import prepare_data, make_tensor
+from gptt_embed.io import prepare_data, make_tensor
 from gptt_embed.gpr import TTGPR
 from gptt_embed.misc import r2, mse
 from gptt_embed import grid
-import t3f
 from t3f import TensorTrain, TensorTrainBatch
 
 
