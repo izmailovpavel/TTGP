@@ -5,7 +5,7 @@ from sklearn.utils import shuffle
 from sklearn.datasets import load_svmlight_file
 from t3f import TensorTrainBatch
 
-
+  
 def prepare_data(path, mode='svmlight', target='reg'):
   """
   Load and preprocess the data.
@@ -50,3 +50,37 @@ def prepare_data(path, mode='svmlight', target='reg'):
   else:
     raise ValueError("unknown target: " + str(target))
   return x_tr, y_tr, x_te, y_te
+
+
+def prepare_struct_data(data_dir):
+  """Loads and preprocesses data for TTGPstruct.
+
+  Args:
+    data_dir: Path to the data folder; the data is assumed
+      to be stored as `data_dir/x_tr.npy`, `data_dir/x_te.npy`, 
+      `data_dir/y_tr.npy`, `data_dir/y_te.npy`, `data_dir/seq_lens_tr.npy`,
+      `data_dir/seq_lens_te.npy`.
+  Returns:
+    x_tr: `np.ndarray`, features for training data.
+    y_tr: `np.ndarray`, labels for training data.
+    seq_lens_tr: `np.ndarray`, sequence lengths for training data.
+    x_te: `np.ndarray`, features for test data.
+    y_te: `np.ndarray`, labels for test data.
+    seq_lens_te: `np.ndarray`, sequence lengths for test data.
+  """
+  x_tr = np.load(data_dir+'x_tr.npy')
+  y_tr = np.load(data_dir+'y_tr.npy')
+  x_te = np.load(data_dir+'x_te.npy')
+  y_te = np.load(data_dir+'y_te.npy')
+  seq_lens_tr = np.load(data_dir+'seq_lens_tr.npy')
+  seq_lens_te = np.load(data_dir+'seq_lens_te.npy')
+
+  D = x_tr.shape[-1]
+  x_tr_flat = x_tr.reshape([-1, D])
+  x_te_flat = x_te.reshape([-1, D])
+  scaler = StandardScaler()
+  x_tr_flat = scaler.fit_transform(x_tr_flat)/3
+  x_te_flat = scaler.transform(x_te_flat)/3
+  x_tr = x_tr_flat.reshape(x_tr.shape)
+  x_te = x_te_flat.reshape(x_te.shape)
+  return x_tr, y_tr, seq_lens_tr, x_te, y_te, seq_lens_te

@@ -106,11 +106,11 @@ class TTGPstruct:
   def get_params(self):
     """Returns a list of all the parameters of the model.
     """
-    bin_var_params = list(self.bin_mu_l + self.bin_sigma_l)
+    bin_var_params = [self.bin_mu, self.bin_sigma_l]
     un_var_params = list(self.mus.tt_cores + self.sigma_ls.tt_cores)
     var_params = bin_var_params + un_var_params
     cov_params = self.cov.get_params()
-    return cov_params + gp_var_params
+    return cov_params + var_params
 
   def _binary_complexity_penalty(self):
     """Computes the complexity penalty for binary potentials.

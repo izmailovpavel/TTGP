@@ -5,30 +5,38 @@ import t3f
 import t3f.kronecker as kron
 from t3f import ops, TensorTrain, TensorTrainBatch
 
-def r2(y_pred, y_true, name=None):
+def r2(y_pred, y_true):
     """r2 score.
     """
-    with tf.name_scope(name, 'r2_score', [y_pred, y_true]):
-        mse_score = mse(y_pred, y_true)
-        return 1. - mse_score / mse(tf.ones_like(y_true) * 
-                    tf.reduce_mean(y_true), y_true)
+    mse_score = mse(y_pred, y_true)
+    return 1. - mse_score / mse(tf.ones_like(y_true) * 
+                tf.reduce_mean(y_true), y_true)
 
 
-def mse(y_pred, y_true, name=None):
+def mse(y_pred, y_true):
     """MSE score.
     """
-    with tf.name_scope(name, 'mse', [y_pred, y_true]):
-        mse = tf.reduce_mean(tf.squared_difference(tf.reshape(y_pred, [-1]), 
-                             tf.reshape(y_true, [-1])), name='MSE')
-        return mse
+    mse = tf.reduce_mean(tf.squared_difference(tf.reshape(y_pred, [-1]), 
+                         tf.reshape(y_true, [-1])), name='MSE')
+    return mse
 
-def accuracy(y_pred, y_true, name=None):
+def accuracy(y_pred, y_true):
     """Acuracy score.
     """
     correct_prediction = tf.equal(y_pred, y_true)
     return tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
-def num_correct(y_pred, y_true, name=None):
+def accuracy_struct(y_pred, y_true):
+    """Accuracy score for structured prediction.
+    """
+    sum_right = 0
+    sum_len = 0
+    for y, pred in list(zip(y_true, y_pred)):
+        sum_right += np.sum(y[:len(pred)] == np.array(pred))
+        sum_len += len(pred)
+    return sum_right / sum_len
+
+def num_correct(y_pred, y_true):
     """Number of correct predictions.
     """
     correct_prediction = tf.equal(y_pred, y_true)
