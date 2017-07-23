@@ -38,6 +38,23 @@ def make_classification_data(x, y):
   y_new = np.concatenate(y_new)
   return x_new, y_new
 
+def pad(x, y):
+	maxlen = np.max([seq.shape[0] for seq in x])
+  D = x[0].shape[1]
+  padded_x = []
+  padded_y = []
+  seq_lens = []
+  for seq, labels in list(zip(x, y)):
+    seq_len = seq.shape[0]
+    padded_seq = np.concatenate([seq, np.zeros((maxlen - seq_len, D))])[None, :, :]
+    padded_labels = np.concatenate([labels, np.zeros((maxlen - seq_len))])[None, :]
+    padded_x.append(padded_seq)
+    padded_y.append(padded_labels)
+    seq_lens.append(seq_len)
+  return np.concatenate(padded_x), np.concatenate(padded_y), np.array(seq_lens)
+
+
+
 if __name__ =='__main__':
 	x = get_x()
 	y = get_y()
@@ -50,3 +67,21 @@ if __name__ =='__main__':
 	np.save('data_class/x_te', x_te)
 	np.save('data_class/y_tr', y_tr)
 	np.save('data_class/y_te', y_te)
+
+	x_te, y_te, seq_lens_te = pad(x_te, y_te)
+	x_tr, y_tr, seq_lens_tr = pad(x_tr, y_tr)
+	
+	P = np.load('P.npy')
+	d, D = P.shape
+	x_tr_flat = x_tr.reshape([-1, D])
+	x_te_flat = x_te.reshape([-1, D])
+	x_tr_flat = x_tr_flat.dot(P.T)
+	x_te_flat = x_te_flat.dot(P.T)
+	x_tr = x_tr_flat.reshape(list(x_tr.shape[:2])+[d])
+	x_te = x_te_flat.reshape(list(x_te.shape[:2])+[d])
+	np.save('data_struct/x_tr', x_tr)
+	np.save('data_struct/x_te', x_te)
+	np.save('data_struct/y_tr', y_tr)
+	np.save('data_struct/y_te', y_te)
+	np.save('data_struct/seq_lens_tr', seq_lens_tr)
+	np.save('data_struct/seq_lens_te', seq_lens_te)
