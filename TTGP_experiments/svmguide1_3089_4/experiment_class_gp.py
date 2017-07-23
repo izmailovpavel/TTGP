@@ -3,9 +3,9 @@ import os
 import numpy as np
 from tensorflow.contrib.layers import batch_norm
 
-from gptt_embed.covariance import SE_multidim
-from gptt_embed.projectors import FeatureTransformer, LinearProjector, Identity
-from gptt_embed.gpc_runner import GPCRunner
+from TTGP.covariance import SE_multidim
+from TTGP.projectors import FeatureTransformer, LinearProjector, Identity
+from TTGP.gpc_runner import GPCRunner
 
 with tf.Graph().as_default():
     data_dir = "data/"
