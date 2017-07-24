@@ -3,9 +3,9 @@ import os
 import numpy as np
 from tensorflow.contrib.layers import batch_norm
 
-from gptt_embed.covariance import SE_multidim
-from gptt_embed.projectors import FeatureTransformer, LinearProjector, Identity
-from gptt_embed.gpc_runner import GPCRunner
+from TTGP.covariance import SE_multidim
+from TTGP.projectors import FeatureTransformer, LinearProjector, Identity
+from TTGP.gpc_runner import GPCRunner
 
 class NN(FeatureTransformer):
     
@@ -103,7 +103,7 @@ with tf.Graph().as_default():
     data_dir = "data/"
     n_inputs = 10
     mu_ranks = 10
-    projector = NN(H1=1000, H2=1000, H3=500, H4=50, d=3)
+    projector = NN(H1=1000, H2=1000, H3=500, H4=50, d=2)
     C = 2
 
     cov = SE_multidim(C, 0.7, 0.2, 0.1, projector)

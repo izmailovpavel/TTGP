@@ -13,15 +13,15 @@ with tf.Graph().as_default():
     n_inputs = 10
     mu_ranks = 10
     C = 3
-    d = 5
+    d = 2
     D = 6438
 
     projector = LinearProjector(d=d, D=D)
     cov = SE_multidim(C, 0.7, 0.2, 0.1, projector)
 
-    lr = 1e-3
+    lr = 1e-2
     decay = (10, 0.2)
-    n_epoch = 20
+    n_epoch = 10
     batch_size = 10
     data_type = 'numpy'
     log_dir = 'log'
