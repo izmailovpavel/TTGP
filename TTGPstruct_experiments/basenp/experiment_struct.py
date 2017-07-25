@@ -8,14 +8,17 @@ from TTGP.gpstruct_runner import GPStructRunner
 with tf.Graph().as_default():
   data_dir = 'data_struct/'
   n_inputs = 10
-  mu_ranks = 15
-  D = 4
+  mu_ranks = 10
+#  D = 6438
+#  P = np.load('P.npy')
+#  projector = LinearProjector(D=D, d=5, trainable=True)
+  D = 5
   projector = Identity(D=D)
   n_labels = 3
   cov = SE_multidim(n_labels, 0.7, 0.2, 0.1, projector)
   bin_cov = BinaryKernel(n_labels, alpha=1.)
   
-  lr = 1e-2
+  lr = 5e-4
   decay = (10, 0.2)
   n_epoch = 30
   batch_size = 10
