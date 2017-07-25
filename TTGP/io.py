@@ -84,3 +84,9 @@ def prepare_struct_data(data_dir):
   x_tr = x_tr_flat.reshape(x_tr.shape)
   x_te = x_te_flat.reshape(x_te.shape)
   return x_tr, y_tr, seq_lens_tr, x_te, y_te, seq_lens_te
+
+def make_tensor(array, name, dtype=tf.float64):
+  """Converts the given numpy array to a `tf.Variable`.
+  """
+  init = tf.constant(array)
+  return tf.Variable(init, name=name, trainable=False, dtype=dtype)

@@ -121,5 +121,6 @@ with tf.Graph().as_default():
     runner=GPCRunner(data_dir, n_inputs, mu_ranks, cov,
                 lr=lr, decay=decay, n_epoch=n_epoch, batch_size=batch_size,
                 data_type=data_type, log_dir=log_dir, save_dir=save_dir,
-                model_dir=model_dir, load_model=load_model, print_freq=500)
+                model_dir=model_dir, load_model=load_model, print_freq=500,
+                num_threads=3)
     runner.run_experiment()

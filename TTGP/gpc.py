@@ -143,17 +143,14 @@ class TTGPC:
 
             # means for true classes
             means_c = tf.gather_nd(means, indices)
-            print('GPC/elbo/means_c', means_c.get_shape())
            
             # Likelihood
             elbo = 0
             elbo += tf.reduce_sum(means_c)
             log_sum_exp_bound = tf.log(tf.reduce_sum(tf.exp(means + variances/2),
                                                                         axis=1))
-            print('GPC/elbo/log_sum_exp_bound', log_sum_exp_bound.get_shape())
             elbo -= tf.reduce_sum(log_sum_exp_bound)
             elbo /= l
-            print('GPC/elbo/complexity_penalty', self.complexity_penalty().get_shape())
             elbo += tf.reduce_sum(self.complexity_penalty()) / N
             return -elbo
     
