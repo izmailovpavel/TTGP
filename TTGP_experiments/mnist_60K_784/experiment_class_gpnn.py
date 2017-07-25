@@ -3,9 +3,9 @@ import os
 import numpy as np
 from tensorflow.contrib.layers import batch_norm
 
-from gptt_embed.covariance import SE_multidim
-from gptt_embed.projectors import FeatureTransformer, LinearProjector
-from gptt_embed.gpc_runner import GPCRunner
+from TTGP.covariance import SE_multidim
+from TTGP.projectors import FeatureTransformer, LinearProjector
+from TTGP.gpc_runner import GPCRunner
 
 class NN(FeatureTransformer):
     
@@ -108,7 +108,7 @@ with tf.Graph().as_default():
     cov = SE_multidim(C, 0.7, 0.2, 0.1, projector)
 
     lr = 1e-2
-    decay = (7, 0.2)
+    decay = (5, 0.2)
     n_epoch = 20
     batch_size = 200
     data_type = 'numpy'
