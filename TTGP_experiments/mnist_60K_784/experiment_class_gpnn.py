@@ -3,9 +3,9 @@ import os
 import numpy as np
 from tensorflow.contrib.layers import batch_norm
 
-from gptt_embed.covariance import SE_multidim
-from gptt_embed.projectors import FeatureTransformer, LinearProjector
-from gptt_embed.gpc_runner import GPCRunner
+from TTGP.covariance import SE_multidim
+from TTGP.projectors import FeatureTransformer, LinearProjector
+from TTGP.gpc_runner import GPCRunner
 
 class NN(FeatureTransformer):
     
@@ -113,7 +113,7 @@ with tf.Graph().as_default():
     batch_size = 200
     data_type = 'numpy'
     log_dir = 'log'
-    save_dir = 'models/gpnn_100_100_2.ckpt'
+    save_dir = None#'models/gpnn_100_100_2.ckpt'
     model_dir = save_dir
     load_model = False#True
     num_threads = 3
