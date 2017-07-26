@@ -114,7 +114,7 @@ with tf.Graph().as_default():
     batch_size = 5000
     data_type = 'numpy'
     log_dir = 'log'
-    save_dir = 'models/gpnn.ckpt'
+    save_dir = None#'models/gpnn.ckpt'
     model_dir = None#save_dir
     load_model = False#True
     
