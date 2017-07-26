@@ -2,15 +2,15 @@ import tensorflow as tf
 import numpy as np
 import os
 
-from gptt_embed.covariance import SE
-from gptt_embed.projectors import Identity
-from gptt_embed.gp_runner import GPRunner
+from TTGP.covariance import SE
+from TTGP.projectors import Identity
+from TTGP.gp_runner import GPRunner
 
 data_basedir1 = "/Users/IzmailovPavel/Documents/Education/Programming/DataSets/"
 data_basedir2 = "/Users/IzmailovPavel/Documents/Education/Projects/GPtf/experiments/"
 
 with tf.Graph().as_default():
-    data_dir = ""
+    data_dir = "data/"
     n_inputs = 20
     mu_ranks = 15
     D = 2
