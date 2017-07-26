@@ -109,12 +109,12 @@ with tf.Graph().as_default():
     cov = SE_multidim(C, 0.7, 0.2, 0.1, projector)
 
     lr = 1e-2
-    decay = (2, 0.2)
-    n_epoch = 7
-    batch_size = 1000
+    decay = (3, 0.2)
+    n_epoch = 10
+    batch_size = 5000
     data_type = 'numpy'
     log_dir = 'log'
-    save_dir = 'models/gpnn_2.ckpt'
+    save_dir = None#'models/gpnn_2.ckpt'
     model_dir = None#save_dir
     load_model = False#True
     
