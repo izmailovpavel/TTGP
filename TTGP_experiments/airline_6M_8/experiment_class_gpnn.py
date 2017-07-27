@@ -65,7 +65,7 @@ class NN(FeatureTransformer):
         projected = h_preact5
 
         projected = tf.cast(projected, tf.float32)
-        projected = batch_norm(projected, decay=0.99, center=False, scale=False,
+        projected = batch_norm(projected, decay=0.999, center=False, scale=False,
                                 is_training=(not test), reuse=self.reuse, scope="norm")
         projected = tf.cast(projected, tf.float64)
         projected /= 3
