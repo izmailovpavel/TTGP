@@ -4,10 +4,10 @@ import os
 import time
 import t3f
 
-from gptt_embed.io import prepare_data, make_tensor
-from gptt_embed.gpr import TTGPR
-from gptt_embed.misc import r2, mse
-from gptt_embed import grid
+from TTGP.io import prepare_data, make_tensor
+from TTGP.gpr import TTGPR
+from TTGP.misc import r2, mse
+from TTGP import grid
 from t3f import TensorTrain, TensorTrainBatch
 
 
