@@ -108,7 +108,7 @@ with tf.Graph().as_default():
 
     cov = SE_multidim(C, 0.7, 0.2, 0.1, projector)
 
-    lr = 1e-2
+    lr = 5e-3
     decay = (3, 0.2)
     n_epoch = 10
     batch_size = 5000
