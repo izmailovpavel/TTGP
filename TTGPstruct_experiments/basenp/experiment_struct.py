@@ -21,7 +21,7 @@ with tf.Graph().as_default():
   lr = 5e-4
   decay = (10, 0.2)
   n_epoch = 30
-  batch_size = 10
+  batch_size = 100
   log_dir = None
   save_dir = None
   model_dir = save_dir
