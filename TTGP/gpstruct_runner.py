@@ -4,7 +4,7 @@ import os
 import time
 import t3f
 
-from TTGP.io import prepare_struct_data
+from TTGP.io import prepare_struct_data, make_tensor
 from TTGP.gpstruct import TTGPstruct
 from TTGP import grid
 from TTGP.misc import accuracy_struct
@@ -84,12 +84,11 @@ class GPStructRunner:
     """
     x_tr, y_tr, seq_lens_tr, x_te, y_te, seq_lens_te = prepare_struct_data(
         data_dir)
-    x_tr = tf.cast(tf.constant(x_tr), tf.float64)
-    y_tr = tf.cast(tf.constant(y_tr), tf.int64)
-    x_te = tf.cast(tf.constant(x_te), tf.float64)
-#    y_te = tf.cast(tf.constant(y_te), tf.int64)
-    seq_lens_tr = tf.cast(tf.constant(seq_lens_tr), tf.int64) 
-    seq_lens_te = tf.cast(tf.constant(seq_lens_te), tf.int64) 
+    x_tr = make_tensor(x_tr, 'x_tr')
+    y_tr = make_tensor(y_tr.astype(int), 'y_tr', dtype=tf.int64)
+    x_te = make_tensor(x_te, 'x_te')
+    seq_lens_tr = make_tensor(seq_lens_tr.astype(int), 'seq_lens_tr', dtype=tf.int64)
+    seq_lens_te = make_tensor(seq_lens_te.astype(int), 'seq_lens_tr', dtype=tf.int64)
     return x_tr, y_tr, seq_lens_tr, x_te, y_te, seq_lens_te
      
   def _make_batches(self, x, y, seq_lens, batch_size, test=False):
@@ -157,10 +156,13 @@ class GPStructRunner:
     coord = tf.train.Coordinator()
     init = tf.global_variables_initializer()
   
+    data_initializer = tf.variables_initializer([x_tr, y_tr, x_te, seq_lens_tr, 
+        seq_lens_te])
     update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS) 
     # Main session
     with tf.Session() as sess:
       # Initialization
+      sess.run(data_initializer)
       threads = tf.train.start_queue_runners(sess=sess, coord=coord) 
       gp.initialize(sess)
       sess.run(init)

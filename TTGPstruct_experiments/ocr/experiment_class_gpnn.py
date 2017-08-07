@@ -41,7 +41,7 @@ class NN(FeatureTransformer):
       h_1 = tf.nn.relu(tf.matmul(x, self.W1) + self.b1)
       h_2 = tf.nn.relu(tf.matmul(h_1, self.W2) + self.b2)
         
-      projected = tf.matmul(h_1, self.W3) 
+      projected = tf.matmul(h_2, self.W3) 
       projected = tf.cast(projected, tf.float64)
 
       # Rescaling
@@ -67,14 +67,12 @@ class NN(FeatureTransformer):
       return self.d
 
     def save_weights(self, sess):
-      W1, b1, W2, b2, W3, b3, W4 = sess.run(self.get_params())
+      W1, b1, W2, b2, W3 = sess.run(self.get_params())
       np.save('W1.npy', W1)
       np.save('b1.npy', b1)
       np.save('W2.npy', W2)
       np.save('b2.npy', b2)
       np.save('W3.npy', W3)
-      np.save('b3.npy', b3)
-      np.save('W4.npy', W4)
 
 
 with tf.Graph().as_default():
@@ -92,7 +90,7 @@ with tf.Graph().as_default():
   batch_size = 200
   data_type = 'numpy'
   log_dir = 'log'
-  save_dir = None#'models/gpnn_100_100_2.ckpt'
+  save_dir = 'models/gpnn_100_100_2.ckpt'
   model_dir = save_dir
   load_model = False#True
   num_threads = 3
