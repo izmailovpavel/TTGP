@@ -18,15 +18,18 @@ scale up the method and generalized it to classification problems.
 
 Inducing input methods allow to use Gaussian processes on datasets containing
 millions of examples. However, these methods are still limited in the number
-of inducing points $m$ they can use. \citet{wilson2015} proposed the KISS-GP
+of inducing points $m$ they can use (usually up to $10^4$). Small number of 
+inducing inputs limits the flexibility of the models that can be learned with 
+these methods, and does not allow to learn expressive kernel functions 
+(\citet{wilson2014}). \citet{wilson2015} proposed KISS-GP
 framework, which exploits the Kronecker product structure in covariance matrices
 for inducing points placed on a multidimensional grid in the feature space.
 KISS-GP has complexity $\bigO(n + D m^{1 + 1/D})$, where $D$ is the dimensionality
 of the feature space. Note however, that $m$ is the number of points in a
 $D$-dimensional grid and grows exponentially with~$D$, which makes the method
-inapplicable when the number of features $D$ is larger than $4$.
+impractical when the number of features $D$ is larger than $4$.
 
-In this paper, we propose a method TT-GP, that can use billions of inducing
+In this paper, we propose TT-GP method, that can use billions of inducing
 inputs and is applicable to a much wider range of datasets compared to
 KISS-GP.
 We achieve this by combining kernel interpolation and Kronecker algebra of 
@@ -41,23 +44,20 @@ process at inducing inputs $Z$.
 format for $\Sigma$ does not substantially affect the predictive performance
 of GP regression, while allowing for computational gains. The main contribution
 of our paper is combining the Kronecker format for $\Sigma$ with TT-format
-for $\mu$, which, combined with efficient inference procedure, allows us to
-efficiently train GP models with billions of inducing inputs. In existing
-methods the number of inducing inputs is usually limited by tens of thousands,
-which substantially limits the flexibility of the model, and does not allow
-to learn expressive kernel functions (\citet{wilson2014}). 
+for $\mu$, which, together with efficient inference procedure, allows us to
+efficiently train GP models with billions of inducing inputs.
 
 Unlike KISS-GP the proposed method has linear complexity with respect to 
 dimensionality $D$ of the feature space. It means that we can apply TT-GP
-to datasets that are both large, and high-dimensional. Note however, that
+to datasets that are both large and high-dimensional. Note however, that
 TT-GP is constructing a grid of inducing inputs in the feature space, and
-tries to infer the values of the process in all points in the grid. However,
-high-dimensional real-world datasets are believed to lie on small-dimensional
+tries to infer the values of the process in all points in the grid. 
+High-dimensional real-world datasets are believed to lie on small-dimensional
 manifolds in the feature space, and it is impractical to try to recover the
 complex non-linear transformation that a Gaussian Process defines on the 
 whole feature space. Thus, we use TT-GP on raw features for datasets with
 dimensionality up to $10$. For feature spaces with higher dimensionality
-we propose to use kernels based on parametric projection, which is learned
+we propose to use kernels based on parametric projections, which can be learned
 from the data.
  
 \citet{wilson2016deep} and \citet{wilson2016stochastic}
