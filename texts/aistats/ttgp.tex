@@ -1,0 +1,137 @@
+In the previous section we described several methods for GP regression and
+classification. All these methods have different limitations: standard methods
+are limited to small-scale datasets, KISS-GP requires small dimensionality of
+the feature space, and the methods based on inducing points are limited to use
+a small number $m$ of these points. In this section, we propose the TT-GP method
+that can be used with big datasets and can incorporate billions of inducing
+inputs. Additionally, TT-GP allows for training expressive deep kernels to work
+with structured data (e.g. images).
+
+\subsection{Variational Parameters Approximation}
+  In section \ref{inducing_inputs} we derived the variational lower bound of
+  \citet{hensman2013}. We will place the inducing inputs $Z$ on a
+  multidimensional grid in the feature space and we will assume the
+  covariance function satisfies (\ref{prod_kernel}). Let the number
+  of inducing points in each dimension be $m_0$. Then the total number of induced points is $m = m_0^D$.
+  As shown in Section \ref{kiss_gp},
+  in this case $\Kmm$ matrix can be rewritten as a Kronecker product over
+  dimensions. Substituting the approximation (\ref{kernel_interpolation}) into
+  the lower bound (\ref{elbo_reg}), we obtain
+  \begin{equation}
+  \label{kissgp_elbo}
+    \begin{split}
+      \log p(y) \ge
+      \sum_{i=1}^n \left ( \log \N (y_i | w_i^T \mu, \nu^2) -
+        \frac 1 {2\nu^2} \tilde K_{ii} -
+        \frac 1 {2\nu^2} \tr (w_i^T \Sigma w_i)
+      \right )-
+      \\
+      - \frac 1 2 \left(
+        \log \frac {|\Kmm|} {|\Sigma|} - m + \tr(\Kmm^{-1} \Sigma) +
+        \mu^T \Kmm^{-1} \mu
+      \right),
+    \end{split}
+  \end{equation}
+  where $\tilde K_{ii} = k(x_i, x_i) - w_i^T \Kmm w_i$.
+
+  Note that $\Kmm^{-1}$ and $|\Kmm|$ can be computed with
+  $\bigO(D m_0^3) = \bigO(D m^{3/D})$ operations due to the
+  Kronecker product structure. Now the most computationally demanding terms
+  are those containing variational parameters $\mu$ and $\Sigma$.
+
+  Let us restrict the family of variational distributions (\ref{var_family}). Let $\Sigma$ be
+  a Kronecker product over dimensions, and $\mu$ be in the TT-format which TT-rank $r$
+  is a hyper-parameter of our method. Then, according to section \ref{tensor_train}, we can
+  compute the lower bound~\eqref{kissgp_elbo} with
+  $\bigO(nDm_0 r^2 + D m_0 r^3 + Dm_0^3) =
+  \bigO(nD m^{1/D} r^2 + D m^{1/D} r^3 + D m^{3/D})$ complexity.
+
+  The proposed TT-GP method has linear complexity with respect to dimensionality
+  $D$ of the feature space, despite the exponential growth of the number of
+  inducing inputs. Lower bound  (\ref{kissgp_elbo})
+  can be maximized with respect to kernel hyper-parameters $\theta$, TT-cores
+  of $\mu$, and Kronecker multipliers of $\Sigma$. Note that stochastic optimization
+  can be applied, as the bound (\ref{kissgp_elbo}) factorizes over data points.
+
+\subsection{Classification}
+
+  In this section we describe a generalization of the proposed method for
+  multiclass classification. In this case the dataset consists of features
+  $X = (x_1, x_2, \ldots, x_n)^T \in \R^{n \times D}$ and target values
+  $y = (y_1, y_2, \ldots, y_n)^T \in \{1, 2, \ldots, C\}^n$, where $C$ is the
+  number of classes.
+
+  Consider $C$ Gaussian processes taking place in $\R^D$. Each process
+  corresponds to it's own class. We will place $m = m_0^D$ inducing points $Z$ on a grid
+  in the feature space, and they will be shared between all processes. Each
+  process has it's own set of latent variables representing the values of
+  the process at data points $f^c \in \R^n$, and inducing inputs $u^c \in \R^m$.
+  We will use the following model
+  \[
+    p(y, f, u) = \prod_{i=1}^n p(y_i | f_i^{1, 2, \ldots, C})
+      \prod_{c=1}^C p(f^c | u^c) p(u^c),
+  \]
+  where $p(f^c | u^c)$ and $p(u^c)$ are defined as in (\ref{priors}) and $p(y_i | f_i^{1,2, \ldots, C}) = \exp(f_i^{y_i}) / (\sum_{j=1}^C\exp(f_i^j))$.
+  
+  We will use variational distributions of form
+  \[
+    q(f^1, f^2, \ldots, f^C, u^1, u^2, \ldots, u^C) =
+    q(f^1, u^1) \cdot q(f^2, u^2) \cdot \ldots \cdot q(f^C, u^C),
+  \]
+  where $q(f^c, u^c) = p(f^c | u^c) \N(u^c | \mu^c, \Sigma^c)\ c=1, 2, \ldots, C$ and all $\mu^c$ are represented in TT-format with TT-ranks not greater than $r$,
+  $\Sigma^c$ are represented as Kronecker products over dimensions. Similarly to (\ref{main_elbo}), we obtain
+  \begin{equation}
+  \label{elbo_multiclass}
+    \log p(y) \ge \sum_{i = 1}^n \E_{q(f_i^{1, 2, \ldots, C})} \log p(y_i | f_i^{1, 2, \ldots, C})
+      - \sum_{c = 1}^{C} \KL(q(u_c) || p(u_c))
+  \end{equation}
+  The second term in (\ref{elbo_multiclass}) can be computed analytically as
+  a sum of KL-divergences between normal distributions. The first term is
+  intractable. In order to approximate the first term we will use a lower bound.
+  Let $y_i$ belong to class $c$. Then, we can rewrite
+  \begin{equation}
+  \label{expectation_term}
+    \E_{q(f_i^{1, 2, \ldots, C})} \log p(y_i | f_i^{1, 2, \ldots, C}) =
+    \E_{q(f_i^c)} f_i^c - \E_{q(f_i^{1, 2, \ldots, C})}
+    \log \biggl(\sum_{j=1}^C \exp (f_i^j) \biggr),
+  \end{equation}
+  where $q(f_i^{1, 2\ldots, C}) = \N(f^1 | m_i^1, s_i^1)\cdot \N(f^2| m_2, s_i^2) \cdot \ldots \cdot \N(f^C | m_i^C, s_i^C)$.
+
+  The first term in (\ref{expectation_term}) is obviously tractable, while the
+  second term has to be approximated. \citet{bouchard2007} discusses several
+  lower bounds for expectations of this type. Below we derive one of these bounds,
+  which we use in TT-GP.
+
+  Concavity of logarithm implies $\log(\sum_{j=1}^{C} \exp(f_i^j)) \le \varphi \sum_{j=1}^C \exp(f_i^j) - \log \varphi - 1,\ \forall\varphi > 0$. Taking expectation of both sides of the inequality and minimizing with respect
+  to $\varphi$, we obtain
+  \begin{equation}
+  \label{bouchard_bound}
+    \E_{q(f_i^{1, 2, \ldots, C})} \log\biggl(\sum_{j=1}^C \exp(f_i^j)\biggr) \le
+    \log \biggl(\sum_{j=1}^C \exp\bigl(m_i^j + \frac 1 2 s_i^j\bigr) \biggr).
+  \end{equation}
+  Substituting (\ref{bouchard_bound}) back into (\ref{elbo_multiclass}) we obtain
+  a tractable lower bound for multiclass classification task, that can be
+  maximized with respect to kernel hyper-parameters $\theta^c$, TT-cores of
+  $\mu^c$ and Kronecker factors of $\Sigma^c$. The complexity of the method
+  is $C$ times higher, than in regression case.
+
+\subsection{Deep kernels}
+
+  \citet{wilson2016stochastic} and \citet{wilson2016deep} showed the efficiency
+  of using expressive kernel functions based on deep neural networks with
+  Gaussian processes on a variety of tasks. The proposed TT-GP method is
+  naturally compatible with this idea.
+
+  Consider a covariance function $k$ (satisfying (\ref{prod_kernel})) and
+  a neural network (or in fact any parametric transform) $net$. We can define a
+  new kernel as follows
+  \[
+    k_{net}(x, x') = k(net(x), net(x')).
+  \]
+  We can train the neural network weights through maximization of GP marginal
+  likelihood, the same way, as we normally train kernel hyper-parameters $\theta$.
+  This way, the network learns a multidimensional embedding for the data, and
+  the GP is making the prediction working with this embedding.
+  \citet{wilson2016stochastic} trained one-dimensional GPs on different outputs
+  of the network. TT-GP allows us to train Gaussian processes on all network
+  outputs, and train the whole model end-to-end without pretraining.
