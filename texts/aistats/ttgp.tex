@@ -154,7 +154,23 @@ with structured data (e.g. images).
   likelihood, the same way, as we normally train kernel hyper-parameters $\theta$.
   This way, the network learns a multidimensional embedding for the data, and
   GP is making the prediction working with this embedding.
+  
   \citet{wilson2016stochastic} trained additive deep kernels combining 
-  one-dimensional GPs on different outputs
-  of a neural network. TT-GP allows us to train Gaussian processes on all network
-  outputs, and train the whole model end-to-end without any pretraining.
+  one-dimensional GPs on different outputs of a neural network. Training
+  Gaussian processes on multiple outputs of a Neural network is impractical
+  in their framework, because the complexity of the GP part of their model
+  grows exponentially with the input dimensionality. 
+
+  With methods of \citet{hensman2013} and \citet{hensman2015} training Gaussian
+  processes on multiple outputs of a neural network also isn't straightforward. Indeed,
+  with these methods we can only use up to $10^3$--$10^4$ inducing inputs. While
+  with standard RBF kernels the positions of inputs of the GP are fixed and we can place 
+  the inducing points near the data, with deep kernels the positions of the
+  inputs of the GP (outputs of the DNN) change during training to match the positions of inducing inputs.
+  It is thus not clear how to set the inducing inputs in the latent feature space, other
+  than placing them on a multidimensional grid, which means that the complexity
+  of such methods would grow exponentially with dimensionality.
+
+  On the other hand, TT-GP allows us to train Gaussian processes on multiple DNN
+  outputs because of it's ability to efficiently work with inducing inputs 
+  placed on multidimensional grids.
