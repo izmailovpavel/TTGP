@@ -7,31 +7,55 @@ expressive deep kernel functions and compare it with SV-DKL
 
 \subsection{Expectation approximation}
 
-In this section we provide some numerical justification of using Tensor Train
-format for the mean $\mu$ of the variational distribution.
+In this section we provide a numerical justification of using Tensor Train
+format for the mean $\mu$ of the variational distribution. We use the Powerplant
+dataset from UCI. This dataset has $7654$ objects and $4$ features. We place 
+$m_0 = 5$ inducing inputs per dimension, which gives us a total of $m = 625$
+inducing inputs. We train the standard SVI-GP method form GPflow library
+(\citet{GPflow2016}) with free form representations for $\mu$ and $\Sigma$.
+Then we try to approximate the learned $\mu$ vector with a TT-vector 
+$\mu_{TT}$ with small TT-ranks. 
 
-\begin{itemize}
-  \item Visualization of the $\mu$ for standard inducing input GP and TT-GP.
-  \item Plot of quality of TT approximation against TT-rank.
-\end{itemize}
+\begin{figure}[!h]
+  \vspace{-.3cm}
+  \begin{center}
+      \begin{tabular}{c}
+          \includegraphics[width=0.95\linewidth]{pics/acc_vs_ranks.eps} \\
+          (a) MSE\\  
+          \includegraphics[width=0.95\linewidth]{pics/cos_vs_ranks.eps} \\
+          (b) Cosine similarity
+      \end{tabular}
+  \end{center}
+  \caption{Approximation accuracy as a function of TT-rank}
+  \label{acc_vs_ranks}
+\end{figure}
 
-\subsection{Standard Kernels}
+Figure \ref{acc_vs_ranks} shows the dependence between TT-ranks and 
+approximation accuracy. For TT-rank greater than $25$ we can approximate the
+true values of $\mu$ within machine precision. Note that for TT-rank $25$ the
+amount of parameters in the TT representation already exceeds the number of
+entries in the tensor $\mu$ that we are approximating. Even for moderate
+TT-ranks an accurate approximation can be achieved.
 
-For testing our method with standard covariance functions we used a range of
-classification and regression tasks from UCI and LIBSVM archives and the
-Airline dataset, that is popular for testing scalable GP models
-(\citet{hensman2013}, \citet{hensman2015}, \citet{wilson2016stochastic},
-\citet{cutajar2016}).
+\begin{figure}[!h]
+  \begin{center}
+      \begin{tabular}{cc}
+          \includegraphics[trim = 100 0 60 0, clip, height=0.4\linewidth]{pics/true.eps} &
+        \hspace{0.5cm}\includegraphics[trim = 100 0 0 0, clip, height=0.4\linewidth]{pics/tt.eps} \\
+          (a) $\mu$ &
+          (b) $\mu_{TT}$, $r = 10$
+      \end{tabular}
+  \end{center}
+  \caption{True variational mean and TT-approximation}
+  \label{true_and_tt}
+\end{figure}
 
-For SVI-GP and KLSP-GP we used the implementations provided in GPfLow
-(\citet{GPflow2016}). For Airline dataset we provide results reported in
-the original paper (\citet{hensman2015}). For our experiments, we use a cluster of Intel Xeon E5-2698B v3 CPUs having $16$ cores and $230$ GB
-of RAM.
+Figure \ref{true_and_tt} shows the true variational mean $\mu$ and it's 
+approximation for TT-rank $10$. Here we reshape the $\mu, \mu_{TT} \in \R^{625}$
+to $25 \times 25$ for visualization. We can see that $\mu_{TT}$ captures the 
+structure of the true variational mean.
 
-For YearPred, EEG and covtype datasets we used a $d$-dimensional linear embedding inside the RBF kernel for TT-GP, as the number $D$ of features makes it
-impractical to set inducing inputs on a grid in a $D$-dimensional space in this case.
-
-\begin{table}[t]
+\begin{table*}[!t]
   \caption[]{Experimental results for standard kernels. In the table acc. stands for $r^2$ for regression and accuracy
           for classification tasks. $n$ is the size of the
           training set, $D$ is the dimensionality of the feature space,
@@ -85,20 +109,37 @@ impractical to set inducing inputs on a grid in a $D$-dimensional space in this 
     $0.852$ & $10^6$ & $10$ & $6$ & $172$\\
     \bottomrule
   \end{tabular}
-\end{table}
+\end{table*}
+
+\subsection{Standard Kernels}
+
+For testing our method with standard covariance functions we used a range of
+classification and regression tasks from UCI and LIBSVM archives and the
+Airline dataset, that is popular for testing scalable GP models
+(\citet{hensman2013}, \citet{hensman2015}, \citet{wilson2016stochastic},
+\citet{cutajar2016}).
+
+For SVI-GP and KLSP-GP we used the implementations provided in GPfLow
+(\citet{GPflow2016}). For Airline dataset we provide results reported in
+the original paper (\citet{hensman2015}). For our experiments, we use a cluster of Intel Xeon E5-2698B v3 CPUs having $16$ cores and $230$ GB
+of RAM.
+
+For YearPred, EEG and covtype datasets we used a $d$-dimensional linear embedding inside the RBF kernel for TT-GP, as the number $D$ of features makes it
+impractical to set inducing inputs on a grid in a $D$-dimensional space in this case.
+
   
-  \begin{figure}[!t]
-    \vspace{-.3cm}
-    \begin{center}
-        \begin{tabular}{cc}
-            \includegraphics[width=0.35\linewidth]{pics/embedding_ttgp.pdf} & \includegraphics[width=0.3\linewidth]{pics/embedding_dnn.pdf}\\
-            (a) DNN with TT-GP & (b) Plain DNN
-        \end{tabular}
-    \end{center}
-    \caption{Learned representation for Digits dataset.}
-    \label{digits_embedding}
-    \vspace{-.5cm}
-  \end{figure}
+\begin{figure}[!t]
+  \vspace{-.3cm}
+  \begin{center}
+      \begin{tabular}{cc}
+          \includegraphics[width=0.35\linewidth]{pics/embedding_ttgp.pdf} & \includegraphics[width=0.3\linewidth]{pics/embedding_dnn.pdf}\\
+          (a) DNN with TT-GP & (b) Plain DNN
+      \end{tabular}
+  \end{center}
+  \caption{Learned representation for Digits dataset.}
+  \label{digits_embedding}
+  \vspace{-.5cm}
+\end{figure}
 
 Table \ref{se_results} shows the results on different regression and
 classification tasks. We can see, that TT-GP is able to achieve better
@@ -120,7 +161,7 @@ embedding, which makes it practical for a wide range of datasets.
   network standalone, adding another layer with $10$ outputs and softmax
   activations. The embedding for this network is shown in fig. \ref{digits_embedding},b.
 
-  \begin{table}[!t]
+  \begin{table*}[!t]
     \caption{DNN architecture used in experiments with deep kernels. Here F($h$) means a fully-connected layer with $h$ neurons; C($h{\times}w$, $f$) means a
     convolutional layer with $f$ $h{\times}w$ filters; P($h{\times}w$) means max-pooling with $h{\times}w$ kernel; ReLU stands for rectified linear unit
     and BN means batch normalization (\citet{ioffe2015}).}
@@ -140,9 +181,9 @@ embedding, which makes it practical for a wide range of datasets.
       MNIST & C($5{\times}5$, $32$)-ReLU-P($2{\times}2$)-C($5{\times}5$, $64$)-ReLU-P($2{\times}2$)-F($1024$)-ReLU-F($4$)\\
       \bottomrule
     \end{tabular}
-  \end{table}
+  \end{table*}
   
-  \begin{table}[!t]
+  \begin{table*}[t]
     \vspace{-.5cm}
     \caption{Results of experiments with deep kernels. Here acc. is classification
             accuracy; $C$ is the number of classes; $d$ is the dimensionality
@@ -185,7 +226,7 @@ embedding, which makes it practical for a wide range of datasets.
       \bottomrule
     \end{tabular}
     \vspace{-.5cm}
-  \end{table}
+  \end{table*}
 
   We can see that the stand-alone DNN with linear classifiers is unable
   to learn a good $2$-dimensional embedding.
