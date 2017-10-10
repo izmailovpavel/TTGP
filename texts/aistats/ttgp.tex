@@ -1,7 +1,7 @@
 In the previous section we described several methods for GP regression and
 classification. All these methods have different limitations: standard methods
 are limited to small-scale datasets, KISS-GP requires small dimensionality of
-the feature space, and the methods based on inducing points are limited to use
+the feature space, and other methods based on inducing points are limited to use
 a small number $m$ of these points. In this section, we propose the TT-GP method
 that can be used with big datasets and can incorporate billions of inducing
 inputs. Additionally, TT-GP allows for training expressive deep kernels to work
@@ -14,19 +14,20 @@ with structured data (e.g. images).
   covariance function satisfies (\ref{prod_kernel}). Let the number
   of inducing points in each dimension be $m_0$. Then the total number of induced points is $m = m_0^D$.
   As shown in Section \ref{kiss_gp},
-  in this case $\Kmm$ matrix can be rewritten as a Kronecker product over
+  in this case $\Kmm$ matrix can be expressed as a Kronecker product over
   dimensions. Substituting the approximation (\ref{kernel_interpolation}) into
   the lower bound (\ref{elbo_reg}), we obtain
   \begin{equation}
   \label{kissgp_elbo}
     \begin{split}
-      \log p(y) \ge
-      \sum_{i=1}^n \left ( \log \N (y_i | w_i^T \mu, \nu^2) -
-        \frac 1 {2\nu^2} \tilde K_{ii} -
+      &\log p(y) \ge
+        \\
+        &\sum_{i=1}^n \bigg ( \log \N (y_i | w_i^T \mu, \nu^2) -
+        \frac 1 {2\nu^2} \tilde K_{ii} - 
         \frac 1 {2\nu^2} \tr (w_i^T \Sigma w_i)
-      \right )-
+      \bigg )-
       \\
-      - \frac 1 2 \left(
+      &- \frac 1 2 \left(
         \log \frac {|\Kmm|} {|\Sigma|} - m + \tr(\Kmm^{-1} \Sigma) +
         \mu^T \Kmm^{-1} \mu
       \right),
@@ -40,9 +41,10 @@ with structured data (e.g. images).
   are those containing variational parameters $\mu$ and $\Sigma$.
 
   Let us restrict the family of variational distributions (\ref{var_family}). Let $\Sigma$ be
-  a Kronecker product over dimensions, and $\mu$ be in the TT-format which TT-rank $r$
-  is a hyper-parameter of our method. Then, according to section \ref{tensor_train}, we can
-  compute the lower bound~\eqref{kissgp_elbo} with
+  a Kronecker product over dimensions, and $\mu$ be in the TT-format whith 
+  TT-rank $r$ ($r$ is a hyper-parameter of our method). Then, according to 
+  section \ref{tensor_train}, we can compute the lower bound~\eqref{kissgp_elbo}
+  with
   $\bigO(nDm_0 r^2 + D m_0 r^3 + Dm_0^3) =
   \bigO(nD m^{1/D} r^2 + D m^{1/D} r^3 + D m^{3/D})$ complexity.
 
