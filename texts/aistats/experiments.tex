@@ -1,4 +1,6 @@
-In this section we first compare the proposed TT-GP\footnote{for TT-GP we use our implementation available at
+In this section we first explore how well can we approximate variational
+expectations in TT format with small ranks.
+Then, we compare the proposed TT-GP\footnote{for TT-GP we use our implementation available at
 \url{https://anonymized-link}} method with SVI-GP (\citet{hensman2013}) on regression tasks and KLSP-GP
 (\citet{hensman2015}) on binary classification tasks using standard RBF kernel
 functions. Then, we test the ability of our method to learn
@@ -9,8 +11,8 @@ expressive deep kernel functions and compare it with SV-DKL
 
 In this section we provide a numerical justification of using Tensor Train
 format for the mean $\mu$ of the variational distribution. We use the Powerplant
-dataset from UCI. This dataset has $7654$ objects and $4$ features. We place 
-$m_0 = 5$ inducing inputs per dimension, which gives us a total of $m = 625$
+dataset from UCI. This dataset consists of $7654$ objects with $4$ features. We place 
+$m_0 = 5$ inducing inputs per dimension and form a grid, which gives us a total of $m = 625$
 inducing inputs. We train the standard SVI-GP method form GPflow library
 (\citet{GPflow2016}) with free form representations for $\mu$ and $\Sigma$.
 Then we try to approximate the learned $\mu$ vector with a TT-vector 
@@ -34,8 +36,8 @@ Figure \ref{acc_vs_ranks} shows the dependence between TT-ranks and
 approximation accuracy. For TT-rank greater than $25$ we can approximate the
 true values of $\mu$ within machine precision. Note that for TT-rank $25$ the
 amount of parameters in the TT representation already exceeds the number of
-entries in the tensor $\mu$ that we are approximating. Even for moderate
-TT-ranks an accurate approximation can be achieved.
+entries in the tensor $\mu$ that we are approximating. For moderate
+TT-ranks an accurate approximation can still be achieved.
 
 \begin{figure}[!h]
   \begin{center}
@@ -51,12 +53,13 @@ TT-ranks an accurate approximation can be achieved.
 \end{figure}
 
 Figure \ref{true_and_tt} shows the true variational mean $\mu$ and it's 
-approximation for TT-rank $10$. Here we reshape the $\mu, \mu_{TT} \in \R^{625}$
-to $25 \times 25$ for visualization. We can see that $\mu_{TT}$ captures the 
+approximation for TT-rank $10$. Here we reshape the $625$-dimensional 
+$\mu$ and $\mu_{TT}$ vectors
+to $25 \times 25$ matrices for visualization. We can see that $\mu_{TT}$ captures the 
 structure of the true variational mean.
 
 \begin{table*}[!t]
-  \caption[]{Experimental results for standard kernels. In the table acc. stands for $r^2$ for regression and accuracy
+  \caption[]{Experimental results for standard RBF kernels. In the table acc. stands for $r^2$ for regression and accuracy
           for classification tasks. $n$ is the size of the
           training set, $D$ is the dimensionality of the feature space,
           $m$ is the number of inducing inputs, $r$ is TT-ranks of $\mu$ for TT-GP; $t$ is the time per one pass over
@@ -111,9 +114,9 @@ structure of the true variational mean.
   \end{tabular}
 \end{table*}
 
-\subsection{Standard Kernels}
+\subsection{Standard RBF Kernels}
 
-For testing our method with standard covariance functions we used a range of
+For testing our method with standard RBF covariance functions we used a range of
 classification and regression tasks from UCI and LIBSVM archives and the
 Airline dataset, that is popular for testing scalable GP models
 (\citet{hensman2013}, \citet{hensman2015}, \citet{wilson2016stochastic},
@@ -145,11 +148,11 @@ embedding, which makes it practical for a wide range of datasets.
   with two hidden layers with $50$ neurons each and $d = 2$ neurons in the output
   layer to obtain a $2$-dimensional embedding. We trained the model to classify
   the digits to $10$ classes corresponding to different digits.
-  Fig. \ref{digits_embedding},a shows the learned embedding. We also trained the same
+  Fig. \ref{digits_embedding} (a) shows the learned embedding. We also trained the same
   network standalone, adding another layer with $10$ outputs and softmax
   activations. The embedding for this network is shown in fig. \ref{digits_embedding},b.
 \begin{figure}[!t]
-  \vspace{-.3cm}
+%  \vspace{-.3cm}
   \begin{center}
       \begin{tabular}{c}
         \hspace{1.cm}\includegraphics[height=0.6\linewidth]{pics/embedding_dnn.pdf}\\
@@ -160,7 +163,7 @@ embedding, which makes it practical for a wide range of datasets.
   \end{center}
   \caption{Learned representation for Digits dataset.}
   \label{digits_embedding}
-  \vspace{-.5cm}
+%  \vspace{-.5cm}
 \end{figure}
 
   \begin{table*}[!t]
@@ -186,7 +189,7 @@ embedding, which makes it practical for a wide range of datasets.
   \end{table*}
   
   \begin{table*}[t]
-    \vspace{-.5cm}
+%    \vspace{-.5cm}
     \caption{Results of experiments with deep kernels. Here acc. is classification
             accuracy; $C$ is the number of classes; $d$ is the dimensionality
             of embedding learned by the model; $t$ is the time per one pass over
@@ -216,18 +219,18 @@ embedding, which makes it practical for a wide range of datasets.
 
       Airline & $6M$ & $8$ & $2$ &&
       $0.781$ && $0.780$ & $1055$ &&
-      $0.784$ & $2$ & $1375$\\
+      $0.788 \pm 0.002$ & $2$ & $1375$\\
 
       CIFAR-10 & $50K$ & $32{\times}32{\times}3$ & $10$ &&
       $0.770$ && $0.915$ & $166$ &&
-      $0.909$ & $9$ & $220$\\
+      $0.908 \pm 0.003$ & $9$ & $220$\\
 
       MNIST & $60K$ & $28{\times}28$ & $10$ &&
       $0.992$ && $0.993$ & $23$ &&
-      $0.994$ & $10$ & $64$\\
+      $0.9936 \pm 0.0004$ & $10$ & $64$\\
       \bottomrule
     \end{tabular}
-    \vspace{-.5cm}
+%    \vspace{-.5cm}
   \end{table*}
 
   We can see that the stand-alone DNN with linear classifiers is unable
@@ -238,7 +241,9 @@ embedding, which makes it practical for a wide range of datasets.
   \subsubsection{Classification tasks}
   To test our model with deep kernels we used Airline,
   CIFAR-10 (\citet{krizhevsky2009}) and
-  MNIST (\citet{lecun1998}) datasets. The corresponding DNN architecture is shown in Table~\ref{deep_architecture}. For CIFAR-10 dataset we also use standard data augmentation techniques with random cropping of $24 \times 24$
+  MNIST (\citet{lecun1998}) datasets. The corresponding DNN architectures are shown
+  in Table~\ref{deep_architecture}. For CIFAR-10 dataset we also use standard 
+  data augmentation techniques with random cropping of $24 \times 24$
   parts of the image, horizontal flipping, randomly adjusting brightness and contrast. In all experiments we also add a BN without trainable mean and
   variance after the DNN output layer to project the outputs into the region
   where inducing inputs are placed. We use $m_0 = 10$ inducing inputs
