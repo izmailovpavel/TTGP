@@ -70,22 +70,35 @@ with structured data (e.g. images).
   the process at data points $f^c \in \R^n$, and inducing inputs $u^c \in \R^m$.
   We will use the following model
   \[
-    p(y, f, u) = \prod_{i=1}^n p(y_i | f_i^{1, 2, \ldots, C})
-      \prod_{c=1}^C p(f^c | u^c) p(u^c),
+    p(y, f, u) = \prod_{i=1}^n p\left(y_i | f_i^{1, 2, \ldots, C}\right)
+      \prod_{c=1}^C p\left(f^c | u^c\right) p(u^c),
   \]
-  where $p(f^c | u^c)$ and $p(u^c)$ are defined as in (\ref{priors}) and $p(y_i | f_i^{1,2, \ldots, C}) = \exp(f_i^{y_i}) / (\sum_{j=1}^C\exp(f_i^j))$.
+  where $f_i^{1,2,\ldots,C}$ is the vector consisting of the values of all processes
+  $1, 2, \ldots, C$ at data point $i$, $p(f^c | u^c)$ and $p(u^c)$ are defined 
+  as in (\ref{priors}) and 
+  \[
+    p(y_i | f_i^{1,2, \ldots, C}) = 
+    \frac {\exp(f_i^{y_i})} {\sum_{j=1}^C\exp(f_i^j)}.
+  \]
   
-  We will use variational distributions of form
+  We will use variational distributions of the form
   \[
     q(f^1, f^2, \ldots, f^C, u^1, u^2, \ldots, u^C) =
-    q(f^1, u^1) \cdot q(f^2, u^2) \cdot \ldots \cdot q(f^C, u^C),
   \]
-  where $q(f^c, u^c) = p(f^c | u^c) \N(u^c | \mu^c, \Sigma^c)\ c=1, 2, \ldots, C$ and all $\mu^c$ are represented in TT-format with TT-ranks not greater than $r$,
-  $\Sigma^c$ are represented as Kronecker products over dimensions. Similarly to (\ref{main_elbo}), we obtain
+  \[
+    = q(f^1, u^1) \cdot q(f^2, u^2) \cdot \ldots \cdot q(f^C, u^C),
+  \]
+  where $q(f^c, u^c) = p(f^c | u^c) \N(u^c | \mu^c, \Sigma^c)\ c=1, 2, \ldots, C$,
+  all $\mu^c$ are represented in TT-format with TT-ranks not greater than $r$
+  and all  $\Sigma^c$ are represented as Kronecker products over dimensions. 
+  Similarly to (\ref{main_elbo}), we obtain
   \begin{equation}
   \label{elbo_multiclass}
-    \log p(y) \ge \sum_{i = 1}^n \E_{q(f_i^{1, 2, \ldots, C})} \log p(y_i | f_i^{1, 2, \ldots, C})
-      - \sum_{c = 1}^{C} \KL(q(u_c) || p(u_c))
+  \begin{split}
+    \log p(y) \ge & \sum_{i = 1}^n \E_{q(f_i^{1, 2, \ldots, C})} \log p(y_i | f_i^{1, 2, \ldots, C})
+    \\
+    & - \sum_{c = 1}^{C} \KL(q(u_c) || p(u_c))
+  \end{split}
   \end{equation}
   The second term in (\ref{elbo_multiclass}) can be computed analytically as
   a sum of KL-divergences between normal distributions. The first term is
@@ -93,9 +106,11 @@ with structured data (e.g. images).
   Let $y_i$ belong to class $c$. Then, we can rewrite
   \begin{equation}
   \label{expectation_term}
-    \E_{q(f_i^{1, 2, \ldots, C})} \log p(y_i | f_i^{1, 2, \ldots, C}) =
-    \E_{q(f_i^c)} f_i^c - \E_{q(f_i^{1, 2, \ldots, C})}
+  \begin{split}
+    &\E_{q\left(f_i^{1, 2, \ldots, C}\right)} \log p(y_i | f_i^{1, 2, \ldots, C}) =\\
+    &\E_{q(f_i^c)} f_i^c - \E_{q\left(f_i^{1, 2, \ldots, C}\right)}
     \log \biggl(\sum_{j=1}^C \exp (f_i^j) \biggr),
+  \end{split}
   \end{equation}
   where $q(f_i^{1, 2\ldots, C}) = \N(f^1 | m_i^1, s_i^1)\cdot \N(f^2| m_2, s_i^2) \cdot \ldots \cdot \N(f^C | m_i^C, s_i^C)$.
 
@@ -104,12 +119,17 @@ with structured data (e.g. images).
   lower bounds for expectations of this type. Below we derive one of these bounds,
   which we use in TT-GP.
 
-  Concavity of logarithm implies $\log(\sum_{j=1}^{C} \exp(f_i^j)) \le \varphi \sum_{j=1}^C \exp(f_i^j) - \log \varphi - 1,\ \forall\varphi > 0$. Taking expectation of both sides of the inequality and minimizing with respect
+  Concavity of logarithm implies $\log\left(\sum_{j=1}^{C} \exp(f_i^j)\right) \le 
+  \varphi \sum_{j=1}^C \exp(f_i^j) - \log \varphi - 1,\ \forall\varphi > 0$. 
+  Taking expectation of both sides of the inequality and minimizing with respect
   to $\varphi$, we obtain
   \begin{equation}
   \label{bouchard_bound}
+  \begin{split}
     \E_{q(f_i^{1, 2, \ldots, C})} \log\biggl(\sum_{j=1}^C \exp(f_i^j)\biggr) \le
+    \\
     \log \biggl(\sum_{j=1}^C \exp\bigl(m_i^j + \frac 1 2 s_i^j\bigr) \biggr).
+  \end{split}
   \end{equation}
   Substituting (\ref{bouchard_bound}) back into (\ref{elbo_multiclass}) we obtain
   a tractable lower bound for multiclass classification task, that can be
@@ -124,7 +144,7 @@ with structured data (e.g. images).
   Gaussian processes on a variety of tasks. The proposed TT-GP method is
   naturally compatible with this idea.
 
-  Consider a covariance function $k$ (satisfying (\ref{prod_kernel})) and
+  Consider a covariance function $k$ satisfying (\ref{prod_kernel}) and
   a neural network (or in fact any parametric transform) $net$. We can define a
   new kernel as follows
   \[
@@ -133,7 +153,8 @@ with structured data (e.g. images).
   We can train the neural network weights through maximization of GP marginal
   likelihood, the same way, as we normally train kernel hyper-parameters $\theta$.
   This way, the network learns a multidimensional embedding for the data, and
-  the GP is making the prediction working with this embedding.
-  \citet{wilson2016stochastic} trained one-dimensional GPs on different outputs
-  of the network. TT-GP allows us to train Gaussian processes on all network
-  outputs, and train the whole model end-to-end without pretraining.
+  GP is making the prediction working with this embedding.
+  \citet{wilson2016stochastic} trained additive deep kernels combining 
+  one-dimensional GPs on different outputs
+  of a neural network. TT-GP allows us to train Gaussian processes on all network
+  outputs, and train the whole model end-to-end without any pretraining.
