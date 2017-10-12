@@ -40,7 +40,7 @@ with structured data (e.g. images).
   Kronecker product structure. Now the most computationally demanding terms
   are those containing variational parameters $\mu$ and $\Sigma$.
 
-  Let us restrict the family of variational distributions (\ref{var_family}). Let $\Sigma$ be
+  Let us restrict the family of variational distributions~(\ref{var_family}). Let $\Sigma$ be
   a Kronecker product over dimensions, and $\mu$ be in the TT-format whith 
   TT-rank $r$ ($r$ is a hyper-parameter of our method). Then, according to 
   section \ref{tensor_train}, we can compute the lower bound~\eqref{kissgp_elbo}
@@ -51,11 +51,19 @@ with structured data (e.g. images).
   The proposed TT-GP method has linear complexity with respect to dimensionality
   $D$ of the feature space, despite the exponential growth of the number of
   inducing inputs. Lower bound  (\ref{kissgp_elbo})
-  can be maximized with respect to kernel hyper-parameters $\theta$, TT-cores
+  can be maximized with respect to kernel hyper-parameters~$\theta$, TT-cores
   of $\mu$, and Kronecker multipliers of $\Sigma$. Note that stochastic optimization
   can be applied, as the bound (\ref{kissgp_elbo}) factorizes over data points.
+  
+  TT format was successfully applied for different machine learning tasks, 
+  e.g. for compressing neural networks (\citet{novikov2015}) and
+  estimating log-partition function in probabilistic graphical models 
+  (\citet{novikov2014}). We explore the properties of approximating the 
+  variational mean $\mu$ in TT format in section \ref{expect_approx}.
 
-\subsection{Classification}
+
+
+  \subsection{Classification}
 
   In this section we describe a generalization of the proposed method for
   multiclass classification. In this case the dataset consists of features
@@ -88,7 +96,7 @@ with structured data (e.g. images).
   \[
     = q(f^1, u^1) \cdot q(f^2, u^2) \cdot \ldots \cdot q(f^C, u^C),
   \]
-  where $q(f^c, u^c) = p(f^c | u^c) \N(u^c | \mu^c, \Sigma^c)\ c=1, 2, \ldots, C$,
+  where $q(f^c, u^c) = p(f^c | u^c) \N(u^c | \mu^c, \Sigma^c), c~=~1,~2,~\ldots,\\C$,
   all $\mu^c$ are represented in TT-format with TT-ranks not greater than $r$
   and all  $\Sigma^c$ are represented as Kronecker products over dimensions. 
   Similarly to (\ref{main_elbo}), we obtain
@@ -133,7 +141,7 @@ with structured data (e.g. images).
   \end{equation}
   Substituting (\ref{bouchard_bound}) back into (\ref{elbo_multiclass}) we obtain
   a tractable lower bound for multiclass classification task, that can be
-  maximized with respect to kernel hyper-parameters $\theta^c$, TT-cores of
+  maximized with respect to kernel hyper-parameters~$\theta^c$, TT-cores of
   $\mu^c$ and Kronecker factors of $\Sigma^c$. The complexity of the method
   is $C$ times higher, than in regression case.
 

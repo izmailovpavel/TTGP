@@ -1,13 +1,14 @@
 In this section we first explore how well can we approximate variational
 expectations in TT format with small ranks.
-Then, we compare the proposed TT-GP\footnote{for TT-GP we use our implementation available at
-\url{https://anonymized-link}} method with SVI-GP (\citet{hensman2013}) on regression tasks and KLSP-GP
+Then, we compare the proposed TT-GP\footnote{For TT-GP we use our implementation available at
+\url{https://anonymized-link}.} method with SVI-GP (\citet{hensman2013}) on regression tasks and KLSP-GP
 (\citet{hensman2015}) on binary classification tasks using standard RBF kernel
 functions. Then, we test the ability of our method to learn
 expressive deep kernel functions and compare it with SV-DKL
 (\citet{wilson2016stochastic}).
 
 \subsection{Expectation approximation}
+\label{expect_approx}
 
 In this section we provide a numerical justification of using Tensor Train
 format for the mean $\mu$ of the variational distribution. We use the Powerplant
@@ -28,7 +29,7 @@ $\mu_{TT}$ with small TT-ranks.
           (b) Cosine similarity
       \end{tabular}
   \end{center}
-  \caption{Approximation accuracy as a function of TT-rank}
+  \caption{Approximation accuracy as a function of TT-rank.}
   \label{acc_vs_ranks}
 \end{figure}
 
@@ -48,14 +49,14 @@ TT-ranks an accurate approximation can still be achieved.
           (b) $\mu_{TT}$, $r = 10$
       \end{tabular}
   \end{center}
-  \caption{True variational mean and TT-approximation}
+  \caption{True variational mean and TT-approximation. Here we reshape the 
+    $625$-dimensional $\mu$ and $\mu_{TT}$ vectors
+    to $25 \times 25$ matrices for visualization.}
   \label{true_and_tt}
 \end{figure}
 
 Figure \ref{true_and_tt} shows the true variational mean $\mu$ and it's 
-approximation for TT-rank $10$. Here we reshape the $625$-dimensional 
-$\mu$ and $\mu_{TT}$ vectors
-to $25 \times 25$ matrices for visualization. We can see that $\mu_{TT}$ captures the 
+approximation for TT-rank $10$.  We can see that $\mu_{TT}$ captures the 
 structure of the true variational mean.
 
 \begin{table*}[!t]
@@ -66,7 +67,7 @@ structure of the true variational mean.
           the data (epoch) in seconds; where provided, $d$ is the dimensionality of linear embedding.\\
           $^*$ for KLSP-GP on Airline we provide results from the original
           paper where the accuracy is given as a plot, and detailed
-          information about experiment setup is not available.
+          information about experiment setup and exact results is not available.
           }
   \label{se_results}
   \centering
@@ -247,13 +248,15 @@ embedding, which makes it practical for a wide range of datasets.
   parts of the image, horizontal flipping, randomly adjusting brightness and contrast. In all experiments we also add a BN without trainable mean and
   variance after the DNN output layer to project the outputs into the region
   where inducing inputs are placed. We use $m_0 = 10$ inducing inputs
-  per dimension and set TT-ranks of $\mu$ to $r = 10$ for all three datasets. For experiments with convolutional neural networks, we
-  used Nvidia Tesla K80 GPUs to train the model.
+  per dimension placed on a regular grid from $-1$ to $1$ and set TT-ranks of 
+  $\mu$ to $r = 10$ for all three datasets. For experiments with convolutional neural networks, we
+  used Nvidia Tesla K80 GPU to train the model.
 
   Table~\ref{deep_results} shows the results of the experiments for our TT-GP
   with DNN kernel and SV-DKL. Note, that the comparison
   is not absolutely fair on CIFAR-10 and MNIST datasets, as we didn't use
-  the same exact architecture and preprocessing as \citet{wilson2016stochastic}.
+  the same exact architecture and preprocessing as \citet{wilson2016stochastic}
+  because we couldn't find the exact specifications of these models.
   On Airline dataset we used the same exact architecture and preprocessing as
   SV-DKL and TT-GP achieves a higher accuracy on this dataset.
 

@@ -1,4 +1,4 @@
-\subsection{Gaussian Processes}
+~subsection{Gaussian Processes}
   A Gaussian process is a collection of random variables, any finite number of
   which have a joint normal distribution. A GP $f$ taking place in $\R^D$ is
   fully defined by its mean $m: \R^D \rightarrow \R$ and covariance
@@ -61,9 +61,10 @@
   \]
   with 
   \begin{equation}
+  \label{priors}
   \begin{split}
-    &p(f | u) = \N(f | \Knm \Kmm^{-1} u, \Knn - \Knm \Kmm^{-1} \Kmn),\label{priors}\\
-    &p(u)= \N(u | 0, \Kmm),\notag
+    &p(f | u) = \N(f | \Knm \Kmm^{-1} u, \Knn - \Knm \Kmm^{-1} \Kmn),\\
+    &p(u)= \N(u | 0, \Kmm),
   \end{split}
   \end{equation}
   where $\Knn = K(X, X), \Knm = K(X, Z), \Kmn = K(Z, X) = \Knm^T, \Kmm = K(Z, Z)$.
@@ -201,17 +202,16 @@
 
   Tensor Train (TT) decomposition, proposed in \citet{oseledets2011}, allows to
   efficiently store tensors (multidimensional arrays of data), large matrices, and
-  vectors. For matrices and vectors in the TT-format linear algebra operations
-  can be implemented efficiently. The TT format was successfully applied for
-  different machine learning tasks (see \citet{novikov2014}, \citet{novikov2015}).
+  vectors. For tensors, matrices and vectors in the TT-format linear algebra operations
+  can be implemented efficiently. 
 
   Consider a $D$-dimensional tensor $\mathcal A \in \R^{k_1 \times k_2 \times \ldots \times k_D}$.
   $\mathcal{A}$ is said to be in the Tensor Train format if
   \begin{equation}
   \label{tt}
   \begin{split}
-    \mathcal{A}(i_1, i_2, \ldots, i_d) =  G_1[i_1] \cdot G_2[i_2] \cdot \ldots \cdot G_D[i_D]&,\\
-    i_k \in \{1, 2, \ldots, n_k\}~~\forall k&,
+    \mathcal{A}(i_1, i_2, \ldots, i_D) =  G_1[i_1] \cdot G_2[i_2] \cdot \ldots \cdot G_D[i_D]&,\\
+    i_d \in \{1, 2, \ldots, k_d\}~~\forall d&,
   \end{split}
   \end{equation}
   where $G_k[i_k] \in \R^{r_{k-1}\times r_{k}}\ \forall k, i_k,\ r_0 = r_{D} = 1$. Matrices $G_k$ are called TT-cores, and numbers $r_k$ are called TT-ranks of
@@ -241,8 +241,9 @@
     A = A_1 \otimes A_2 \otimes \ldots \otimes A_D,~~~A_k \in \R^{n_k \times n_k}~~\forall k,
   \]
   and the same for $B$. Let $n = \max_k n_k$. Then the computational complexity
-  of computing the quadratic form $u^T A v$ and $\tr(AB)$ is $\bigO(Dnr^3)$ and 
-  $\bigO(Dn^2)$ correspondingly. We will need these two
+  of computing the quadratic form $u^T A v$ is $\bigO(Dnr^3)$  and the 
+  complexity of computing $\tr(AB)$ is
+  $\bigO(Dn^2)$. We will need these two
   operations below. See \citet{oseledets2011} for a detailed description of
   TT format and efficient algorithms implementing linear algebraic operations
   with it.
