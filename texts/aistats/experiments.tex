@@ -14,7 +14,7 @@ In this section we provide a numerical justification of using Tensor Train
 format for the mean $\mu$ of the variational distribution. We use the Powerplant
 dataset from UCI. This dataset consists of $7654$ objects with $4$ features. We place 
 $m_0 = 5$ inducing inputs per dimension and form a grid, which gives us a total of $m = 625$
-inducing inputs. We train the standard SVI-GP method form GPflow library
+inducing inputs. We train the standard SVI-GP method from GPflow library
 (\citet{GPflow2016}) with free form representations for $\mu$ and $\Sigma$.
 Then we try to approximate the learned $\mu$ vector with a TT-vector 
 $\mu_{TT}$ with small TT-ranks. 
@@ -49,10 +49,12 @@ TT-ranks an accurate approximation can still be achieved.
           (b) $\mu_{TT}$, $r = 10$
       \end{tabular}
   \end{center}
+  \vspace{-0.4cm}
   \caption{True variational mean and TT-approximation. Here we reshape the 
     $625$-dimensional $\mu$ and $\mu_{TT}$ vectors
     to $25 \times 25$ matrices for visualization.}
   \label{true_and_tt}
+  \vspace{-0.2cm}
 \end{figure}
 
 Figure \ref{true_and_tt} shows the true variational mean $\mu$ and it's 
@@ -155,10 +157,10 @@ embedding, which makes it practical for a wide range of datasets.
 \begin{figure}[!t]
   \begin{center}
       \begin{tabular}{c}
-          \includegraphics[height=0.45\linewidth]{pics/embedding_dnn.pdf}\\
-           (a) Plain DNN\\
           \hspace{-.9cm}\includegraphics[height=0.45\linewidth]{pics/embedding_ttgp.pdf} \\
-          (b) DNN with TT-GP \\
+          (a) DNN with TT-GP \\
+          \includegraphics[height=0.45\linewidth]{pics/embedding_dnn.pdf}\\
+          (b) Plain DNN\\
       \end{tabular}
   \end{center}
   \vspace{-0.4cm}

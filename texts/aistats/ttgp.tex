@@ -112,12 +112,18 @@ with structured data (e.g. images).
   The second term in (\ref{elbo_multiclass}) can be computed analytically as
   a sum of KL-divergences between normal distributions. The first term is
   intractable. In order to approximate the first term we will use a lower bound.
-  Let $y_i$ belong to class $c$. Then, we can rewrite
+  We can rewrite
+%  Let $y_i$ belong to class $c$. Then, we can rewrite
   \begin{equation}
   \label{expectation_term}
+%  \begin{split}
+%    &\E_{q\left(f_i^{1, 2, \ldots, C}\right)} \log p(y_i | f_i^{1, 2, \ldots, C}) =\\
+%    &\E_{q(f_i^c)} f_i^c - \E_{q\left(f_i^{1, 2, \ldots, C}\right)}
+%    \log \biggl(\sum_{j=1}^C \exp (f_i^j) \biggr),
+%  \end{split}
   \begin{split}
     &\E_{q\left(f_i^{1, 2, \ldots, C}\right)} \log p(y_i | f_i^{1, 2, \ldots, C}) =\\
-    &\E_{q(f_i^c)} f_i^c - \E_{q\left(f_i^{1, 2, \ldots, C}\right)}
+    &\E_{q(f_i^{y_i})} f_i^{y_i} - \E_{q\left(f_i^{1, 2, \ldots, C}\right)}
     \log \biggl(\sum_{j=1}^C \exp (f_i^j) \biggr),
   \end{split}
   \end{equation}

@@ -94,15 +94,16 @@
   We can then rewrite (\ref{standard_elbo}) as
   \begin{equation}
   \label{main_elbo}
-  \begin{split}
-    \log p(y) \ge \sum_{i=1}^n & \E_{q(f_i)} \log p(y_i | f_i) - \\
-      & \KL(q(u) || p(u)).
-  \end{split}
+%  \begin{split}
+    \log p(y) \ge \sum_{i=1}^n  \E_{q(f_i)} \log p(y_i | f_i) - 
+      \KL(q(u) || p(u)).
+%  \end{split}
   \end{equation}
   Note, that the lower bound (\ref{main_elbo}) factorizes over observations and
   thus stochastic optimization can be applied to maximize this bound with respect
   to both kernel hyper-parameters $\theta$ and variational parameters $\mu$ and
-  $\Sigma$. In case of regression we can rewrite (\ref{main_elbo}) in the closed
+  $\Sigma$, as well as other parameters of the model e.g. noise variance $\nu$.
+  In case of regression we can rewrite (\ref{main_elbo}) in the closed
   form
   \begin{equation}
     \label{elbo_reg}
