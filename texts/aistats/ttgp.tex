@@ -1,7 +1,7 @@
 In the previous section we described several methods for GP regression and
 classification. All these methods have different limitations: standard methods
 are limited to small-scale datasets, KISS-GP requires small dimensionality of
-the feature space, and other methods based on inducing points are limited to use
+the feature space, and other methods based on inducing inputs are limited to use
 a small number $m$ of these points. In this section, we propose the TT-GP method
 that can be used with big datasets and can incorporate billions of inducing
 inputs. Additionally, TT-GP allows for training expressive deep kernels to work
@@ -12,7 +12,8 @@ with structured data (e.g. images).
   \citet{hensman2013}. We will place the inducing inputs $Z$ on a
   multidimensional grid in the feature space and we will assume the
   covariance function satisfies (\ref{prod_kernel}). Let the number
-  of inducing points in each dimension be $m_0$. Then the total number of induced points is $m = m_0^D$.
+  of inducing inputs in each dimension be $m_0$. Then the total number of inducing 
+  inputs is $m = m_0^D$.
   As shown in Section \ref{kiss_gp},
   in this case $\Kmm$ matrix can be expressed as a Kronecker product over
   dimensions. Substituting the approximation (\ref{kernel_interpolation}) into
@@ -72,7 +73,7 @@ with structured data (e.g. images).
   number of classes.
 
   Consider $C$ Gaussian processes taking place in $\R^D$. Each process
-  corresponds to it's own class. We will place $m = m_0^D$ inducing points $Z$ on a grid
+  corresponds to it's own class. We will place $m = m_0^D$ inducing inputs $Z$ on a grid
   in the feature space, and they will be shared between all processes. Each
   process has it's own set of latent variables representing the values of
   the process at data points $f^c \in \R^n$, and inducing inputs $u^c \in \R^m$.
@@ -173,7 +174,7 @@ with structured data (e.g. images).
   processes on multiple outputs of a neural network also isn't straightforward. Indeed,
   with these methods we can only use up to $10^3$--$10^4$ inducing inputs. While
   with standard RBF kernels the positions of inputs of the GP are fixed and we can place 
-  the inducing points near the data, with deep kernels the positions of the
+  the inducing inputs near the data, with deep kernels the positions of the
   inputs of the GP (outputs of the DNN) change during training to match the positions of inducing inputs.
   It is thus not clear how to set the inducing inputs in the latent feature space, other
   than placing them on a multidimensional grid, which means that the complexity

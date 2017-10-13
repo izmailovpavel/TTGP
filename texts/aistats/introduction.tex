@@ -18,12 +18,12 @@ scale up the method and generalized it to classification problems.
 
 Inducing input methods allow to use Gaussian processes on datasets containing
 millions of examples. However, these methods are still limited in the number
-of inducing points $m$ they can use (usually up to $10^4$). Small number of 
+of inducing inputs $m$ they can use (usually up to $10^4$). Small number of 
 inducing inputs limits the flexibility of the models that can be learned with 
 these methods, and does not allow to learn expressive kernel functions 
 (\citet{wilson2014}). \citet{wilson2015} proposed KISS-GP
 framework, which exploits the Kronecker product structure in covariance matrices
-for inducing points placed on a multidimensional grid in the feature space.
+for inducing inputs placed on a multidimensional grid in the feature space.
 KISS-GP has complexity $\bigO(n + D m^{1 + 1/D})$, where $D$ is the dimensionality
 of the feature space. Note however, that $m$ is the number of points in a
 $D$-dimensional grid and grows exponentially with~$D$, which makes the method

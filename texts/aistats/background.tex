@@ -53,7 +53,7 @@
   observations for Gaussian process marginal likelihood. We rederive
   this bound here.
 
-  Consider a set $Z \in \R^{m \times D}$ of $m$ inducing points in the feature 
+  Consider a set $Z \in \R^{m \times D}$ of $m$ inducing inputs in the feature 
   space and latent variables $u \in \R^m$ representing the values of
   the Gaussian process at these points. Consider the augmented model
   \[
@@ -135,7 +135,7 @@
   expectation term in (\ref{main_elbo}) for binary classification problem to
   obtain the same computational complexity $\bigO(nm^2 + m^3)$. This complexity
   allows to use Gaussian processes in tasks with millions of training samples,
-  but these methods are limited to use small numbers of inducing points $m$,
+  but these methods are limited to use small numbers of inducing inputs $m$,
   which hurts the predictive performance and doesn't allow to learn expressive
   kernel functions.
 
@@ -157,7 +157,7 @@
   \[
     Z = Z^1 \times Z^2 \times \ldots \times Z^D,~~~~~Z^i \in \R^{m_i}~~~\forall i = 1, 2, \ldots, D.
   \]
-  The number $m$ of inducing points is then given by $m = \prod_{i=1}^D m_{i}$.
+  The number $m$ of inducing inputs is then given by $m = \prod_{i=1}^D m_{i}$.
 
   Let the covariance function satisfy (\ref{prod_kernel}). Then the covariance
   matrix $\Kmm$ can be represented as a Kronecker product over dimensions
@@ -193,7 +193,7 @@
   \citet{wilson2015} combine these ideas with SOR (\citet{silverman1985})
   in the KISS-GP method yielding $\bigO(n + D m^{1 + 1/D})$ computational
   complexity. This complexity allows to use KISS-GP with a large number (possibly
-  greater than $n$) of inducing points. Note, however, that $m$ grows
+  greater than $n$) of inducing inputs. Note, however, that $m$ grows
   exponentially with the dimensionality $D$ of the feature space and the
   method becomes impractical when $D > 4$.
 
@@ -205,13 +205,13 @@
   vectors. For tensors, matrices and vectors in the TT-format linear algebra operations
   can be implemented efficiently. 
 
-  Consider a $D$-dimensional tensor $\mathcal A \in \R^{k_1 \times k_2 \times \ldots \times k_D}$.
+  Consider a $D$-dimensional tensor $\mathcal A \in \R^{n_1 \times n_2 \times \ldots \times n_D}$.
   $\mathcal{A}$ is said to be in the Tensor Train format if
   \begin{equation}
   \label{tt}
   \begin{split}
     \mathcal{A}(i_1, i_2, \ldots, i_D) =  G_1[i_1] \cdot G_2[i_2] \cdot \ldots \cdot G_D[i_D]&,\\
-    i_d \in \{1, 2, \ldots, k_d\}~~\forall d&,
+    i_d \in \{1, 2, \ldots, n_d\}~~\forall d&,
   \end{split}
   \end{equation}
   where $G_k[i_k] \in \R^{r_{k-1}\times r_{k}}\ \forall k, i_k,\ r_0 = r_{D} = 1$. Matrices $G_k$ are called TT-cores, and numbers $r_k$ are called TT-ranks of
