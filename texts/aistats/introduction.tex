@@ -2,7 +2,7 @@ Gaussian processes (GPs) provide a prior over functions and allow finding comple
 regularities in data. The ability of GPs to adjust the complexity of the model
 to the size of the data makes them appealing to use for big datasets.
 Unfortunately, standard methods for GP regression and classification scale as
-$\bigO(n^3)$ with the size of the data $n$ and can not be applied when $n$
+$\bigO(n^3)$ with the number $n$ of training instances and can not be applied when $n$
 exceeds several thousands.
 
 Numerous approximate inference methods have been proposed in the literature. Many
@@ -58,7 +58,7 @@ complex non-linear transformation that a Gaussian Process defines on the
 whole feature space. Thus, we use TT-GP on raw features for datasets with
 dimensionality up to $10$. For feature spaces with higher dimensionality
 we propose to use kernels based on parametric projections, which can be learned
-from the data.
+from data.
  
 \citet{wilson2016deep} and \citet{wilson2016stochastic}
 demonstrated efficiency of Gaussian processes with kernels based on deep

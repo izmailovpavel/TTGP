@@ -22,10 +22,10 @@ $\mu_{TT}$ with small TT-ranks.
 \begin{figure}[!h]
   \vspace{-.3cm}
   \begin{center}
-      \begin{tabular}{c}
-          \includegraphics[width=0.95\linewidth]{pics/acc_vs_ranks.eps} \\
-          (a) MSE\\  
-          \includegraphics[width=0.95\linewidth]{pics/cos_vs_ranks.eps} \\
+      \begin{tabular}{cc}
+          \hspace{-0.3 cm}\includegraphics[width=0.5\linewidth]{pics/acc_vs_ranks.eps} &
+          \hspace{-0.3 cm}\includegraphics[width=0.5\linewidth]{pics/cos_vs_ranks.eps} \\
+          (a) MSE & 
           (b) Cosine similarity
       \end{tabular}
   \end{center}
@@ -43,8 +43,8 @@ TT-ranks an accurate approximation can still be achieved.
 \begin{figure}[!h]
   \begin{center}
       \begin{tabular}{cc}
-          \includegraphics[trim = 100 0 60 0, clip, height=0.4\linewidth]{pics/true.eps} &
-        \hspace{0.5cm}\includegraphics[trim = 100 0 0 0, clip, height=0.4\linewidth]{pics/tt.eps} \\
+          \includegraphics[trim = 80 0 80 0, clip, height=0.4\linewidth]{pics/true.eps} &
+        \hspace{0.5cm}\includegraphics[trim = 80 0 0 0, clip, height=0.4\linewidth]{pics/tt.eps} \\
           (a) $\mu$ &
           (b) $\mu_{TT}$, $r = 10$
       \end{tabular}
@@ -153,18 +153,18 @@ embedding, which makes it practical for a wide range of datasets.
   network standalone, adding another layer with $10$ outputs and softmax
   activations. The embedding for this network is shown in fig. \ref{digits_embedding},b.
 \begin{figure}[!t]
-%  \vspace{-.3cm}
   \begin{center}
       \begin{tabular}{c}
-        \hspace{1.cm}\includegraphics[height=0.6\linewidth]{pics/embedding_dnn.pdf}\\
+          \includegraphics[height=0.45\linewidth]{pics/embedding_dnn.pdf}\\
            (a) Plain DNN\\
-          \includegraphics[height=0.6\linewidth]{pics/embedding_ttgp.pdf} \\
+          \hspace{-.9cm}\includegraphics[height=0.45\linewidth]{pics/embedding_ttgp.pdf} \\
           (b) DNN with TT-GP \\
       \end{tabular}
   \end{center}
+  \vspace{-0.4cm}
   \caption{Learned representation for Digits dataset.}
+  \vspace{-0.4cm}
   \label{digits_embedding}
-%  \vspace{-.5cm}
 \end{figure}
 
   \begin{table*}[!t]
