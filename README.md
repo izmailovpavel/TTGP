@@ -19,8 +19,13 @@ Unlike other existing methods, TT-GP is scalable both in terms of the number of 
 In this repo we provide the implementation of TT-GP with RBF and Deep kernels. We also attach scripts for running all the experiments from the paper.
 
 ## Dependencies
+This code has the following dependencies (version number crucial):
 
-...
+- Python 3
+- Tensorflow 1.3
+- scikit-learn
+- numpy
+- t3f (see https://github.com/Bihaqo/t3f for installation instructions)
 
 ## Usage
 
