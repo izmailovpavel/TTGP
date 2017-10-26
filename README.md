@@ -1,1 +1,2 @@
-# Gaussian Processes implementation on TensorFlow
+# TTGP method implementation in Tensorflow.
+
