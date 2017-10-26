@@ -5,11 +5,10 @@ This repository contains the Tensorflow implementation of the TTGP method (see [
 ## Contents
 1. [Introduction](#introduction)
 2. [Dependencies](#dependencies)
-4. [Usage](#usage)
+3. [Usage](#usage)
     1. [Installation](#installation)
-    2. [Synthetic Data](#synthetic-data)
-    3. [Examples: MNIST, CIFAR10, CelebA, SVHN](#mnist-cifar10-celeba-svhn)
-    4. [Custom data](#custom-data)
+    2. [Examples: Airline, MNIST](#experiments-from-the-paper-mnist-airline-etc)
+    3. [Custom data](#custom-data)
     
 ## Introduction
 
@@ -29,4 +28,21 @@ This code has the following dependencies (version number crucial):
 
 ## Usage
 
-...
+### Installation
+
+### Experiments from the paper: Mnist, Airline, etc.
+
+For experiments that are present in the paper we attach scripts to reproduce them.  
+The files related to experiments with dataset `DS` are located in `TTGP/TTGP_experiments/D`
+folder. For example,
+to run the experiment on MNIST you should first prepare the data by going through the 
+ipython notebook `TTGP/TTGP_experiments/mnist_60K_784/mnist_data.ipynb`, and then run 
+the script `TTGP/TTGP_experiments/mnist_60K_784/experiment_class_gpnn.py`:
+```
+python3 TTGP/TTGP_experiments/mnist_60K_784/experiment_class_gpnn.py
+```
+
+Some folders contain scripts for different experiments, e.g. 
+`TTGP/TTGP_experiments/mnist_60K_784/experiment_class_nn.py` allows to run just the neural network without a GP.
+For the Airline data `experiment_class_gpnn.py` allows to run TT-GP with an RBF kernel, while `experiment_class_gpnn.py`
+runs the method with a deep kernel.
