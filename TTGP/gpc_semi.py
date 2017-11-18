@@ -7,7 +7,7 @@ from t3f import ops, TensorTrain, TensorTrainBatch, batch_ops
 
 from TTGP.misc import _kron_tril, _kron_logdet, pairwise_quadratic_form
 
-class TTGPCsemi:
+class TTGPCSemi:
 
     def __init__(self, cov, inputs, x_init, y_init, mu_ranks): 
         '''Gaussian Process model for multiclass classification.
@@ -76,6 +76,7 @@ class TTGPCsemi:
         return self.cov.kron_cov(self.inputs_dists, eig_correction)
 
     def _predict_process_values(self, x, with_variance=False, test=False):
+
         w = self.inputs.interpolate_on_batch(self.cov.project(x, test=test))
 
         mean = batch_ops.pairwise_flat_inner(w, self.mus)
@@ -123,8 +124,10 @@ class TTGPCsemi:
         return penalty / 2
         
     def sample_f(self, x):
+        shape = tf.concat([[x.get_shape()[0].value], [self.n_class]], axis=0)
         means, variances = self._predict_process_values(x, with_variance=True)
-        eps = tf.random_normal(m_un.get_shape(), dtype=tf.float64)
+        print('sample_f/shape', shape)
+        eps = tf.random_normal(shape, dtype=tf.float64)
         print('sample_f/means, variances', means.get_shape(), variances.get_shape())
         # TODO: sqrt?
         f = means + tf.sqrt(variances) * eps 

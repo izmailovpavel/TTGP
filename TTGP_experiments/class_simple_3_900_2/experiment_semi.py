@@ -4,7 +4,7 @@ import os
 
 from TTGP.covariance import SE_multidim
 from TTGP.projectors import Identity
-from TTGP.gpc_runner import GPCRunner
+from TTGP.gpc_semi_runner import GPCSemiRunner
 
 with tf.Graph().as_default():
     data_dir = ""
@@ -24,7 +24,7 @@ with tf.Graph().as_default():
     model_dir = save_dir
     load_model = True
     
-    runner=GPCRunner(data_dir, n_inputs, mu_ranks, cov,
+    runner=GPCSemiRunner(data_dir, n_inputs, mu_ranks, cov,
                 lr=lr, decay=decay, n_epoch=n_epoch, batch_size=batch_size,
                 data_type=data_type, log_dir=log_dir, save_dir=save_dir,
                 model_dir=model_dir, load_model=load_model)
