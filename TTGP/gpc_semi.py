@@ -92,7 +92,7 @@ class TTGPCSemi:
         variances += self.cov.cov_0()[None, :]
         return mean, variances
 
-    def predict(self, x, test=False):
+    def predict(self, x, test=False, with_null_class=False):
         '''Predicts the labels at points x.
 
         Note, this function predicts the label that has the highest expectation.
@@ -101,6 +101,9 @@ class TTGPCSemi:
             x: data features.
         '''
         preds = self._predict_process_values(x, test=test)
+        if with_null_class:
+            one_col = tf.ones((tf.shape(preds)[0], 1), dtype=tf.float64)
+            preds = tf.concat([preds, one_col], axis=1)
         return tf.argmax(preds, axis=1)  
 
     def complexity_penalty(self):
@@ -134,12 +137,16 @@ class TTGPCSemi:
         return f
 
     def unlabeled_likelihood(self, f_u):
-        one_col = tf.ones((tf.shape(f_u)[0], 1), dtype=tf.float64)
-        f_aug = tf.concat([f_u, one_col], axis=1)
-        probs = tf.nn.softmax(f_aug)
-        probs = tf.reduce_sum(probs[:, :-1], axis=1)
-        log_probs = tf.log(probs) 
-        log_lik = tf.reduce_sum(log_probs)
+#        one_col = tf.ones((tf.shape(f_u)[0], 1), dtype=tf.float64)
+#        f_aug = tf.concat([f_u, one_col], axis=1)
+#        probs = tf.nn.softmax(f_aug)
+#        probs = tf.reduce_sum(probs[:, :-1], axis=1)
+##        probs = tf.reduce_max(probs[:, :-1], axis=1)
+#        log_probs = tf.log(probs) 
+#        log_lik = tf.reduce_sum(log_probs)
+
+        probs = tf.nn.softmax(f_u)
+        log_lik = tf.reduce_sum(probs * tf.log(probs))
         return log_lik
 
     def labeled_likelihood(self, f, y):
