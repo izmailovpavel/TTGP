@@ -240,6 +240,8 @@ class GPCRunner:
             accuracy_val = self.eval(sess, correct_te_batch, iter_per_te, N_te)
           else:
             accuracy_val = sess.run(accuracy_te)
+          print('\tpred:', sess.run(pred)[:20])
+          print('\ty_te:', sess.run(y_te)[:20])
           print('\taccuracy on test set:', accuracy_val) 
           print('\taverage elbo:', batch_elbo / iter_per_epoch)
           

@@ -133,49 +133,61 @@ class TTGPCSemi:
         f = means + tf.sqrt(variances) * eps 
         return f
 
-    def elbo(self, x, y, name=None):
+    def unlabeled_likelihood(self, f_u):
+        one_col = tf.ones((tf.shape(f_u)[0], 1), dtype=tf.float64)
+        f_aug = tf.concat([f_u, one_col], axis=1)
+        probs = tf.nn.softmax(f_aug)
+        probs = tf.reduce_sum(probs[:, :-1], axis=1)
+        log_probs = tf.log(probs) 
+        log_lik = tf.reduce_sum(log_probs)
+        return log_lik
+
+    def labeled_likelihood(self, f, y):
+        probs = tf.nn.softmax(f)
+        y = tf.reshape(y, [-1, 1])
+        l = tf.cast(tf.shape(y)[0], tf.int64) 
+        indices = tf.concat([tf.range(l)[:, None], y], axis=1)
+        probs_c = tf.gather_nd(probs, indices)
+        log_probs_c = tf.log(probs_c)
+        log_lik = tf.reduce_sum(log_probs_c)
+        return log_lik
+
+
+    def elbo(self, x, y, x_u, name=None):
         '''Evidence lower bound.
         
         Args:
             w: interpolation vector for the current batch.
             y: target values for the current batch.
         '''
+        f = self.sample_f(x)
+        f_u = self.sample_f(x_u)
+
+        l = tf.cast(tf.shape(y)[0], tf.float64) # batch size
+        l_u = tf.cast(tf.shape(x_u)[0], tf.float64) # batch size
+        N = tf.cast(self.N, dtype=tf.float64) 
         
-        with tf.name_scope(name, 'ELBO', [x, y]):
-
-            f = self.sample_f(x)
-            probs = tf.nn.softmax(f)
-            print('elbo/probs', probs.get_shape())
-
-            l = tf.cast(tf.shape(y)[0], tf.float64) # batch size
-            N = tf.cast(self.N, dtype=tf.float64) 
-
-            y = tf.reshape(y, [-1, 1])
-            indices = tf.concat([tf.range(tf.cast(l, tf.int64))[:, None], y], axis=1)
-
-            # means for true classes
-            probs_c = tf.gather_nd(probs, indices)
-           
-            # Likelihood
-            elbo = 0
-            elbo += tf.reduce_sum(probs_c)
-            elbo /= l
-            elbo += tf.reduce_sum(self.complexity_penalty()) / N
-            return -elbo
+        # Likelihood
+        loglik_l = self.labeled_likelihood(f, y) / l
+        loglik_u = self.unlabeled_likelihood(f_u) / l_u
+        
+        elbo = loglik_l + loglik_u
+        elbo += tf.reduce_sum(self.complexity_penalty()) / N
+        return -elbo
     
-    def fit(self, x, y, N, lr, global_step, name=None):
+    def fit(self, x, y, x_u, N, lr, global_step, name=None):
         """Fit the GP to the data.
 
         Args:
-            w: interpolation vector for the current batch
+            x: feature vector for the current batch
             y: target values for the current batch
+            x_u: feature vector for the current unlabeled batch
             N: number of training points
             lr: learning rate for the optimization method
             global_step: global step tensor
             name: name for the op.
         """
         self.N = N
-        with tf.name_scope(name, 'fit', [x, y]):
-            fun = self.elbo(x, y)
-            optimizer = tf.train.AdamOptimizer(learning_rate=lr)
-            return fun, optimizer.minimize(fun, global_step=global_step)
+        fun = self.elbo(x, y, x_u)
+        optimizer = tf.train.AdamOptimizer(learning_rate=lr)
+        return fun, optimizer.minimize(fun, global_step=global_step)

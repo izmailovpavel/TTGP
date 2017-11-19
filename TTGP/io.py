@@ -6,7 +6,7 @@ from sklearn.datasets import load_svmlight_file
 from t3f import TensorTrainBatch
 
   
-def prepare_data(path, mode='svmlight', target='reg'):
+def prepare_data(path, mode='svmlight', target='reg', semi=False):
   """
   Load and preprocess the data.
   Args:
@@ -35,11 +35,15 @@ def prepare_data(path, mode='svmlight', target='reg'):
     y_tr = np.load(path+'y_tr.npy')
     x_te = np.load(path+'x_te.npy')
     y_te = np.load(path+'y_te.npy')
+    if semi:
+        x_u = np.load(path+'x_u.npy')
   else:
     raise ValueError("unknown mode: " + str(mode))
   scaler_x = StandardScaler()
   x_tr = scaler_x.fit_transform(x_tr) / 3
   x_te = scaler_x.transform(x_te) / 3
+  if semi:
+    x_u = scaler_x.transform(x_u) / 3
 
   if target =='reg':
     scaler_y = StandardScaler()
@@ -49,6 +53,8 @@ def prepare_data(path, mode='svmlight', target='reg'):
     pass
   else:
     raise ValueError("unknown target: " + str(target))
+  if semi:
+    return x_tr, y_tr, x_u, x_te, y_te
   return x_tr, y_tr, x_te, y_te
 
 
