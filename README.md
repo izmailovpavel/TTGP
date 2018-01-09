@@ -1,5 +1,7 @@
 # Tensor Train Gaussian Processes in TensorFlow.
 
+__Note:__ this tutorial is under construction. We will update the tutorial soon.
+
 This repository contains the Tensorflow implementation of the TTGP method (see [Scalable Gaussian Processes with Billions of Inducing Inputs via Tensor Train Decomposition](https://arxiv.org/abs/1710.07324) paper) by Pavel Izmailov, Alexander Novikov and Dmitry Kropotov.
 
 ## Contents
