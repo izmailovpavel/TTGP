@@ -1,0 +1,73 @@
+Gaussian processes (GPs) provide a prior over functions and allow finding complex
+regularities in data. The ability of GPs to adjust the complexity of the model
+to the size of the data makes them appealing to use for big datasets.
+Unfortunately, standard methods for GP regression and classification scale as
+$\bigO(n^3)$ with the number $n$ of training instances and can not be applied when $n$
+exceeds several thousands.
+
+Numerous approximate inference methods have been proposed in the literature. Many
+of these methods are based on the concept of inducing inputs (\citet{candela2005},
+\citet{snelson2006}, \citet{williams2000}). These methods build a smaller set
+$Z$ of $m$ points that serve to approximate the true posterior of the process
+and reduce the complexity to $\bigO(nm^2 + m^3)$. \citet{titsias2009} proposed
+to consider the values $u$ of the Gaussian process at the inducing inputs
+as latent variables and derived a variational inference procedure to approximate
+the posterior distribution of these variables. \citet{hensman2013} and
+\citet{hensman2015} extended this framework by using stochastic optimization to
+scale up the method and generalized it to classification problems.
+
+Inducing input methods allow to use Gaussian processes on datasets containing
+millions of examples. However, these methods are still limited in the number
+of inducing inputs $m$ they can use (usually up to $10^4$). Small number of 
+inducing inputs limits the flexibility of the models that can be learned with 
+these methods, and does not allow to learn expressive kernel functions 
+(\citet{wilson2014}). \citet{wilson2015} proposed KISS-GP
+framework, which exploits the Kronecker product structure in covariance matrices
+for inducing inputs placed on a multidimensional grid in the feature space.
+KISS-GP has complexity $\bigO(n + D m^{1 + 1/D})$, where $D$ is the dimensionality
+of the feature space. Note however, that $m$ is the number of points in a
+$D$-dimensional grid and grows exponentially with~$D$, which makes the method
+impractical when the number of features $D$ is larger than $4$.
+
+In this paper, we propose TT-GP method, that can use billions of inducing
+inputs and is applicable to a much wider range of datasets compared to
+KISS-GP.
+We achieve this by combining kernel interpolation and Kronecker algebra of 
+KISS-GP with a scalable variational inference procedure. We restrict the family of
+variational distributions from \citet{hensman2013} to have parameters in
+compact formats. Specifically, we use Kronecker product format for the
+covariance matrix $\Sigma$ and Tensor Train format (\citet{oseledets2011}) for the
+expectation $\mu$ of the variational distribution over the values $u$ of the
+process at inducing inputs $Z$. 
+
+\citet{nickson2015} showed that using Kronecker
+format for $\Sigma$ does not substantially affect the predictive performance
+of GP regression, while allowing for computational gains. The main contribution
+of this paper is combining the Kronecker format for $\Sigma$ with TT-format
+for $\mu$, which, together with efficient inference procedure, allows us to
+efficiently train GP models with billions of inducing inputs.
+
+Unlike KISS-GP the proposed method has linear complexity with respect to 
+dimensionality $D$ of the feature space. It means that we can apply TT-GP
+to datasets that are both large and high-dimensional. Note however, that
+TT-GP is constructing a grid of inducing inputs in the feature space, and
+tries to infer the values of the process in all points in the grid. 
+High-dimensional real-world datasets are believed to lie on small-dimensional
+manifolds in the feature space, and it is impractical to try to recover the
+complex non-linear transformation that a Gaussian Process defines on the 
+whole feature space. Thus, we use TT-GP on raw features for datasets with
+dimensionality up to $10$. For feature spaces with higher dimensionality
+we propose to use kernels based on parametric projections, which can be learned
+from data.
+ 
+\citet{wilson2016deep} and \citet{wilson2016stochastic}
+demonstrated efficiency of Gaussian processes with kernels based on deep
+neural networks. They used subsets of outputs of a DNN as
+inputs for a Gaussian process. As the authors were using KISS-GP, they
+were limited to using additive kernels, combining multiple low dimensional 
+Gaussian processes. We found that DNN-based kernels are very efficient 
+in combination with TT-GP. These kernels allows us to train TT-GP models
+on high-dimensional datasets including computer vision tasks. Moreover,
+unlike the existing deep kernel learning methods, TT-GP does not require
+any changes in the GP model and allows deep kernels that produce embeddings
+of dimensionality up to $10$.
