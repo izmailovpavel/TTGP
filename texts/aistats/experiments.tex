@@ -1,11 +1,16 @@
 In this section we first explore how well can we approximate variational
 expectations in TT format with small ranks.
-Then, we compare the proposed TT-GP\footnote{For TT-GP we use our implementation available at
-\url{https://anonymized-link}.} method with SVI-GP (\citet{hensman2013}) on regression tasks and KLSP-GP
+Then, we compare the proposed TT-GP
+%\footnote{For TT-GP we use our implementation available at
+%\url{https://github.com/izmailovpavel/TTGP}.} 
+method with SVI-GP (\citet{hensman2013}) on regression tasks and KLSP-GP
 (\citet{hensman2015}) on binary classification tasks using standard RBF kernel
 functions. Then, we test the ability of our method to learn
 expressive deep kernel functions and compare it with SV-DKL
-(\citet{wilson2016stochastic}).
+(\citet{wilson2016stochastic}). For TT-GP we use our implementation available at
+\url{https://github.com/izmailovpavel/TTGP}, which is based on the t3f library 
+(\citet{novikov2018}). For SVI-GP and KLSP-GP we used the implementations provided in GPfLow
+(\citet{GPflow2016}). 
 
 \subsection{Expectation approximation}
 \label{expect_approx}
@@ -125,8 +130,7 @@ Airline dataset, that is popular for testing scalable GP models
 (\citet{hensman2013}, \citet{hensman2015}, \citet{wilson2016stochastic},
 \citet{cutajar2016}).
 
-For SVI-GP and KLSP-GP we used the implementations provided in GPfLow
-(\citet{GPflow2016}). For Airline dataset we provide results reported in
+For Airline dataset we provide results reported in
 the original paper (\citet{hensman2015}). For our experiments, we use a cluster of Intel Xeon E5-2698B v3 CPUs having $16$ cores and $230$ GB
 of RAM.
 

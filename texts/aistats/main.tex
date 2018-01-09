@@ -1,5 +1,5 @@
 \documentclass[twoside]{article}
-\usepackage{aistats2018}
+\usepackage[accepted]{aistats2018}
 
 % if you need to pass options to natbib, use, e.g.:
 % \PassOptionsToPackage{numbers, compress}{natbib}
@@ -48,25 +48,25 @@
 \aistatstitle{Scalable Gaussian Processes with Billions of Inducing Inputs via 
   Tensor Train Decomposition}
 
-%\aistatsauthor{ Pavel A.~Izmailov \And Alexander V.~Novikov \And  
-%Dmitry A.~Kropotov }
-%
-%\aistatsaddress{ 
-%  Lomonosov Moscow State\\ University, \\
-%  Cornell University\And
-%  National Research University\\ Higher School of Economics,\\
-%  Institute of Numerical Mathematics RAS\And
-%  Lomonosov Moscow State\\ University
-%}
-%]
+\aistatsauthor{ Pavel A.~Izmailov \And Alexander V.~Novikov \And  
+Dmitry A.~Kropotov }
 
-\aistatsauthor{ Author 1 \And Author 2 \And  Author 3 }
+\aistatsaddress{ 
+  Lomonosov Moscow State\\ University, \\
+  Cornell University\And
+  National Research University\\ Higher School of Economics,\\
+  Institute of Numerical Mathematics RAS\And
+  Lomonosov Moscow State\\ University
+}
+]
 
-\aistatsaddress{ Institution 1 \And  Institution 2 \And Institution 3 } ]
+
+%\aistatsaddress{ Institution 1 \And  Institution 2 \And Institution 3 } ]
 
 %\author{
 %  Pavel A.~Izmailov \\
 %  Lomonosov Moscow State University\\
+%  Cornell University\\
 %  \texttt{izmailovpavel@gmail.com} \\
 %  %% examples of more authors
 %  \And
@@ -91,7 +91,7 @@
   deep neural networks without any modifications to the underlying GP model.
   A neural network learns a multidimensional embedding for the data, which is
   used by the GP to make the final prediction.
-  We train GP and neural network parameters end-to-end
+  %We train GP and neural network parameters end-to-end
   without pretraining, through maximization of GP marginal likelihood.
   We show the efficiency of the
   proposed approach on several regression and classification benchmark datasets
