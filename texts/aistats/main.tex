@@ -1,6 +1,7 @@
 \pdfoutput=1
 \documentclass[twoside]{article}
 \usepackage[accepted]{aistats2018}
+\pdfminorversion=4  
 
 % if you need to pass options to natbib, use, e.g.:
 % \PassOptionsToPackage{numbers, compress}{natbib}
@@ -40,6 +41,7 @@
 \newcommand{\ki}{k_{i}}
 \newcommand{\KL}{\mbox{KL}}
 \newcommand{\tr}{\mbox{tr}}
+
 %\renewcommand{\baselinestretch}{0.95}
 %\parskip .43pc  % original size - .5pc
 
@@ -92,7 +94,7 @@ Dmitry A.~Kropotov }
   deep neural networks without any modifications to the underlying GP model.
   A neural network learns a multidimensional embedding for the data, which is
   used by the GP to make the final prediction.
-  %We train GP and neural network parameters end-to-end
+  We train GP and neural network parameters end-to-end
   without pretraining, through maximization of GP marginal likelihood.
   We show the efficiency of the
   proposed approach on several regression and classification benchmark datasets
@@ -116,9 +118,8 @@ Dmitry A.~Kropotov }
   \input{discussion}
 
 \subsubsection*{Acknowledgements}
-
-Alexander Novikov was supported by the Russian Science Foundation grant 17-11-01027.
-Dmitry Kropotov was supported by Samsung Research, Samsung Electronics.
+Dmitry Kropotov was supported by the Russian Science Foundation grant 17-11-01027.
+Alexander Novikov was supported by Samsung Research, Samsung Electronics.
 
 %\nocite{*}
 \bibliography{bib/biblio}
