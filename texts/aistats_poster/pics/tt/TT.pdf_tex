@@ -36,7 +36,7 @@
   }%
   \providecommand\rotatebox[2]{#2}%
   \ifx\svgwidth\undefined%
-    \setlength{\unitlength}{1491.7125bp}%
+    \setlength{\unitlength}{1840bp}%
     \ifx\svgscale\undefined%
       \relax%
     \else%
@@ -48,17 +48,19 @@
   \global\let\svgwidth\undefined%
   \global\let\svgscale\undefined%
   \makeatother%
-  \begin{picture}(1,0.24338428)%
-    \put(0,0){\includegraphics[width=\unitlength,page=1]{./pics/TT.pdf}}%
-    \put(-0.00178067,0.12110164){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$\tensel{A}(2, 4, 2, 3) =$}}}%
-    \put(0.33964025,0.2270859){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$G_1$}}}%
-    \put(0.54100903,0.2270859){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$G_2$}}}%
-    \put(0.74383043,0.2270859){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$G_3$}}}%
-    \put(0.91003164,0.2270859){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$G_4$}}}%
-    \put(0.519194,0.0050592){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$i_2=4$}}}%
-    \put(0.71438899,0.0050592){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$i_3=2$}}}%
-    \put(0.91250618,0.0050592){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$i_4=3$}}}%
-    \put(0.29264047,0.05867169){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$i_1=2$}}}%
-    \put(0.09635598,0.45210206){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{}}}%
+  \begin{picture}(1,0.38417703)%
+    \put(0,0){\includegraphics[width=\unitlength,page=1]{TT.pdf}}%
+    \put(0.24022081,0.09817872){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$\tensel{A}_{2 4 2 3} =$}}}%
+    \put(0.4370153,0.18410157){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$G_1$}}}%
+    \put(0.60026765,0.18410157){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$G_2$}}}%
+    \put(0.76469766,0.18410157){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$G_3$}}}%
+    \put(0.89943919,0.18410157){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$G_4$}}}%
+    \put(0.58258192,0.00410157){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$i_2=4$}}}%
+    \put(0.7408291,0.00410157){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$i_3=2$}}}%
+    \put(0.90144534,0.00410157){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$i_4=3$}}}%
+    \put(0.39891196,0.04756592){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$i_1=2$}}}%
+    \put(0.23978151,0.36652517){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{}}}%
+    \put(0.2621267,0.38800807){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\begin{minipage}{1.4705665\unitlength}\raggedright $\tensel{A}_{i_1 \ldots i_d} = \underbrace{G_1[i_1]}_{1 \times \rank} \underbrace{G_2[i_2]}_{\rank \times \rank} \ldots \underbrace{G_d[i_d]}_{\rank \times 1}$\end{minipage}}}%
+    \put(0.01791365,0.25507499){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{An example of computing one element of a $4$-dimensional tensor:}}}%
   \end{picture}%
 \endgroup%

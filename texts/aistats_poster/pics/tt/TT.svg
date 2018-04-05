@@ -8,8 +8,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="1690.6406"
-   height="453.82422"
+   width="2300"
+   height="883.60718"
    id="svg3796"
    version="1.1"
    inkscape:version="0.91 r13725"
@@ -46,23 +46,25 @@
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:window-width="1280"
-     inkscape:window-height="714"
+     inkscape:window-height="707"
      id="namedview4212"
      showgrid="false"
-     inkscape:zoom="0.37352941"
-     inkscape:cx="806.80137"
-     inkscape:cy="305.08661"
+     inkscape:zoom="0.29417826"
+     inkscape:cx="630.16271"
+     inkscape:cy="305.83162"
      inkscape:window-x="0"
      inkscape:window-y="1"
      inkscape:window-maximized="1"
-     inkscape:current-layer="g3798"
+     inkscape:current-layer="svg3796"
      fit-margin-top="0"
      fit-margin-left="0"
      fit-margin-right="0"
-     fit-margin-bottom="0" />
+     fit-margin-bottom="0"
+     inkscape:snap-global="true"
+     inkscape:snap-grids="false" />
   <g
      id="g3798"
-     transform="translate(-116,-424.17578)">
+     transform="translate(429.82819,5.6071663)">
     <path
        d="m 493.44,576.62 75.5,0 0,76.32 -75.5,0 z"
        id="path3800"
@@ -457,7 +459,7 @@
        d="m 927.5,557.55 75.5,0 0,76.3 -75.5,0 z"
        id="path3920"
        inkscape:connector-curvature="0"
-       style="fill:#d70314;fill-opacity:0.98000004;stroke:#000000;stroke-width:2" />
+       style="fill:#21c9cb;fill-opacity:1;stroke:#000000;stroke-width:2" />
     <use
        xlink:href="#a"
        transform="translate(965.5,289.4463)"
@@ -470,7 +472,7 @@
        d="m 1003,557.55 75.48,0 0,76.3 -75.5,0 z"
        id="path3924"
        inkscape:connector-curvature="0"
-       style="fill:#d70314;fill-opacity:0.98000004;stroke:#000000;stroke-width:2" />
+       style="fill:#21c9cb;fill-opacity:1;stroke:#000000;stroke-width:2" />
     <use
        xlink:href="#a"
        transform="translate(1040.9884,289.4463)"
@@ -483,7 +485,7 @@
        d="m 1078.48,557.55 75.5,0 0,76.3 -75.5,0 z"
        id="path3928"
        inkscape:connector-curvature="0"
-       style="fill:#d70314;fill-opacity:0.98000004;stroke:#000000;stroke-width:2" />
+       style="fill:#21c9cb;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-opacity:1" />
     <use
        xlink:href="#a"
        transform="translate(1116.4767,289.4463)"
@@ -496,7 +498,7 @@
        d="m 927.5,633.86 75.5,0 0,76.3 -75.5,0 z"
        id="path3932"
        inkscape:connector-curvature="0"
-       style="fill:#d70314;fill-opacity:0.98000004;stroke:#000000;stroke-width:2" />
+       style="fill:#21c9cb;fill-opacity:1;stroke:#000000;stroke-width:2" />
     <use
        xlink:href="#a"
        transform="translate(965.5,365.75846)"
@@ -506,10 +508,10 @@
        width="100%"
        height="100%" />
     <path
-       d="m 1003,633.86 75.48,0 0,76.3 -75.5,0 z"
+       d="m 1003,710.16 75.48,0 0,-76.3 -75.5,0 z"
        id="path3936"
        inkscape:connector-curvature="0"
-       style="fill:#d70314;fill-opacity:0.98000004;stroke:#000000;stroke-width:2" />
+       style="fill:#21c9cb;fill-opacity:1;stroke:#000000;stroke-width:2" />
     <use
        xlink:href="#a"
        transform="translate(1040.9884,365.75846)"
@@ -522,7 +524,7 @@
        d="m 1078.48,633.86 75.5,0 0,76.3 -75.5,0 z"
        id="path3940"
        inkscape:connector-curvature="0"
-       style="fill:#d70314;fill-opacity:0.98000004;stroke:#000000;stroke-width:2" />
+       style="fill:#21c9cb;fill-opacity:1;stroke:#000000;stroke-width:2" />
     <use
        xlink:href="#a"
        transform="translate(1116.4767,365.75846)"
@@ -535,7 +537,7 @@
        d="m 927.5,710.17 75.5,0 0,76.3 -75.5,0 z"
        id="path3944"
        inkscape:connector-curvature="0"
-       style="fill:#d70314;fill-opacity:0.98000004;stroke:#000000;stroke-width:2" />
+       style="fill:#21c9cb;fill-opacity:1;stroke:#000000;stroke-width:2" />
     <use
        xlink:href="#a"
        transform="translate(965.5,442.07063)"
@@ -548,7 +550,7 @@
        d="m 1003,710.17 75.48,0 0,76.3 -75.5,0 z"
        id="path3948"
        inkscape:connector-curvature="0"
-       style="fill:#d70314;fill-opacity:0.98000004;stroke:#000000;stroke-width:2" />
+       style="fill:#21c9cb;fill-opacity:1;stroke:#000000;stroke-width:2" />
     <use
        xlink:href="#a"
        transform="translate(1040.9884,442.07063)"
@@ -561,7 +563,7 @@
        d="m 1078.48,710.17 75.5,0 0,76.3 -75.5,0 z"
        id="path3952"
        inkscape:connector-curvature="0"
-       style="fill:#d70314;fill-opacity:0.98000004;stroke:#000000;stroke-width:2" />
+       style="fill:#21c9cb;fill-opacity:1;stroke:#000000;stroke-width:2" />
     <use
        xlink:href="#a"
        transform="translate(1116.4767,442.07063)"
@@ -691,7 +693,7 @@
        d="m 1267.2,519.4 75.5,0 0,76.3 -75.5,0 z"
        id="path3992"
        inkscape:connector-curvature="0"
-       style="fill:#d70314;fill-opacity:0.98000004;stroke:#000000;stroke-width:2" />
+       style="fill:#21c9cb;fill-opacity:1;stroke:#000000;stroke-width:2" />
     <use
        xlink:href="#a"
        transform="translate(1305.1977,251.29021)"
@@ -704,7 +706,7 @@
        d="m 1342.7,519.4 75.47,0 0,76.3 -75.48,0 z"
        id="path3996"
        inkscape:connector-curvature="0"
-       style="fill:#d70314;fill-opacity:0.98000004;stroke:#000000;stroke-width:2" />
+       style="fill:#21c9cb;fill-opacity:1;stroke:#000000;stroke-width:2" />
     <use
        xlink:href="#a"
        transform="translate(1380.686,251.29021)"
@@ -717,7 +719,7 @@
        d="m 1418.17,519.4 75.5,0 0,76.3 -75.5,0 z"
        id="path4000"
        inkscape:connector-curvature="0"
-       style="fill:#d70314;fill-opacity:0.98000004;stroke:#000000;stroke-width:2" />
+       style="fill:#21c9cb;fill-opacity:1;stroke:#000000;stroke-width:2" />
     <use
        xlink:href="#a"
        transform="translate(1456.1744,251.29021)"
@@ -730,7 +732,7 @@
        d="m 1267.2,595.7 75.5,0 0,76.3 -75.5,0 z"
        id="path4004"
        inkscape:connector-curvature="0"
-       style="fill:#d70314;fill-opacity:0.98000004;stroke:#000000;stroke-width:2" />
+       style="fill:#21c9cb;fill-opacity:1;stroke:#000000;stroke-width:2" />
     <use
        xlink:href="#a"
        transform="translate(1305.1977,327.60238)"
@@ -743,7 +745,7 @@
        d="m 1342.7,595.7 75.47,0 0,76.3 -75.48,0 z"
        id="path4008"
        inkscape:connector-curvature="0"
-       style="fill:#d70314;fill-opacity:0.98000004;stroke:#000000;stroke-width:2" />
+       style="fill:#21c9cb;fill-opacity:1;stroke:#000000;stroke-width:2" />
     <use
        xlink:href="#a"
        transform="translate(1380.686,327.60238)"
@@ -756,7 +758,7 @@
        d="m 1418.17,595.7 75.5,0 0,76.3 -75.5,0 z"
        id="path4012"
        inkscape:connector-curvature="0"
-       style="fill:#d70314;fill-opacity:0.98000004;stroke:#000000;stroke-width:2" />
+       style="fill:#21c9cb;fill-opacity:1;stroke:#000000;stroke-width:2" />
     <use
        xlink:href="#a"
        transform="translate(1456.1744,327.60238)"
@@ -769,7 +771,7 @@
        d="m 1267.2,672 75.5,0 0,76.33 -75.5,0 z"
        id="path4016"
        inkscape:connector-curvature="0"
-       style="fill:#d70314;fill-opacity:0.98000004;stroke:#000000;stroke-width:2" />
+       style="fill:#21c9cb;fill-opacity:1;stroke:#000000;stroke-width:2" />
     <use
        xlink:href="#a"
        transform="translate(1305.1977,403.91455)"
@@ -782,7 +784,7 @@
        d="m 1342.7,672 75.47,0 0,76.33 -75.48,0 z"
        id="path4020"
        inkscape:connector-curvature="0"
-       style="fill:#d70314;fill-opacity:0.98000004;stroke:#000000;stroke-width:2" />
+       style="fill:#21c9cb;fill-opacity:1;stroke:#000000;stroke-width:2" />
     <use
        xlink:href="#a"
        transform="translate(1380.686,403.91455)"
@@ -795,7 +797,7 @@
        d="m 1418.17,672 75.5,0 0,76.33 -75.5,0 z"
        id="path4024"
        inkscape:connector-curvature="0"
-       style="fill:#d70314;fill-opacity:0.98000004;stroke:#000000;stroke-width:2" />
+       style="fill:#21c9cb;fill-opacity:1;stroke:#000000;stroke-width:2" />
     <use
        xlink:href="#a"
        transform="translate(1456.1744,403.91455)"
@@ -1042,7 +1044,7 @@
        d="m 512.3,595.7 75.5,0 0,76.3 -75.5,0 z"
        id="path4100"
        inkscape:connector-curvature="0"
-       style="fill:#d70314;fill-opacity:0.98000004;stroke:#000000;stroke-width:2" />
+       style="fill:#21c9cb;fill-opacity:1;stroke:#000000;stroke-width:2" />
     <use
        xlink:href="#a"
        transform="translate(550.31395,327.60238)"
@@ -1055,7 +1057,7 @@
        d="m 587.8,595.7 75.5,0 0,76.3 -75.5,0 z"
        id="path4104"
        inkscape:connector-curvature="0"
-       style="fill:#d70314;fill-opacity:0.98000004;stroke:#000000;stroke-width:2" />
+       style="fill:#21c9cb;fill-opacity:1;stroke:#000000;stroke-width:2" />
     <use
        xlink:href="#a"
        transform="translate(625.80233,327.60238)"
@@ -1068,7 +1070,7 @@
        d="m 663.3,595.7 75.48,0 0,76.3 -75.5,0 z"
        id="path4108"
        inkscape:connector-curvature="0"
-       style="fill:#d70314;fill-opacity:0.98000004;stroke:#000000;stroke-width:2" />
+       style="fill:#21c9cb;fill-opacity:1;stroke:#000000;stroke-width:2" />
     <use
        xlink:href="#a"
        transform="translate(701.2907,327.60238)"
@@ -1198,7 +1200,7 @@
        d="m 1663.5,767.4 0,-76.3 75.5,0 0,76.3 z"
        id="path4148"
        inkscape:connector-curvature="0"
-       style="fill:#d70314;fill-opacity:0.98000004;stroke:#000000;stroke-width:2" />
+       style="fill:#21c9cb;fill-opacity:1;stroke:#000000;stroke-width:2" />
     <use
        xlink:href="#a"
        transform="matrix(0,-1,1,0,1706.9116,416.90476)"
@@ -1211,7 +1213,7 @@
        d="m 1663.5,691.1 0,-76.32 75.5,0 0,76.3 z"
        id="path4152"
        inkscape:connector-curvature="0"
-       style="fill:#d70314;fill-opacity:0.98000004;stroke:#000000;stroke-width:2" />
+       style="fill:#21c9cb;fill-opacity:1;stroke:#000000;stroke-width:2" />
     <use
        xlink:href="#a"
        transform="matrix(0,-1,1,0,1706.9116,340.59259)"
@@ -1224,7 +1226,7 @@
        d="m 1663.5,614.78 0,-76.3 75.5,0 0,76.3 z"
        id="path4156"
        inkscape:connector-curvature="0"
-       style="fill:#d70314;fill-opacity:0.98000004;stroke:#000000;stroke-width:2" />
+       style="fill:#21c9cb;fill-opacity:1;stroke:#000000;stroke-width:2" />
     <use
        xlink:href="#a"
        transform="matrix(0,-1,1,0,1706.9116,264.28042)"
@@ -1272,7 +1274,7 @@
        id="path4182"
        inkscape:connector-curvature="0" />
     <path
-       d="m 1550.28,616.58 39.72,0 0,36.47 -39.72,0 z"
+       d="m 1468.28,616.58 39.72,0 0,36.47 -39.72,0 z"
        id="path4184"
        inkscape:connector-curvature="0"
        style="fill:none" />
@@ -1313,14 +1315,14 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="-61.320312"
+       x="122.67969"
        y="652.18896"
        id="text4218"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
-         x="-61.320312"
+         x="122.67969"
          y="652.18896"
-         id="tspan4302">$\tensel{A}(2, 4, 2, 3) =$</tspan></text>
+         id="tspan4302">$\tensel{A}_{2 4 2 3} =$</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
@@ -1421,4 +1423,26 @@
          x="121.66928"
          y="34.992126" /></text>
   </g>
+  <flowRoot
+     xml:space="preserve"
+     id="flowRoot4990"
+     style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+     transform="translate(307.15236,-45.992995)"><flowRegion
+       id="flowRegion4992"><rect
+         id="rect4994"
+         width="3382.303"
+         height="57.788094"
+         x="295.73904"
+         y="37.18161" /></flowRegion><flowPara
+       id="flowPara4996">$\tensel{A}_{i_1 \ldots i_d} = \underbrace{G_1[i_1]}_{1 \times \rank} \underbrace{G_2[i_2]}_{\rank \times \rank} \ldots \underbrace{G_d[i_d]}_{\rank \times 1}$</flowPara></flowRoot>  <text
+     xml:space="preserve"
+     style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+     x="41.201389"
+     y="296.93469"
+     id="text4998"
+     sodipodi:linespacing="125%"><tspan
+       sodipodi:role="line"
+       id="tspan5000"
+       x="41.201389"
+       y="296.93469">An example of computing one element of a $4$-dimensional tensor:</tspan></text>
 </svg>
