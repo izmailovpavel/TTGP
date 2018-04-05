@@ -33,6 +33,7 @@
 \graphicspath{{figures/}} % Location of the graphics files
 \usepackage{textcomp}
 \usepackage{bm}
+\usepackage[round]{natbib}
 \usepackage{caption}
 \usepackage{subfig}
 \usepackage{listings}
@@ -102,7 +103,7 @@
   \veryHuge \color{NavyBlue} 
     \textbf{Scalable Gaussian Processes with Billions of Inducing Inputs \\via Tensor Train Decomposition} \color{Black}\\ % Title
 \huge \textbf{Pavel Izmailov\textsuperscript{1,4} \quad Alexander Novikov\textsuperscript{2,3} \quad Dmitry Kropotov\textsuperscript{4}}\\[0.5cm] % Author(s)
-\huge \textsuperscript{1} Cornell University 
+\Large \textsuperscript{1} Cornell University 
   \quad 
   \textsuperscript{2} National Research University Higher School of Economics\\
   \quad 
@@ -111,7 +112,7 @@
   \textsuperscript{4} Lomonosov Moscow State University
   \\[0.4cm] % University/organization
 \end{center}
-\Large \texttt{izmailovpavel@gmail.com} %--- 1 (000) 111 1111\\
+%\Large \texttt{izmailovpavel@gmail.com} %--- 1 (000) 111 1111\\
 \end{minipage}
 %
 %\begin{minipage}[b]{0.25\linewidth}
@@ -138,7 +139,50 @@
 
 Motivation
 
+\section*{\LARGE \color{NavyBlue}Structured Kernel Interpolation (SKI)}
+  \citet{wilson2015}
+
+\begin{itemize}
+  \item Set inducing points on a multi-dimensional grid
+    \[
+      Z = Z^1 \times Z^2 \times \ldots \times Z^D.
+    \]
+  
+  \item Assume the kernel decomposes as
+    \[
+      k(x, x') = k^1(x^1, x'^1) \cdot k^2(x^2, x'^2) \cdot \ldots \cdot k^D(x^D, x'^D).
+    \]
+    Then covariance matrix $K_{mm}$ takes form
+    \[
+      K_{mm} = K_{m_1 m_1}^1 \otimes K_{m_2 m_2}^2 \otimes \ldots \otimes K_{m_D m_D}^D.
+    \] 
+
+  \item $|K_{mm}|$ and $K_{mm}^{-1}$ can be computed efficiently. 
+\end{itemize}
+    \begin{center}
+      \centering
+      \scalebox{1.25}{
+      \input{pics/tikz/interpolation.tikz}
+    }
+    \end{center}
+    
+    \begin{itemize}
+      \item Inducing points can be considered as inteprolation points for the
+        kernel.
+        \[
+          k_i \approx K_{mm} w_i,
+        \]
+      where $w_i\in \R^{m}$ is the vector of interpolation coefficients.
+
+      \item KISS-GP uses cubic convolutional interpolation for which 
+        \[
+          w_i = w_i^1 \otimes w_i^2 \otimes \ldots \otimes w_i^D.
+        \]
+\end{itemize}
+
 \section*{\LARGE \color{NavyBlue} Tensor Train Format}
+
+\citet{oseledets2011}
 
 Tensor $\tens{A}$ is said to be represented in TT format if:
 %$$
@@ -165,6 +209,7 @@ Tensor $\tens{A}$ is said to be represented in TT format if:
     tensor with $n^d$ elements.
   \item Allows for efficient implementation of linear algebra operations.
 \end{itemize}
+
 
 \section*{\LARGE \color{NavyBlue}Gaussian Process ELBO}
     
@@ -214,8 +259,8 @@ where
     and huge $m$
 \end{itemize}
 
-\section*{\LARGE \color{NavyBlue} Experiments}
-\subsection*{\large \color{NavyBlue} RBF kernel}
+\section*{\LARGE \color{NavyBlue} RBF Kernel Experiments}
+\citet{hensman2013}
 
 %  \caption[]{Experimental results for standard RBF kernels. In the table acc. stands for $r^2$ for regression and accuracy
 %          for classification tasks. $n$ is the size of the
@@ -272,7 +317,8 @@ where
     \bottomrule
   \end{tabular}
 \end{center}
-\subsection*{\large \color{NavyBlue} Deep kernels}
+\section*{\LARGE \color{NavyBlue} Deep Kernel Experiments}
+\citet{wilson2016stochastic}
     
 \begin{center}
     \includegraphics[width=20cm]{pics/embed/embedding_2.eps}
@@ -324,9 +370,10 @@ where
 \end{center}
 
 
-\nocite{*} % Print all references regardless of whether they were cited in the poster or not
-\bibliographystyle{plain} % Plain referencing style
-\bibliography{sample} % Use the example bibliography file sample.bib
+%\nocite{*} % Print all references regardless of whether they were cited in the poster or not
+%\bibliographystyle{plain} % Plain referencing style
+\bibliography{biblio} % Use the example bibliography file sample.bib
+\bibliographystyle{plainnat}
 
 %\section*{Acknowledgements}
 

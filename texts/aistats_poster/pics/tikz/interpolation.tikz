@@ -2,21 +2,21 @@
 	
   \foreach \x in {1, 2, 3, 4, 5, 6, 7, 8} 
     \foreach \y in {1, 2, 3, 4, 5, 6, 7} 
-      \node[circle, draw, fill=blue!70] at (\x, \y) {};
+      \node[circle, draw, fill=blue!70, inner sep=0pt, minimum size=0.5cm] at (\x, \y) {};
 
     
   \foreach \x in {2, 3, 4, 5} 
     \foreach \y in {2, 3, 4, 5} 
-      \node[circle, draw, fill=yellow] at (\x, \y) {};
+      \node[circle, draw, fill=yellow, inner sep=0pt, minimum size=0.5cm] at (\x, \y) {};
 
   \draw [decorate,decoration={brace,amplitude=10pt,raise=4pt},yshift=0pt]
-    (0, 1) -- (0,7) node [black,midway,xshift=-0.8cm] 
-    {$Z_1$};
+    (0, 1) -- (0,7) node [black,midway,xshift=-1.cm] 
+    {\small $Z_1$};
 
   \draw [decorate,decoration={brace,amplitude=10pt,raise=4pt},yshift=0pt]
-    (1, 8) -- (8, 8) node [black,midway,yshift=0.8cm] {$Z_2$};
+    (1, 8) -- (8, 8) node [black,midway,yshift=1.cm] {\small $Z_2$};
 
-  \node[circle, draw, fill=red] at (3.3, 3.6) {};
+  \node[circle, draw, fill=red, inner sep=0pt, minimum size=0.5cm] at (3.3, 3.6) {};
   \node[] at (3.6, 3.2) {\large $x_i$};
   \draw[|-|, line width=1.5pt] (3.3, 2) to (3.3, 5);
   \draw[|-|, line width=1.5pt] (2, 3.6) to (5, 3.6);
