@@ -135,86 +135,91 @@
 %Abstract
 %\end{abstract}
 
-\section*{\LARGE \color{NavyBlue}Motivation}
-
-Motivation
-
-\section*{\LARGE \color{NavyBlue}Structured Kernel Interpolation (SKI)}
-  \citet{wilson2015}
+\section*{\LARGE \color{NavyBlue}Summary}
 
 \begin{itemize}
-  \item Set inducing points on a multi-dimensional grid
+  \item Gaussian processes are flexible and elegant models, but exact inference 
+    requires $\bigO(n^3)$ computations, where $n$ is the number of training data
+  \item We propose the Tensor Train GP (TT-GP) framework with 
+    linear complexity  $\bigO(n)$
+  \item TT-GP allows to build flexible posterior approximations and train
+    expressive deep kernels by using billions of inducing points
+  \item TT-GP achieves state-of-the-art results on several important benchmarks
+    both with RBF and deep kernels
+\end{itemize}
+
+\section*{\LARGE \color{NavyBlue}Inducing Inputs and Structured Kernel Interpolation}
+
+\begin{itemize}
+  \item Inducing inputs are imaginary data points that allow to speed up GP inference
+  \item SKI \citep{wilson2015}: set inducing points on a multi-dimensional grid
     \[
       Z = Z^1 \times Z^2 \times \ldots \times Z^D.
     \]
   
   \item Assume the kernel decomposes as
     \[
-      k(x, x') = k^1(x^1, x'^1) \cdot k^2(x^2, x'^2) \cdot \ldots \cdot k^D(x^D, x'^D).
+      k(x, x') = k^1(x^1, x'^1) \cdot k^2(x^2, x'^2) \cdot \ldots \cdot k^D(x^D, x'^D)
     \]
-    Then covariance matrix $K_{mm}$ takes form
+    Covariance matrix $K_{mm} \in \R^{m \times m}$ computed at the
+    inducing points takes form
     \[
-      K_{mm} = K_{m_1 m_1}^1 \otimes K_{m_2 m_2}^2 \otimes \ldots \otimes K_{m_D m_D}^D.
+      K_{mm} = K_{m_1 m_1}^1 \otimes K_{m_2 m_2}^2 \otimes \ldots \otimes K_{m_D m_D}^D
     \] 
 
-  \item $|K_{mm}|$ and $K_{mm}^{-1}$ can be computed efficiently. 
 \end{itemize}
-    \begin{center}
-      \centering
-      \scalebox{1.25}{
+\begin{minipage}[b]{0.45\linewidth}
+
+  \begin{center}
+    \includegraphics[width=1.\linewidth]{pics/gps/1d_gp_ind_inputs.eps}
+  \end{center}
+
+  \vspace{-1cm}
+\end{minipage}
+\begin{minipage}[b]{0.5\linewidth}
+  \begin{center}
+    \centering
+    \scalebox{1.25}{
       \input{pics/tikz/interpolation.tikz}
     }
-    \end{center}
+  \end{center}
+\end{minipage}
     
     \begin{itemize}
+      \item $|K_{mm}|$ and $K_{mm}^{-1}$ can be computed efficiently
       \item Inducing points can be considered as inteprolation points for the
-        kernel.
+        kernel
         \[
           k_i \approx K_{mm} w_i,
         \]
-      where $w_i\in \R^{m}$ is the vector of interpolation coefficients.
+      where $k_i \in \R^m$ is the vector of covariances between the $i$-th training
+      object and the inducing points, $w_i\in \R^{m}$ is the vector of interpolation coefficients
 
       \item KISS-GP uses cubic convolutional interpolation for which 
         \[
-          w_i = w_i^1 \otimes w_i^2 \otimes \ldots \otimes w_i^D.
+          w_i = w_i^1 \otimes w_i^2 \otimes \ldots \otimes w_i^D
         \]
 \end{itemize}
 
 \section*{\LARGE \color{NavyBlue} Tensor Train Format}
 
-\citet{oseledets2011}
-
-Tensor $\tens{A}$ is said to be represented in TT format if:
-%$$
-%      \tensel{A}(i_1, \dots, i_d)
-%        = \underbrace{G_1[i_1]}_{ 1 \times r} \,    
-%           \underbrace{G_2[i_2]}_{ r \times r} \dotsm \underbrace{G_d[i_d]}_{ r \times 1},~~~i_k \in \{1, \ldots, n_k\}.
-%$$  
-
-%\begin{center}
-%    \includegraphics{pics/tt/TT_v2.pdf}
-%\end{center}
-
-
-%\begin{figure}
-% \centering
+Tensor $\tens{A}$ is said to be represented in Tensor Train \citep{oseledets2011}  format if:
+\vspace{0.2cm}
 \flushleft
 \def\svgwidth{33cm}
-% \renewcommand\normalsize{\tiny}%
 \includesvg{pics/tt/TT}
-%    \end{figure}
 
 \begin{itemize}
   \item TT-format uses $O \left ( d n r^2 \right )$ memory to approximate a
-    tensor with $n^d$ elements.
-  \item Allows for efficient implementation of linear algebra operations.
+    tensor with $n^d$ elements
+  \item Allows for efficient implementation of linear algebra operations
 \end{itemize}
 
 
 \section*{\LARGE \color{NavyBlue}Gaussian Process ELBO}
     
-Using KISS-GP approximation of $k_i \approx K_{mm} w_i$, we can rewrite the 
-ELBO as
+Evidence Lower Bound \citep{hensman2013} with KISS-GP approximation of $k_i$:
+%$k_i \approx K_{mm} w_i$:
 \[
   \log p(y) \ge \sum_{i=1}^n \bigg(\log \N (y_i | w_i^T \mu, \sigma^2) - 
   \frac 1 {2 \sigma^2} (\mbox{var}_i + w_i^T K_{mm} w_i) -\frac 1 {2 \sigma^2} 
@@ -226,10 +231,10 @@ ELBO as
 \]
 where
 \begin{itemize}
-  \item $K_{mm} \in \R^{m \times m}$ is the covariance matrix computed at the
-    inducing points
-  \item $k_i \in \R^m$ is the vector of covariances between the $i$-th training
-    object and the inducing points
+%  \item $K_{mm} \in \R^{m \times m}$ is the covariance matrix computed at the
+%    inducing points
+%  \item $k_i \in \R^m$ is the vector of covariances between the $i$-th training
+%    object and the inducing points
   \item $\sigma^2$ is the noise variance
   \item $\mu \in \R^m$, $\Sigma \in \R^{m \times m}$ — variational parameters
   \item $\tilde K_{ii} = \mbox{var} - k_i^T K_{mm}^{-1} k_i$, where  
@@ -242,37 +247,29 @@ where
   \item Set inducing points $Z$ on a grid in the feature space
   \item Restrict $\Sigma$ to be in a Kronecker product format
     \[
-      \Sigma = \Sigma^1 \otimes \Sigma^2\otimes \ldots \otimes \Sigma^D.
+      \Sigma = \Sigma^1 \otimes \Sigma^2\otimes \ldots \otimes \Sigma^D
     \]
-  \item Restrict $\mu$ to be in TT format with TT-ranks $r$.
+  \item Represent $\mu$ as a $d$-dimensional tensor, restrict to be in TT format
+    with TT-ranks $r$
+  \item Maximize ELBO with respect to TT-cores of $\mu$, Kronecker factors of 
+    $\Sigma$ using SGD
 \end{itemize}
 
 \section*{\LARGE \color{NavyBlue} Properties}
     
 \begin{itemize}
-  \item The computational complexity is linear in the size of the data
+  \item Linear computational complexity in the size of the data
     $\bigO(n D m^{1 / D} r^2 + D m^{1 / D} r^3 + D m^{3 / D})$. 
     TT-ranks are in general on the scale of $r \approx 10$.\\ 
-    Here $m = m_0^D$.
-  \item To fit the process we can use simple SGD
-  \item The method can be applied for large $n$, moderately large $D$,
-    and huge $m$
+    Here $m = m_0^D$
+  \item TT-GP can be applied for very large $n$ and $m$
 \end{itemize}
 
 \section*{\LARGE \color{NavyBlue} RBF Kernel Experiments}
-\citet{hensman2013}
 
-%  \caption[]{Experimental results for standard RBF kernels. In the table acc. stands for $r^2$ for regression and accuracy
-%          for classification tasks. $n$ is the size of the
-%          training set, $D$ is the dimensionality of the feature space,
-%          $m$ is the number of inducing inputs, $r$ is TT-ranks of $\mu$ for TT-GP; $t$ is the time per one pass over
-%          the data (epoch) in seconds; where provided, $d$ is the dimensionality of linear embedding.\\
-%          $^*$ for KLSP-GP on Airline we provide results from the original
-%          paper where the accuracy is given as a plot, and detailed
-%          information about experiment setup and exact results is not available.
-%          }
-%  \label{se_results}
-%  \centering
+Comparison with SVI-GP \citep{hensman2013} on regression and classification
+tasks:
+
 \begin{center}
   \begin{tabular}{lll l cll l clll}
     \toprule
@@ -288,63 +285,62 @@ where
 
     Powerplant & $7654$ & $4$ &&
     $0.94$ & $200$ & $10$ &&
-    $0.95$ & $35^4$ & - & $5$ \\
+    $\mathbf{0.95}$ & $35^4$ & - & $5$ \\
 
     Protein & $36584$ & $9$ &&
     $0.50$ & $200$ & $45$ &&
-    $0.56$ & $30^9$ & - & $40$ \\
+    $\mathbf{0.56}$ & $30^9$ & - & $40$ \\
 
     YearPred & $463K$ & $90$ &&
     $0.30$ & $1000$ & $597$ &&
-    $0.32$ & $10^6$ & $6$ & $105$ \\
+    $\mathbf{0.32}$ & $10^6$ & $6$ & $105$ \\
 
     \midrule
     Airline & $6M$ & $8$ &&
     $0.665^*$ & - & - &&
-    $0.694$ & $20^8$ & - & $5200$ \\
+    $\mathbf{0.694}$ & $20^8$ & - & $5200$ \\
 
     svmguide1 & 3089 & 4 &&
     $0.967$ & $200$ & $4$ &&
-    $0.969$ & $20^4$ & - & $1$\\
+    $\mathbf{0.969}$ & $20^4$ & - & $1$\\
 
     EEG & 11984 & 14 &&
-    $0.915$ & $1000$ & $18$ &&
+    $\mathbf{0.915}$ & $1000$ & $18$ &&
     $0.908$ & $12^{10}$ & $10$ & $10$\\
 
     covtype bin & 465K & 54 &&
     $0.817$ & $1000$ & $320$ &&
-    $0.852$ & $10^6$ & $6$ & $172$\\
+    $\mathbf{0.852}$ & $10^6$ & $6$ & $172$\\
     \bottomrule
   \end{tabular}
 \end{center}
 \section*{\LARGE \color{NavyBlue} Deep Kernel Experiments}
-\citet{wilson2016stochastic}
     
+Embedding learned by TT-GP with a deep kernel on {\it digits}
+dataset:
+
 \begin{center}
     \includegraphics[width=20cm]{pics/embed/embedding_2.eps}
 \end{center}
 
+Comparison with SV-DKL \citep{wilson2016stochastic} and stand-alone
+DNN:
+
 \begin{center}
-%  \begin{table}[t]
-%    \vspace{-.5cm}
-%    \caption{Results of experiments with deep kernels. Here acc. is classification
-%            accuracy; $C$ is the number of classes; $d$ is the dimensionality
-%            of embedding learned by the model; $t$ is the time per one pass over
-%            data (epoch) in seconds.}
     \label{deep_results}
     \centering
-    \begin{tabular}{ll ll llll lll}
+    \begin{tabular}{lll ll llll lll}
       \toprule
-      \multicolumn{1}{c}{Dataset}  && SV-DKL &&
+      \multicolumn{2}{c}{Dataset}  && SV-DKL &&
       \multicolumn{2}{c}{DNN} &&
       \multicolumn{3}{c}{TT-GP}\\
 
-      \cmidrule{1-1}
-      \cmidrule{3-3}
-      \cmidrule{5-6}
-      \cmidrule{8-10}
+      \cmidrule{1-2}
+      \cmidrule{4-4}
+      \cmidrule{6-7}
+      \cmidrule{9-11}
 
-      Name &&
+      Name & n &&
       acc. && acc. & $t$ (s) &&
       acc. & $d$ & $t$ (s)
       \\
@@ -354,17 +350,17 @@ where
       %\cmidrule{9-10}
       %\cmidrule{12-13}
 
-      Airline && 
+      Airline & $6M$ && 
       $0.781$ && $0.780$ & $1055$ &&
-      $0.788 \pm 0.002$ & $2$ & $1375$\\
+      $\mathbf{0.788 \pm 0.002}$ & $2$ & $1375$\\
 
-      CIFAR-10 && 
-      $-$ && $0.915$ & $166$ &&
+      CIFAR-10 & $50 K$ && 
+      $-$ && $\mathbf{0.915}$ & $166$ &&
       $0.908 \pm 0.003$ & $9$ & $220$\\
 
-      MNIST && 
+      MNIST & $60K$ && 
       $-$ && $0.993$ & $23$ &&
-      $0.9936 \pm 0.0004$ & $10$ & $64$\\
+      $\mathbf{0.9936 \pm 0.0004}$ & $10$ & $64$\\
       \bottomrule
     \end{tabular}
 \end{center}
