@@ -1,0 +1,60 @@
+\begin{tikzpicture}
+  \tikzstyle{neuron} = [circle, draw, fill=yellow!50, minimum size=1.2cm, text width=.8cm]
+  \tikzstyle{input_neuron} = [circle, draw, fill=red!50, minimum size=1.2cm, text width=.8cm]
+  \tikzstyle{output_neuron} = [circle, draw, fill=green!50, minimum size=1.2cm, text width=.8cm]
+  \tikzstyle{bias_neuron} = [circle, draw, fill=blue!30, minimum size=1.2cm, inner sep=2pt, outer sep=2pt, font=\small]
+  \tikzstyle{edge_label} = [font=\small, label={[label distance = -4pt]90:$\text$}]
+  \tikzstyle{edge} = [->]
+
+  \def\step{4}
+  \def\layerpos{0}
+
+  %layer 1
+  \foreach \name/\y in {x_1/3, x_2/1., x_D/-1.} 
+    \node[input_neuron] (\name) at (\layerpos,\y) {\Large $\name$};
+
+  \node (other^1_2) at (\layerpos, 0.) {$\ldots$};
+  \node[bias_neuron] (bias^1) at (\layerpos, -3.) {$+1$};
+
+  %layer 2
+  \pgfmathsetmacro{\layerpos}{\layerpos + \step}
+
+  \foreach \name/\y in {h^l_1/5, h^l_2/2.5, h^l_{m_l}/-2.5} 
+    \node[neuron] (\name) at (\layerpos,\y) {$\name$};
+  \node[bias_neuron] (bias^2) at (\layerpos, -5) {$+1$};
+  \node (other^2) at (\layerpos, 0) {$\ldots$};
+  
+  \foreach \from in {x_1, x_2, x_D, bias^1}
+    \foreach \to in {h^l_1, h^l_2, h^l_{m_l}}
+      \draw[edge] (\from) -- (\to);
+
+  %layer3
+  \pgfmathsetmacro{\layerpos}{\layerpos + \step}
+
+  \foreach \name/\y in {h^{l+1}_1/5, h^{l+1}_2/2.5,  h^{l+1}_{m_{l+1}}/-2.5} 
+    \node[neuron] (\name) at (\layerpos,\y) {\large $\name$};
+  \node[bias_neuron] (bias^3) at (\layerpos, -5) {$+1$};
+  \node (other^3) at (\layerpos, 0) {$\ldots$};
+  \foreach \from in {h^l_1, h^l_2,h^l_{m_l}, bias^2}
+    \foreach \to in {h^{l+1}_1, h^{l+1}_2,  h^{l+1}_{m_{l+1}}} 
+      \draw[edge] (\from) -- (\to);
+
+  %layer 4
+  \pgfmathsetmacro{\layerpos}{\layerpos + \step}
+
+  \foreach \name/\y in {1/2, 2/0., d/-2} 
+    \node[output_neuron] (tilde_x_\name) at (\layerpos,\y) {\Large $\tilde{x}_\name$};
+
+  \node (other^L_1) at (\layerpos, -1.) {$\ldots$};
+  \foreach \from in {h^{l+1}_1, h^{l+1}_2,  h^{l+1}_{m_{l+1}}, bias^3} 
+    \foreach \to in {x_1, x_2, x_d}
+      \draw[edge] (\from) -- (tilde_\to);
+        
+  \draw[-{[scale=2, width=0, line width=1.pt]}](\layerpos + \step * 0.2, 0) to [out=30, in=150] (\layerpos + \step, 0);
+  \node[](GP) at (\layerpos + \step, 0.9) {\huge $\GP$};
+  \draw[-{>[scale=2, width=3, line width=2pt]}] (\layerpos + \step, 0) to [out=-30, in=-150] (\layerpos + \step*1.8, 0);
+  \node[output_neuron](y) at (\layerpos + \step*2, 0) {\Large $y$};
+  
+  \node[draw, line width=1pt, fit=(tilde_x_1) (tilde_x_2) (tilde_x_d)] {};
+
+\end{tikzpicture}

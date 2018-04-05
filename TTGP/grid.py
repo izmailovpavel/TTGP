@@ -103,7 +103,6 @@ class InputsGrid:
       x_indices = tf.minimum(x_indices, n_inputs_dims[dim]-1)
 
       s = tf.abs(x_dim - tf.gather(inputs_dim, x_indices)) / hs_tensor[dim]
-
       s_q = tf.pow(s, 3) / 2
       s_s = 2.5 * tf.pow(s, 2)
       values_03 = (- s_q +  s_s - 4 * s + 2)
