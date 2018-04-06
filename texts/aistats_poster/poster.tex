@@ -224,7 +224,7 @@
   \item Inducing inputs are imaginary data points that allow to speed up GP inference
   \item SKI \citep{wilson2015}: set inducing points on a multi-dimensional grid
     \[
-      Z = Z^1 \times Z^2 \times \ldots \times Z^D.
+      Z = Z^1 \times Z^2 \times \ldots \times Z^D
     \]
   
   \item Assume the kernel decomposes as
@@ -323,7 +323,7 @@ where
   \item Represent $\mu$ as a $d$-dimensional tensor, restrict to be in TT format
     with TT-ranks $r$
   \item Maximize ELBO with respect to TT-cores of $\mu$, Kronecker factors of 
-    $\Sigma$ using SGD
+    $\Sigma$ using stochastic optimization
 \end{itemize}
 
 \section*{\LARGE \color{NavyBlue} Properties}
@@ -331,17 +331,16 @@ where
 \begin{itemize}
   \item Linear computational complexity in the size of the data
     $\bigO(n D m^{1 / D} r^2 + D m^{1 / D} r^3 + D m^{3 / D})$. 
-    TT-ranks are in general on the scale of $r \approx 10$.\\ 
-    Here $m = m_0^D$
-  \item TT-GP can be applied for very large $n$ and $m$
+    TT-ranks are in general on the scale of $r \approx 10$.
+    Here $m = m_0^D$, where $m_0$ is the number of inducing points per
+    dimension
+  \item TT-GP can be applied for $n \approx 10^6$ and $m \approx 10^{10}$
 \end{itemize}
 
 \section*{\LARGE \color{NavyBlue} RBF Kernel Experiments}
 
-Comparison with SVI-GP \citep{hensman2013} on regression and classification
-tasks:
-
-\begin{center}
+\begin{tabular}{c}
+%\begin{center}
   \begin{tabular}{lll l cll l clll}
     \toprule
     \multicolumn{3}{c}{Dataset} && \multicolumn{3}{c}{SVI-GP / KLSP-GP} && \multicolumn{4}{c}{TT-GP} \\
@@ -383,23 +382,26 @@ tasks:
     $0.817$ & $1000$ & $320$ &&
     $\mathbf{0.852}$ & $10^6$ & $6$ & $172$\\
     \bottomrule
-  \end{tabular}
-\end{center}
+  \end{tabular}\\
+%\end{center}
+Comparison with SVI-GP \citep{hensman2013} on regression and classification
+tasks
+\end{tabular}
 \section*{\LARGE \color{NavyBlue} Deep Kernel Experiments}
     
-Embedding learned by TT-GP with a deep kernel on {\it digits}
-dataset:
-
 \begin{center}
+\begin{tabular}{c}
     \includegraphics[width=20cm]{pics/embed/embedding_2.eps}
+    \\
+  Embedding learned by TT-GP with a deep kernel on {\it digits}
+  dataset
+\end{tabular}
 \end{center}
 
-Comparison with SV-DKL \citep{wilson2016stochastic} and stand-alone
-DNN:
+\vspace{0.5cm}
 
 \begin{center}
-    \label{deep_results}
-    \centering
+\begin{tabular}{c}
     \begin{tabular}{lll ll llll lll}
       \toprule
       \multicolumn{2}{c}{Dataset}  && SV-DKL &&
@@ -434,6 +436,11 @@ DNN:
       $\mathbf{0.9936 \pm 0.0004}$ & $10$ & $64$\\
       \bottomrule
     \end{tabular}
+  \\
+  Comparison with SV-DKL \citep{wilson2016stochastic} and stand-alone
+  DNN:
+
+\end{tabular}
 \end{center}
 
 
