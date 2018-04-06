@@ -292,7 +292,7 @@ Evidence Lower Bound \citep{hensman2013} with KISS-GP approximation of $k_i$:
 %$k_i \approx K_{mm} w_i$:
 \[
   \log p(y) \ge \sum_{i=1}^n \bigg(\log \N (y_i | w_i^T \mu, \sigma^2) - 
-  \frac 1 {2 \sigma^2} (\mbox{var}_i + w_i^T K_{mm} w_i) -\frac 1 {2 \sigma^2} 
+  \frac 1 {2 \sigma^2} (\delta - k_i^T K_{mm}^{-1} k_i) - \frac 1 {2 \sigma^2} 
     \tr (w_i^T \Sigma w_i)\bigg)
 \]
 \[
@@ -306,9 +306,10 @@ where
 %  \item $k_i \in \R^m$ is the vector of covariances between the $i$-th training
 %    object and the inducing points
   \item $\sigma^2$ is the noise variance
+  \item $\delta$ is the prior variance of the process at any point
   \item $\mu \in \R^m$, $\Sigma \in \R^{m \times m}$ — variational parameters
-  \item $\tilde K_{ii} = \mbox{var} - k_i^T K_{mm}^{-1} k_i$, where  
-    $\mbox{var}$ is the prior variance of the process at any point
+  %\item $\delta_{i} = \delta - k_i^T K_{mm}^{-1} k_i$, where  
+  %  $\delta$ is the prior variance of the process at any point
 \end{itemize}
 
 \section*{\LARGE \color{NavyBlue}TT-GP}
