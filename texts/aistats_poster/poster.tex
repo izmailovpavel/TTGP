@@ -68,6 +68,11 @@
 \newcommand{\tens}[1]{\boldsymbol{\mathcal{#1}}}
 \newcommand{\tensel}[1]{\mathcal{#1}}
 \newcommand{\GP}{\mathcal{GP}}
+\newcommand{\Knn}{K_{nn}}
+\newcommand{\Knm}{K_{nm}}
+\newcommand{\Kmn}{K_{mn}}
+\newcommand{\Kmm}{K_{mm}}
+\newcommand{\ki}{k_{i}}
 \newcommand{\E}{\mathbb{E}}
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\N}{\mathcal{N}}
@@ -221,21 +226,33 @@
 \section*{\LARGE \color{NavyBlue}Inducing Inputs and Structured Kernel Interpolation}
 
 \begin{itemize}
-  \item Inducing inputs are imaginary data points that allow to speed up GP inference
+  \item Inducing points $(Z, u)$ are imaginary points that compress information in data.
+    The joint distribution of labeles $y$, process values $f(X)$ at data points
+    and $f(Z)$ at inducing points is given by
+    \[
+      p(y, f(X), f(Z)) = \prod_i p(y_i \vert f(X_i))\cdot p(f(X) \vert f(Z))\cdot p(f(Z)),
+    \]
+    where 
+    $p(f(X) | f(Z)) = \N(f(X) | \Knm \Kmm^{-1} f(Z), \Knn - \Knm \Kmm^{-1} \Knm^T)$,
+    $p(f(Z))= \N(f(Z) | 0, \Kmm)$. 
+    Here $K_{mm} \in \R^{m \times m}$,
+    $K_{nm} \in \R^{n \times m}$,
+    $K_{nn} \in \R^{n \times n}$ are covariance matrices computed between $Z$ and $Z$,
+    $X$ and $Z$, $X$ and $X$ respectively
+  
   \item SKI \citep{wilson2015}: set inducing points on a multi-dimensional grid
     \[
       Z = Z^1 \times Z^2 \times \ldots \times Z^D
     \]
   
-  \item Assume the kernel decomposes as
-    \[
+    Assume the kernel decomposes as
+    $
       k(x, x') = k^1(x^1, x'^1) \cdot k^2(x^2, x'^2) \cdot \ldots \cdot k^D(x^D, x'^D)
-    \]
-    Covariance matrix $K_{mm} \in \R^{m \times m}$ computed at the
-    inducing points takes form
-    \[
+    $
+    Covariance matrix $K_{mm}$ takes form
+    $
       K_{mm} = K_{m_1 m_1}^1 \otimes K_{m_2 m_2}^2 \otimes \ldots \otimes K_{m_D m_D}^D
-    \] 
+    $ 
 
 \end{itemize}
 \begin{minipage}[b]{0.45\linewidth}
@@ -271,6 +288,28 @@
         \]
 \end{itemize}
 
+\section*{\LARGE \color{NavyBlue}Gaussian Process ELBO}
+    
+Evidence Lower Bound \citep{hensman2013} with KISS-GP approximation of $k_i$:
+%$k_i \approx K_{mm} w_i$:
+\[
+  \log p(y) \ge \sum_{i=1}^n \bigg(\log \N (y_i | w_i^T \mu, \sigma^2) - 
+  \frac 1 {2 \sigma^2} (\delta - k_i^T K_{mm}^{-1} k_i) - \frac 1 {2 \sigma^2} 
+    \tr (w_i^T \Sigma w_i)\bigg)
+\]
+\[
+  - \frac 1 2 \bigg(\log \frac {\det (K_{mm})} {\det (\Sigma)} - m + \tr(K_{mm}^{-1} \Sigma)
+  + \mu^T K_{mm}^{-1}\mu \bigg)
+\]
+where
+%  \item $K_{mm} \in \R^{m \times m}$ is the covariance matrix computed at the
+%    inducing points
+%  \item $k_i \in \R^m$ is the vector of covariances between the $i$-th training
+%    object and the inducing points
+$\sigma^2$ is the noise variance, $\delta$ is the prior variance of the process at any point
+and $\mu \in \R^m$, $\Sigma \in \R^{m \times m}$ are variational parameters
+  %\item $\delta_{i} = \delta - k_i^T K_{mm}^{-1} k_i$, where  
+  %  $\delta$ is the prior variance of the process at any point
 \section*{\LARGE \color{NavyBlue} Tensor Train Format}
 
 Tensor $\tens{A}$ is said to be represented in Tensor Train \citep{oseledets2011}  format if:
@@ -286,40 +325,15 @@ Tensor $\tens{A}$ is said to be represented in Tensor Train \citep{oseledets2011
 \end{itemize}
 
 
-\section*{\LARGE \color{NavyBlue}Gaussian Process ELBO}
-    
-Evidence Lower Bound \citep{hensman2013} with KISS-GP approximation of $k_i$:
-%$k_i \approx K_{mm} w_i$:
-\[
-  \log p(y) \ge \sum_{i=1}^n \bigg(\log \N (y_i | w_i^T \mu, \sigma^2) - 
-  \frac 1 {2 \sigma^2} (\delta - k_i^T K_{mm}^{-1} k_i) - \frac 1 {2 \sigma^2} 
-    \tr (w_i^T \Sigma w_i)\bigg)
-\]
-\[
-  - \frac 1 2 \bigg(\log \frac {\det (K_{mm})} {\det (\Sigma)} - m + \tr(K_{mm}^{-1} \Sigma)
-  + \mu^T K_{mm}^{-1}\mu \bigg)
-\]
-where
-\begin{itemize}
-%  \item $K_{mm} \in \R^{m \times m}$ is the covariance matrix computed at the
-%    inducing points
-%  \item $k_i \in \R^m$ is the vector of covariances between the $i$-th training
-%    object and the inducing points
-  \item $\sigma^2$ is the noise variance
-  \item $\delta$ is the prior variance of the process at any point
-  \item $\mu \in \R^m$, $\Sigma \in \R^{m \times m}$ — variational parameters
-  %\item $\delta_{i} = \delta - k_i^T K_{mm}^{-1} k_i$, where  
-  %  $\delta$ is the prior variance of the process at any point
-\end{itemize}
 
 \section*{\LARGE \color{NavyBlue}TT-GP}
 
 \begin{itemize}
   \item Set inducing points $Z$ on a grid in the feature space
   \item Restrict $\Sigma$ to be in a Kronecker product format
-    \[
+    $
       \Sigma = \Sigma^1 \otimes \Sigma^2\otimes \ldots \otimes \Sigma^D
-    \]
+    $
   \item Represent $\mu$ as a $d$-dimensional tensor, restrict to be in TT format
     with TT-ranks $r$
   \item Maximize ELBO with respect to TT-cores of $\mu$, Kronecker factors of 
