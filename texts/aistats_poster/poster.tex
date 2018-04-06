@@ -207,12 +207,13 @@
 \section*{\LARGE \color{NavyBlue}Summary}
 
 \begin{itemize}
-  \item Gaussian processes are flexible and elegant models, but exact inference 
+  \item Gaussian processes are powerful and elegant models, but exact inference 
     requires $\bigO(n^3)$ computations, where $n$ is the number of training data
   \item We propose the Tensor Train GP (TT-GP) framework with 
-    linear complexity  $\bigO(n)$
+    linear complexity  $\bigO(n)$ 
   \item TT-GP allows to build flexible posterior approximations and train
-    expressive deep kernels by using billions of inducing points
+    expressive deep kernels by using billions of inducing points for datasets
+    containing millions of data points of dimensionality up to $10$
   \item TT-GP achieves state-of-the-art results on several important benchmarks
     both with RBF and deep kernels
 \end{itemize}
@@ -255,7 +256,7 @@
 \end{minipage}
     
     \begin{itemize}
-      \item $|K_{mm}|$ and $K_{mm}^{-1}$ can be computed efficiently
+      \item $\det(K_{mm})$ and $K_{mm}^{-1}$ can be computed efficiently
       \item Inducing points can be considered as inteprolation points for the
         kernel
         \[
@@ -295,7 +296,7 @@ Evidence Lower Bound \citep{hensman2013} with KISS-GP approximation of $k_i$:
     \tr (w_i^T \Sigma w_i)\bigg)
 \]
 \[
-  - \frac 1 2 \bigg(\log \frac {|K_{mm}|} {|\Sigma|} - m + \tr(K_{mm}^{-1} \Sigma)
+  - \frac 1 2 \bigg(\log \frac {\det (K_{mm})} {\det (\Sigma)} - m + \tr(K_{mm}^{-1} \Sigma)
   + \mu^T K_{mm}^{-1}\mu \bigg)
 \]
 where
