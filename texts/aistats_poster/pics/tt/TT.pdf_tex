@@ -1,4 +1,4 @@
-%% Creator: Inkscape inkscape 0.91, www.inkscape.org
+%% Creator: Inkscape inkscape 0.92.3, www.inkscape.org
 %% PDF/EPS/PS + LaTeX output extension by Johan Engelen, 2010
 %% Accompanies image file 'TT.pdf' (pdf, eps, ps)
 %%
@@ -35,8 +35,10 @@
     \renewcommand\transparent[1]{}%
   }%
   \providecommand\rotatebox[2]{#2}%
+  \newcommand*\fsize{\dimexpr\f@size pt\relax}%
+  \newcommand*\lineheight[1]{\fontsize{\fsize}{#1\fsize}\selectfont}%
   \ifx\svgwidth\undefined%
-    \setlength{\unitlength}{1840bp}%
+    \setlength{\unitlength}{1725bp}%
     \ifx\svgscale\undefined%
       \relax%
     \else%
@@ -49,18 +51,19 @@
   \global\let\svgscale\undefined%
   \makeatother%
   \begin{picture}(1,0.38417703)%
+    \lineheight{1}%
+    \setlength\tabcolsep{0pt}%
     \put(0,0){\includegraphics[width=\unitlength,page=1]{TT.pdf}}%
-    \put(0.24022081,0.09817872){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$\tensel{A}_{2 4 2 3} =$}}}%
-    \put(0.4370153,0.18410157){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$G_1$}}}%
-    \put(0.60026765,0.18410157){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$G_2$}}}%
-    \put(0.76469766,0.18410157){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$G_3$}}}%
-    \put(0.89943919,0.18410157){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$G_4$}}}%
-    \put(0.58258192,0.00410157){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$i_2=4$}}}%
-    \put(0.7408291,0.00410157){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$i_3=2$}}}%
-    \put(0.90144534,0.00410157){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$i_4=3$}}}%
-    \put(0.39891196,0.04756592){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$i_1=2$}}}%
-    \put(0.23978151,0.36652517){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{}}}%
-    \put(0.2621267,0.38800807){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\begin{minipage}{1.4705665\unitlength}\raggedright $\tensel{A}_{i_1 \ldots i_d} = \underbrace{G_1[i_1]}_{1 \times \rank} \underbrace{G_2[i_2]}_{\rank \times \rank} \ldots \underbrace{G_d[i_d]}_{\rank \times 1}$\end{minipage}}}%
-    \put(0.01791365,0.25507499){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{An example of computing one element of a $4$-dimensional tensor:}}}%
+    \put(0.24022082,0.09817872){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{0}\smash{\begin{tabular}[t]{l}$\tensel{A}_{2 4 2 3} =$\end{tabular}}}}%
+    \put(0.4370153,0.18410157){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{0}\smash{\begin{tabular}[t]{l}$G_1$\end{tabular}}}}%
+    \put(0.60026765,0.18410157){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{0}\smash{\begin{tabular}[t]{l}$G_2$\end{tabular}}}}%
+    \put(0.76469767,0.18410157){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{0}\smash{\begin{tabular}[t]{l}$G_3$\end{tabular}}}}%
+    \put(0.89943919,0.18410157){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{0}\smash{\begin{tabular}[t]{l}$G_4$\end{tabular}}}}%
+    \put(0.58258192,0.00410157){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{0}\smash{\begin{tabular}[t]{l}$i_2=4$\end{tabular}}}}%
+    \put(0.7408291,0.00410157){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{0}\smash{\begin{tabular}[t]{l}$i_3=2$\end{tabular}}}}%
+    \put(0.90144534,0.00410157){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{0}\smash{\begin{tabular}[t]{l}$i_4=3$\end{tabular}}}}%
+    \put(0.39891196,0.04756592){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{0}\smash{\begin{tabular}[t]{l}$i_1=2$\end{tabular}}}}%
+    \put(0.23978151,0.36652517){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{0}\smash{\begin{tabular}[t]{l} \end{tabular}}}}%
+    \put(0.25325896,0.32297799){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\begin{minipage}{1.4705665\unitlength}\raggedright \end{minipage}}}%
   \end{picture}%
 \endgroup%

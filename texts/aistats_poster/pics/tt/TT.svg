@@ -12,7 +12,7 @@
    height="883.60718"
    id="svg3796"
    version="1.1"
-   inkscape:version="0.91 r13725"
+   inkscape:version="0.92.3 (3ce5693, 2018-03-11)"
    sodipodi:docname="TT.svg">
   <metadata
      id="metadata4216">
@@ -22,7 +22,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -45,15 +45,15 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="1280"
-     inkscape:window-height="707"
+     inkscape:window-width="1920"
+     inkscape:window-height="1056"
      id="namedview4212"
      showgrid="false"
      inkscape:zoom="0.29417826"
-     inkscape:cx="630.16271"
+     inkscape:cx="52.281802"
      inkscape:cy="305.83162"
      inkscape:window-x="0"
-     inkscape:window-y="1"
+     inkscape:window-y="24"
      inkscape:window-maximized="1"
      inkscape:current-layer="svg3796"
      fit-margin-top="0"
@@ -1314,135 +1314,136 @@
        style="fill:none" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="font-style:normal;font-weight:normal;line-height:0%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        x="122.67969"
        y="652.18896"
-       id="text4218"
-       sodipodi:linespacing="125%"><tspan
+       id="text4218"><tspan
          sodipodi:role="line"
          x="122.67969"
          y="652.18896"
-         id="tspan4302">$\tensel{A}_{2 4 2 3} =$</tspan></text>
+         id="tspan4302"
+         style="font-size:40px;line-height:1.25">$\tensel{A}_{2 4 2 3} =$</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="font-style:normal;font-weight:normal;line-height:0%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        x="575.30701"
        y="454.56641"
-       id="text4228"
-       sodipodi:linespacing="125%"><tspan
+       id="text4228"><tspan
          sodipodi:role="line"
          x="575.30701"
          y="454.56641"
-         id="tspan4232">$G_1$</tspan></text>
+         id="tspan4232"
+         style="font-size:40px;line-height:1.25">$G_1$</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="font-style:normal;font-weight:normal;line-height:0%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        x="950.78741"
        y="454.56641"
-       id="text4236"
-       sodipodi:linespacing="125%"><tspan
+       id="text4236"><tspan
          sodipodi:role="line"
          id="tspan4238"
          x="950.78741"
-         y="454.56641">$G_2$</tspan></text>
+         y="454.56641"
+         style="font-size:40px;line-height:1.25">$G_2$</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="font-style:normal;font-weight:normal;line-height:0%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        x="1328.9764"
        y="454.56641"
-       id="text4240"
-       sodipodi:linespacing="125%"><tspan
+       id="text4240"><tspan
          sodipodi:role="line"
          id="tspan4242"
          x="1328.9764"
-         y="454.56641">$G_3$</tspan></text>
+         y="454.56641"
+         style="font-size:40px;line-height:1.25">$G_3$</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="font-style:normal;font-weight:normal;line-height:0%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        x="1638.882"
        y="454.56641"
-       id="text4244"
-       sodipodi:linespacing="125%"><tspan
+       id="text4244"><tspan
          sodipodi:role="line"
          id="tspan4246"
          x="1638.882"
-         y="454.56641">$G_4$</tspan></text>
+         y="454.56641"
+         style="font-size:40px;line-height:1.25">$G_4$</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="font-style:normal;font-weight:normal;line-height:0%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        x="910.11023"
        y="868.56641"
-       id="text4248"
-       sodipodi:linespacing="125%"><tspan
+       id="text4248"><tspan
          sodipodi:role="line"
          id="tspan4250"
          x="910.11023"
-         y="868.56641">$i_2=4$</tspan></text>
+         y="868.56641"
+         style="font-size:40px;line-height:1.25">$i_2=4$</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="font-style:normal;font-weight:normal;line-height:0%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        x="1274.0787"
        y="868.56641"
-       id="text4252"
-       sodipodi:linespacing="125%"><tspan
+       id="text4252"><tspan
          sodipodi:role="line"
          id="tspan4254"
          x="1274.0787"
-         y="868.56641">$i_3=2$</tspan></text>
+         y="868.56641"
+         style="font-size:40px;line-height:1.25">$i_3=2$</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="font-style:normal;font-weight:normal;line-height:0%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        x="1643.4961"
        y="868.56641"
-       id="text4256"
-       sodipodi:linespacing="125%"><tspan
+       id="text4256"><tspan
          sodipodi:role="line"
          id="tspan4258"
          x="1643.4961"
-         y="868.56641">$i_4=3$</tspan></text>
+         y="868.56641"
+         style="font-size:40px;line-height:1.25">$i_4=3$</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="font-style:normal;font-weight:normal;line-height:0%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        x="487.66931"
        y="768.59839"
-       id="text4260"
-       sodipodi:linespacing="125%"><tspan
+       id="text4260"><tspan
          sodipodi:role="line"
          id="tspan4262"
          x="487.66931"
-         y="768.59839">$i_1=2$</tspan></text>
+         y="768.59839"
+         style="font-size:40px;line-height:1.25">$i_1=2$</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="font-style:normal;font-weight:normal;line-height:0%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        x="121.66928"
        y="34.992126"
-       id="text4306"
-       sodipodi:linespacing="125%"><tspan
+       id="text4306"><tspan
          sodipodi:role="line"
          id="tspan4308"
          x="121.66928"
-         y="34.992126" /></text>
+         y="34.992126"
+         style="font-size:40px;line-height:1.25"> </tspan></text>
   </g>
   <flowRoot
      xml:space="preserve"
      id="flowRoot4990"
-     style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-     transform="translate(307.15236,-45.992995)"><flowRegion
+     style="font-style:normal;font-weight:normal;line-height:0.01%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+     transform="translate(286.75656,103.57618)"><flowRegion
        id="flowRegion4992"><rect
          id="rect4994"
          width="3382.303"
          height="57.788094"
          x="295.73904"
          y="37.18161" /></flowRegion><flowPara
-       id="flowPara4996">$\tensel{A}_{i_1 \ldots i_d} = \underbrace{G_1[i_1]}_{1 \times \rank} \underbrace{G_2[i_2]}_{\rank \times \rank} \ldots \underbrace{G_d[i_d]}_{\rank \times 1}$</flowPara></flowRoot>  <text
+       id="flowPara4996"
+       style="font-size:40px;line-height:1.25">$\tensel{A}_{i_1 \ldots i_d} = \underbrace{G_1[i_1]}_{1 \times \rank} \underbrace{G_2[i_2]}_{\rank \times \rank} \ldots \underbrace{G_d[i_d]}_{\rank \times 1}$</flowPara></flowRoot>  <text
      xml:space="preserve"
-     style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-     x="41.201389"
-     y="296.93469"
-     id="text4998"
-     sodipodi:linespacing="125%"><tspan
+     style="font-style:normal;font-weight:normal;line-height:0%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+     x="292.74954"
+     y="351.32349"
+     id="text4998"><tspan
        sodipodi:role="line"
        id="tspan5000"
-       x="41.201389"
-       y="296.93469">An example of computing one element of a $4$-dimensional tensor:</tspan></text>
+       x="292.74954"
+       y="351.32349"
+       style="font-size:40px;line-height:1.25">An example of computing one element of a $4$-dimensional tensor:</tspan></text>
 </svg>

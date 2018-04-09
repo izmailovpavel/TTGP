@@ -226,15 +226,15 @@
 \section*{\LARGE \color{NavyBlue}Inducing Inputs and Structured Kernel Interpolation}
 
 \begin{itemize}
-  \item Inducing points $(Z, u)$ are imaginary points that compress information in data.
-    The joint distribution of labeles $y$, process values $f(X)$ at data points
-    and $f(Z)$ at inducing points is given by
+  \item Inducing points $(Z, u)$ are $m$ imaginary points that compress information in data.
+    The joint distribution of labels $y$, process values $f \in \R^n$ at data points
+    and $u \in \R^m$ at inducing points is given by
     \[
-      p(y, f(X), f(Z)) = \prod_i p(y_i \vert f(X_i))\cdot p(f(X) \vert f(Z))\cdot p(f(Z)),
+      p(y, f, u) = \prod_i p(y_i \vert f)\cdot p(f \vert u)\cdot p(u),
     \]
     where 
-    $p(f(X) | f(Z)) = \N(f(X) | \Knm \Kmm^{-1} f(Z), \Knn - \Knm \Kmm^{-1} \Knm^T)$,
-    $p(f(Z))= \N(f(Z) | 0, \Kmm)$. 
+    $p(f | u) = \N(f | \Knm \Kmm^{-1} u, \Knn - \Knm \Kmm^{-1} \Knm^T)$,
+    $p(u)= \N(u | 0, \Kmm)$. 
     Here $K_{mm} \in \R^{m \times m}$,
     $K_{nm} \in \R^{n \times m}$,
     $K_{nn} \in \R^{n \times n}$ are covariance matrices computed between $Z$ and $Z$,
@@ -313,8 +313,12 @@ and $\mu \in \R^m$, $\Sigma \in \R^{m \times m}$ are variational parameters
 \section*{\LARGE \color{NavyBlue} Tensor Train Format}
 
 Tensor $\tens{A}$ is said to be represented in Tensor Train \citep{oseledets2011}  format if:
-\vspace{0.2cm}
+\[\tensel{A}_{i_1 \ldots i_d} = \underbrace{G_1[i_1]}_{1 \times \rank} \underbrace{G_2[i_2]}_{\rank \times \rank} \ldots \underbrace{G_d[i_d]}_{\rank \times 1}\]
+
+An example of computing one element of a $4$-dimensional tensor:
+\vspace{-4.5cm}
 \flushleft
+\hspace{-4cm}
 \def\svgwidth{33cm}
 \includesvg{pics/tt/TT}
 
@@ -353,8 +357,9 @@ Tensor $\tens{A}$ is said to be represented in Tensor Train \citep{oseledets2011
 
 \section*{\LARGE \color{NavyBlue} RBF Kernel Experiments}
 
+\begin{center}
+\scalebox{0.75}{
 \begin{tabular}{c}
-%\begin{center}
   \begin{tabular}{lll l cll l clll}
     \toprule
     \multicolumn{3}{c}{Dataset} && \multicolumn{3}{c}{SVI-GP / KLSP-GP} && \multicolumn{4}{c}{TT-GP} \\
@@ -397,24 +402,28 @@ Tensor $\tens{A}$ is said to be represented in Tensor Train \citep{oseledets2011
     $\mathbf{0.852}$ & $10^6$ & $6$ & $172$\\
     \bottomrule
   \end{tabular}\\
-%\end{center}
 Comparison with SVI-GP \citep{hensman2013} on regression and classification
 tasks
 \end{tabular}
+}
+\end{center}
 \section*{\LARGE \color{NavyBlue} Deep Kernel Experiments}
     
 \begin{center}
+\scalebox{0.75}{
 \begin{tabular}{c}
     \includegraphics[width=20cm]{pics/embed/embedding_2.eps}
     \\
   Embedding learned by TT-GP with a deep kernel on {\it digits}
   dataset
 \end{tabular}
+}
 \end{center}
 
 \vspace{0.5cm}
 
 \begin{center}
+\scalebox{0.75}{
 \begin{tabular}{c}
     \begin{tabular}{lll ll llll lll}
       \toprule
@@ -452,9 +461,10 @@ tasks
     \end{tabular}
   \\
   Comparison with SV-DKL \citep{wilson2016stochastic} and stand-alone
-  DNN:
+  DNN
 
 \end{tabular}
+}
 \end{center}
 
 
