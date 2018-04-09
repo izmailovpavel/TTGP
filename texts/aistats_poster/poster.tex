@@ -223,12 +223,12 @@
     both with RBF and deep kernels
 \end{itemize}
 
-\section*{\LARGE \color{NavyBlue}Inducing Inputs and Structured Kernel Interpolation}
+\section*{\LARGE \color{NavyBlue}Inducing Inputs}
 
 \begin{itemize}
   \item Inducing points $(Z, u)$ are $m$ imaginary points that compress information in data.
     The joint distribution of labels $y$, process values $f \in \R^n$ at data points
-    and $u \in \R^m$ at inducing points is given by
+    and process values $u \in \R^m$ at inducing points is given by
     \[
       p(y, f, u) = \prod_i p(y_i \vert f)\cdot p(f \vert u)\cdot p(u),
     \]
@@ -246,9 +246,15 @@
     $
     with $q(u) = \N(u \vert \mu, \Sigma)$ we can derive the variational lower bound
     \[
-      \log p(y) \ge \sum_i \E_q(f_i) \log p(y_i \vert f_i) - \KL{q(u)}{p(u)}
+      \log p(y) \ge \sum_i \E_{q(f_i)} \log p(y_i \vert f_i) - \KL{q(u)}{p(u)}
     \]
   
+  \item The complexity of computing this bound is $\bigO(nm^2 + m^3)$
+\end{itemize}
+
+\section*{\LARGE \color{NavyBlue}Structured Kernel Interpolation}
+  
+\begin{itemize}
   \item SKI \citep{wilson2015}: set inducing points on a multi-dimensional grid
     \[
       Z = Z^1 \times Z^2 \times \ldots \times Z^D
@@ -282,7 +288,7 @@
 \end{minipage}
     
     \begin{itemize}
-      \item $\det(K_{mm})$ and $K_{mm}^{-1}$ can be computed efficiently
+      \item $\det(K_{mm})$ and $K_{mm}^{-1}$ can be computed in $\bigO(D m^{3/D})$
       \item Inducing points can be considered as inteprolation points for the
         kernel
         \[
