@@ -78,7 +78,7 @@
 \newcommand{\N}{\mathcal{N}}
 \newcommand{\bigO}{\mathcal{O}}
 \newcommand{\cov}{\mbox{cov}}
-\newcommand{\KL}[2]{\mbox{KL}\left(#1\mbox{ || }#2\right)}
+\newcommand{\KL}[2]{\mbox{KL}\left(#1\vert \vert#2\right)}
 \newcommand{\tr}{\mbox{tr}}
 \graphicspath{{pics/tt/}}
 \newcommand{\includesvg}[1]{%
@@ -239,6 +239,15 @@
     $K_{nm} \in \R^{n \times m}$,
     $K_{nn} \in \R^{n \times n}$ are covariance matrices computed between $Z$ and $Z$,
     $X$ and $Z$, $X$ and $X$ respectively
+
+  \item Using the variational distribution of the form 
+    $
+      q(f, u) = p(f \vert u) q(u)
+    $
+    with $q(u) = \N(u \vert \mu, \Sigma)$ we can derive the variational lower bound
+    \[
+      \log p(y) \ge \sum_i \E_q(f_i) \log p(y_i \vert f_i) - \KL{q(u)}{p(u)}
+    \]
   
   \item SKI \citep{wilson2015}: set inducing points on a multi-dimensional grid
     \[
