@@ -130,10 +130,10 @@
 %\end{center}
 %\end{minipage}
 
-\begin{minipage}[b]{.75\linewidth}
+\begin{minipage}[b]{.85\linewidth}
   \begin{center}
-  \veryHuge \color{NavyBlue} 
-    \textbf{Scalable Gaussian Processes with Billions of\\ Inducing Inputs \\via Tensor Train Decomposition} \color{Black}\\ % Title
+  \Huge \color{NavyBlue} 
+    \textbf{Scalable Gaussian Processes with Billions of Inducing Inputs \\via Tensor Train Decomposition} \color{Black}\\ % Title
     {
       \huge 
       \renewcommand{\arraystretch}{0.5}
@@ -163,11 +163,11 @@
 %  \\[0.4cm] % University/organization
 \end{center}
 \end{minipage}
-\begin{minipage}[b]{0.25\linewidth}
+\begin{minipage}[b]{0.15\linewidth}
   \begin{minipage}[b]{0.49\linewidth}
   \begin{center}
     \centering
-  \includegraphics[width=10cm]{pics/logos/bayesgroup.pdf}
+  \includegraphics[width=5cm]{pics/logos/bayesgroup.pdf}
   \vspace{0.5cm}
   \end{center}
   \end{minipage}
@@ -175,20 +175,20 @@
   %\hspace{1cm}
   \begin{center}
     \centering
-    \includegraphics[width=7cm]{pics/logos/msu_blue.eps}
+    \includegraphics[width=5cm]{pics/logos/msu_blue.eps}
   \end{center}
   \vspace{0.5cm}
   \end{minipage}
   \begin{minipage}[b]{0.49\linewidth}
   \begin{center}
     \centering
-  \includegraphics[width=7cm]{pics/logos/cornell.png}
+  \includegraphics[width=5cm]{pics/logos/cornell.png}
   \end{center}
   \end{minipage}
   \begin{minipage}[b]{0.49\linewidth}
   \begin{center}
     \centering
-    \includegraphics[width=7cm]{pics/logos/hse.pdf}
+    \includegraphics[width=5cm]{pics/logos/hse.pdf}
   \end{center}
   \end{minipage}
 \end{minipage}
@@ -294,7 +294,7 @@ Evidence Lower Bound \citep{hensman2013} with KISS-GP approximation of $k_i$:
 %$k_i \approx K_{mm} w_i$:
 \[
   \log p(y) \ge \sum_{i=1}^n \bigg(\log \N (y_i | w_i^T \mu, \sigma^2) - 
-  \frac 1 {2 \sigma^2} (\delta - k_i^T K_{mm}^{-1} k_i) - \frac 1 {2 \sigma^2} 
+  \frac 1 {2 \sigma^2} (\delta - w_i^T K_{mm} w_i) - \frac 1 {2 \sigma^2} 
     \tr (w_i^T \Sigma w_i)\bigg)
 \]
 \[
