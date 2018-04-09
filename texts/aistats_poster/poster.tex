@@ -212,14 +212,16 @@
 \section*{\LARGE \color{NavyBlue}Summary}
 
 \begin{itemize}
-  \item Gaussian processes are powerful and elegant models, but exact inference 
+  \item Gaussian processes are powerful and elegant models, but the exact inference 
     requires $\bigO(n^3)$ computations, where $n$ is the number of training data
   \item We propose the Tensor Train GP (TT-GP) framework with 
-    linear complexity  $\bigO(n)$ 
-  \item TT-GP allows to build flexible posterior approximations and train
-    expressive deep kernels by using billions of inducing points for datasets
-    containing millions of data points of dimensionality up to $10$
-  \item TT-GP achieves state-of-the-art results on several important benchmarks
+    linear complexity  $\bigO(n D)$  w.r.t. the dataset size $n$ and the dimensionality of the data $D$
+%  \item TT-GP allows to build flexible posterior approximations and train
+%    expressive deep kernels by using billions of inducing points for datasets
+%    containing millions of data points of dimensionality up to $10$
+  \item TT-GP supports billions of inducing inputs
+  \item Can train TT-GP with neural network embeddings end-to-end
+  \item TT-GP achieves state-of-the-art results on several  benchmarks
     both with RBF and deep kernels
 \end{itemize}
 
@@ -356,14 +358,13 @@ An example of computing one element of a $4$-dimensional tensor:
   \item Represent $\mu$ as a $d$-dimensional tensor, restrict to be in TT format
     with TT-ranks $r$
   \item Maximize ELBO with respect to TT-cores of $\mu$, Kronecker factors of 
-    $\Sigma$ using stochastic optimization
+    $\Sigma$, and kernel parameters using stochastic optimization
 \end{itemize}
 
 \section*{\LARGE \color{NavyBlue} Properties}
     
 \begin{itemize}
-  \item Linear computational complexity in the size of the data
-    $\bigO(n D m^{1 / D} r^2 + D m^{1 / D} r^3 + D m^{3 / D})$. 
+  \item Linear complexity $\bigO(n D m^{1 / D} r^2 + D m^{1 / D} r^3 + D m^{3 / D})$ w.r.t. the dataset size $n$ and dimensionality $D$. 
     TT-ranks are in general on the scale of $r \approx 10$.
     Here $m = m_0^D$, where $m_0$ is the number of inducing points per
     dimension
