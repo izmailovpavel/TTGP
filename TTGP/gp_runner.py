@@ -85,6 +85,18 @@ class GPRunner:
         y_init = TensorTrainBatch(y_init_cores)
         return x_init, y_init
 
+
+    def get_cov_params(self, sess):
+        cov_params = self.cov.get_params()
+        cov_params_val = sess.run(cov_params)
+        sigma_f, l, sigma_n = cov_params_val[:3]
+        return sigma_f, l, sigma_n
+
+    def get_mu_tt_cores(self, gp, sess):
+        ttcores = gp.gp.mu.tt_cores
+        ttcores_val = sess.run(ttcores)
+        return ttcores_val
+
     def run_experiment(self):
             d = self.cov.feature_dim()
             x_tr, y_tr, x_te, y_te = self._get_data(self.data_dir, self.data_type)
@@ -172,11 +184,21 @@ class GPRunner:
                     batch_elbo += elbo_val
                     writer.add_summary(elbo_summary_val, i)
                 
-                r2_val, mse_vale = sess.run(r2_te, mse_te)
+                r2_val, mse_vale = sess.run([r2_te, mse_te])
                 print('Final r2:', r2_val)
                 print('Final mse:', mse_val)
                 print('Final rmse:', np.sqrt(mse_val))
+
+                sigma_f, l, sigma_n = self.get_cov_params(sess)
+                print('sigma_f:', sigma_f)
+                print('l:', l)
+                print('sigma_n:', sigma_n)
+
+
                 if not self.save_dir is None:
-                    model_path = saver.save(sess, self.save_dir)
-                    print("Model saved in file: %s" % model_path)
+                    muttcores = self.get_mu_tt_cores(gp, sess)
+                    for i, core in enumerate(muttcores):
+                        np.save(self.save_dir+'/mu_core_'+str(i)+'npy', core)
+#                    model_path = saver.save(sess, self.save_dir)
+#                    print("Model saved in file: %s" % model_path)
 #                    gp.cov.projector.save_weights(sess)

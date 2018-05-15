@@ -327,13 +327,14 @@ $\sigma^2$ is the noise variance, $\delta$ is the prior variance of the process 
 and $\mu \in \R^m$, $\Sigma \in \R^{m \times m}$ are variational parameters
   %\item $\delta_{i} = \delta - k_i^T K_{mm}^{-1} k_i$, where  
   %  $\delta$ is the prior variance of the process at any point
+
+\vfill\null
+\columnbreak
+
 \section*{\LARGE \color{NavyBlue} Tensor Train Format}
 
 Tensor $\tens{A}$ is said to be represented in Tensor Train \citep{oseledets2011}  format if:
 \[\tensel{A}_{i_1 \ldots i_d} = \underbrace{G_1[i_1]}_{1 \times \rank} \underbrace{G_2[i_2]}_{\rank \times \rank} \ldots \underbrace{G_d[i_d]}_{\rank \times 1}\]
-
-\vfill\null
-\columnbreak
 
 An example of computing one element of a $4$-dimensional tensor:
 
@@ -428,14 +429,15 @@ tasks
 }
 \end{center}
 \section*{\LARGE \color{NavyBlue} Deep Kernel Experiments}
-    
+\vspace{-2.5cm} 
 \begin{center}
 \scalebox{0.75}{
-\begin{tabular}{c}
-    \includegraphics[width=20cm]{pics/embed/embedding_2.eps}
+\begin{tabular}{cc}
+  \includegraphics[width=20cm]{pics/embed/embedding_2.eps} &
+    \includegraphics[width=35cm, trim={2cm 19.5cm 0cm 0}, clip]{pics/tikz/pic.pdf}
     \\
-  Embedding learned by TT-GP with a deep kernel on {\it digits}
-  dataset
+  Embedding learned by TT-GP with a deep kernel on {\it digits}&
+  \hspace{-20cm}Deep Kernel GP model 
 \end{tabular}
 }
 \end{center}
@@ -490,9 +492,9 @@ tasks
 
 %\nocite{*} % Print all references regardless of whether they were cited in the poster or not
 %\bibliographystyle{plain} % Plain referencing style
-\bibliography{biblio} % Use the example bibliography file sample.bib
+{\normalsize
+  \bibliography{biblio}} % Use the example bibliography file sample.bib
 \bibliographystyle{plainnat}
-
 %\section*{Acknowledgements}
 
 

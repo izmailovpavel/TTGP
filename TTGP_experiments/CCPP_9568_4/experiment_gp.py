@@ -4,9 +4,9 @@ import os
 import numpy as np
 from tensorflow.contrib.layers import batch_norm
 
-from gptt_embed.covariance import SE
-from gptt_embed.projectors import Identity
-from gptt_embed.gp_runner import GPRunner
+from TTGP.covariance import SE
+from TTGP.projectors import Identity
+from TTGP.gp_runner import GPRunner
 
 with tf.Graph().as_default():
     data_dir = "data/"
@@ -22,10 +22,11 @@ with tf.Graph().as_default():
     lr = 1e-3
     decay = (10, 0.2)
     n_epoch = 30
+#    n_epoch = 1
     batch_size = 100
     data_type = 'numpy'
     log_dir = 'log'
-    save_dir = None#'models/gpnn_100_100_4.ckpt'
+    save_dir = 'models'
     model_dir = None#save_dir
     load_model = False#True
     

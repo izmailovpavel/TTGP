@@ -26,7 +26,7 @@ This code has the following dependencies (version number crucial):
 - Tensorflow 1.3
 - scikit-learn
 - numpy
-- t3f (see https://github.com/Bihaqo/t3f for installation instructions)
+- t3f 0.3.0 (see https://github.com/Bihaqo/t3f for installation instructions)
 
 ## Usage
 
